@@ -5,3 +5,6 @@ build
 .expo
 .DS_Store
 *.log
+
+*storybook.log
+storybook-static
