@@ -8,3 +8,13 @@ build
 
 *storybook.log
 storybook-static
+
+# AI and Tool Metadata
+.gemini
+.antigravity
+.cursor
+.vscode/ai-cache
+*.artifact.md
+walkthrough.md
+implementation_plan.md
+task.md

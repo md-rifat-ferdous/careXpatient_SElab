@@ -18,6 +18,8 @@
     "autoprefixer": "^10.4.16",
     "postcss": "^8.4.31",
     "typescript": "^5.0.0",
+    "@carexpatient/typescript-config": "1.0.0",
+    "@carexpatient/tailwind-config": "1.0.0",
     "storybook": "^10.3.6",
     "@storybook/react-vite": "^10.3.6",
     "@chromatic-com/storybook": "^5.1.2",

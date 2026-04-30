@@ -7,8 +7,12 @@
     "packages/*"
   ],
   "scripts": {
-    "dev": "npm run dev --workspaces --if-present",
-    "build": "npm run build --workspaces --if-present",
+    "dev": "turbo dev",
+    "build": "turbo build",
+    "lint": "turbo lint",
     "storybook": "npm run storybook --workspace=packages/ui"
+  },
+  "devDependencies": {
+    "turbo": "latest"
   }
 }
