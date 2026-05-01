@@ -1,0 +1,179 @@
+export interface TimeSlot {
+  id: string;
+  time: string;
+  available: boolean;
+}
+
+export interface DummyDoctor {
+  id: string;
+  name: string;
+  specialty: string;
+  experience: number;
+  fee: number;
+  rating: number;
+  reviewCount: number;
+  gender: string;
+  photo: string;
+  qualification: string;
+  about: string;
+  location: string;
+  district: string;
+  availableToday: boolean;
+  availability: {
+    [date: string]: TimeSlot[];
+  };
+}
+
+const today = new Date();
+const fmt = (d: Date) => d.toISOString().split('T')[0];
+const day = (offset: number) => {
+  const d = new Date(today);
+  d.setDate(d.getDate() + offset);
+  return fmt(d);
+};
+
+const slots = (available: boolean[] = []): TimeSlot[] => [
+  { id: '1', time: '09:00 AM', available: available[0] ?? true },
+  { id: '2', time: '10:00 AM', available: available[1] ?? true },
+  { id: '3', time: '11:00 AM', available: available[2] ?? false },
+  { id: '4', time: '12:00 PM', available: available[3] ?? true },
+  { id: '5', time: '02:00 PM', available: available[4] ?? true },
+  { id: '6', time: '03:30 PM', available: available[5] ?? false },
+  { id: '7', time: '04:30 PM', available: available[6] ?? true },
+  { id: '8', time: '05:00 PM', available: available[7] ?? true },
+];
+
+export const dummyDoctors: DummyDoctor[] = [
+  {
+    id: 'd1',
+    name: 'Dr. Sarah Ahmed',
+    specialty: 'Cardiologist',
+    experience: 12,
+    fee: 120,
+    rating: 4.9,
+    reviewCount: 320,
+    gender: 'Female',
+    photo: 'https://images.unsplash.com/photo-1559839734-2b71f1536783?auto=format&fit=crop&q=80&w=400',
+    qualification: 'MBBS, MD (Cardiology), FCPS',
+    about: 'Specialist in interventional cardiology with 12+ years of experience treating complex heart conditions.',
+    location: 'Dhaka',
+    district: 'Dhaka',
+    availableToday: true,
+    availability: {
+      [day(0)]: slots([true, true, false, true, true, false, true, true]),
+      [day(1)]: slots([false, true, true, false, true, true, false, true]),
+      [day(2)]: slots([true, false, true, true, false, true, true, false]),
+      [day(3)]: slots([true, true, true, false, true, false, true, true]),
+    },
+  },
+  {
+    id: 'd2',
+    name: 'Dr. Rahim Khan',
+    specialty: 'Pediatrician',
+    experience: 8,
+    fee: 80,
+    rating: 4.8,
+    reviewCount: 512,
+    gender: 'Male',
+    photo: 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?auto=format&fit=crop&q=80&w=400',
+    qualification: 'MBBS, DCH, FCPS (Paediatrics)',
+    about: 'Expert in child health, vaccination, and neonatal care. Known for his gentle approach with young patients.',
+    location: 'Chattogram',
+    district: 'Chattogram',
+    availableToday: true,
+    availability: {
+      [day(0)]: slots([false, true, true, true, false, true, true, false]),
+      [day(1)]: slots([true, false, true, true, true, false, false, true]),
+      [day(2)]: slots([true, true, false, true, false, true, true, true]),
+      [day(3)]: slots([false, true, true, false, true, true, true, false]),
+    },
+  },
+  {
+    id: 'd3',
+    name: 'Dr. Anika Rahman',
+    specialty: 'Dermatologist',
+    experience: 6,
+    fee: 100,
+    rating: 5.0,
+    reviewCount: 198,
+    gender: 'Female',
+    photo: 'https://images.unsplash.com/photo-1594824476967-48c8b964273f?auto=format&fit=crop&q=80&w=400',
+    qualification: 'MBBS, DDV, MD (Dermatology)',
+    about: 'Focused on medical and cosmetic dermatology with special expertise in skin disease management.',
+    location: 'Sylhet',
+    district: 'Sylhet',
+    availableToday: false,
+    availability: {
+      [day(0)]: slots([true, true, true, false, true, true, false, true]),
+      [day(1)]: slots([true, false, false, true, true, true, true, false]),
+      [day(2)]: slots([false, true, true, true, false, false, true, true]),
+      [day(3)]: slots([true, true, false, true, true, false, true, false]),
+    },
+  },
+  {
+    id: 'd4',
+    name: 'Dr. S.M. Iqbal',
+    specialty: 'Neurologist',
+    experience: 15,
+    fee: 150,
+    rating: 4.7,
+    reviewCount: 440,
+    gender: 'Male',
+    photo: 'https://images.unsplash.com/photo-1537368910025-700350fe46c7?auto=format&fit=crop&q=80&w=400',
+    qualification: 'MBBS, MD (Neurology), PhD',
+    about: 'Senior neurologist with expertise in stroke management, epilepsy, and neurodegenerative diseases.',
+    location: 'Dhaka',
+    district: 'Cumilla',
+    availableToday: true,
+    availability: {
+      [day(0)]: slots([false, false, true, true, true, false, true, true]),
+      [day(1)]: slots([true, true, false, false, true, true, false, true]),
+      [day(2)]: slots([true, false, true, false, true, true, true, false]),
+      [day(3)]: slots([false, true, true, true, false, false, true, true]),
+    },
+  },
+  {
+    id: 'd5',
+    name: 'Dr. Maria Gomez',
+    specialty: 'Gynecologist',
+    experience: 10,
+    fee: 110,
+    rating: 4.9,
+    reviewCount: 275,
+    gender: 'Female',
+    photo: 'https://images.unsplash.com/photo-1527613426441-4da17471b66d?auto=format&fit=crop&q=80&w=400',
+    qualification: 'MBBS, FCPS (Obs & Gynae)',
+    about: 'Dedicated to women\'s health with expertise in high-risk pregnancy, infertility treatment, and minimally invasive surgery.',
+    location: 'Dhaka',
+    district: 'Rajshahi',
+    availableToday: false,
+    availability: {
+      [day(0)]: slots([true, false, true, true, false, true, true, false]),
+      [day(1)]: slots([false, true, true, false, true, false, true, true]),
+      [day(2)]: slots([true, true, false, true, true, true, false, false]),
+      [day(3)]: slots([true, false, true, false, true, true, true, false]),
+    },
+  },
+  {
+    id: 'd6',
+    name: 'Dr. Tanvir Hossain',
+    specialty: 'Orthopedic',
+    experience: 9,
+    fee: 130,
+    rating: 4.6,
+    reviewCount: 189,
+    gender: 'Male',
+    photo: 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&q=80&w=400',
+    qualification: 'MBBS, MS (Ortho), FCPS',
+    about: 'Expert in joint replacement, sports injuries, and spine surgery with a high patient satisfaction rate.',
+    location: 'Chattogram',
+    district: 'Khulna',
+    availableToday: true,
+    availability: {
+      [day(0)]: slots([true, true, true, false, false, true, true, false]),
+      [day(1)]: slots([false, true, false, true, true, false, true, true]),
+      [day(2)]: slots([true, false, true, true, false, true, false, true]),
+      [day(3)]: slots([true, true, false, false, true, true, true, false]),
+    },
+  },
+];

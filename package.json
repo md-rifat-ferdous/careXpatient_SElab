@@ -9,6 +9,7 @@
     "packages/*"
   ],
   "scripts": {
+    "dev": "turbo run dev",
     "dev:landing": "turbo run dev --filter=landing-page",
     "dev:web": "turbo run dev --filter=web",
     "dev:backend": "turbo run dev --filter=@carexpatient/backend",

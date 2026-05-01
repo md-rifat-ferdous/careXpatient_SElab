@@ -21,7 +21,7 @@ export default function LandingPage() {
           
           <div className="hidden lg:flex items-center gap-8 font-medium text-sm">
             <Link href="/" className="text-primary font-bold">Home</Link>
-            <Link href="#" className="hover:text-primary transition-colors">Find Doctors</Link>
+            <Link href="/doctors" className="hover:text-primary transition-colors">Find Doctors</Link>
             <Link href="#" className="hover:text-primary transition-colors">Book Tests</Link>
             <Link href="#" className="hover:text-primary transition-colors">How it Works</Link>
             <Link href="#" className="hover:text-primary transition-colors">For Doctors</Link>
@@ -57,7 +57,7 @@ export default function LandingPage() {
         <div className={`fixed inset-0 bg-background/95 backdrop-blur-xl z-40 lg:hidden transition-all duration-300 ${isMenuOpen ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-full pointer-events-none'}`}>
           <div className="flex flex-col items-center justify-center h-full gap-8 text-2xl font-bold">
             <Link href="/" onClick={() => setIsMenuOpen(false)} className="text-primary">Home</Link>
-            <Link href="#" onClick={() => setIsMenuOpen(false)}>Find Doctors</Link>
+            <Link href="/doctors" onClick={() => setIsMenuOpen(false)}>Find Doctors</Link>
             <Link href="#" onClick={() => setIsMenuOpen(false)}>Book Tests</Link>
             <Link href="#" onClick={() => setIsMenuOpen(false)}>How it Works</Link>
             <Link href="#" onClick={() => setIsMenuOpen(false)}>For Doctors</Link>
@@ -85,9 +85,9 @@ export default function LandingPage() {
               </p>
               
               <div className="flex flex-wrap gap-4 animate-in fade-in slide-in-from-bottom-16 duration-700 delay-200">
-                <button className="bg-primary text-white px-8 py-4 rounded-2xl font-bold text-lg shadow-xl shadow-primary/25 hover:shadow-2xl hover:shadow-primary/30 hover:-translate-y-1 transition-all">
+                <Link href="/doctors" className="bg-primary text-white px-8 py-4 rounded-2xl font-bold text-lg shadow-xl shadow-primary/25 hover:shadow-2xl hover:shadow-primary/30 hover:-translate-y-1 transition-all inline-block">
                   Find a Doctor Now
-                </button>
+                </Link>
                 <button className="bg-white text-primary border-2 border-primary/10 px-8 py-4 rounded-2xl font-bold text-lg hover:bg-primary/5 transition-all">
                   Book a Lab Test
                 </button>

@@ -1,9 +1,16 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import doctorRoutes from './routes/doctorRoutes';
+import appointmentRoutes from './routes/appointmentRoutes';
 
 // Load environment variables from .env file
 dotenv.config();
+
+// Patch BigInt for JSON serialization
+(BigInt.prototype as any).toJSON = function () {
+  return this.toString();
+};
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -20,6 +27,10 @@ app.get('/', (req, res) => {
     timestamp: new Date().toISOString()
   });
 });
+
+// Mount Routes
+app.use('/api/doctors', doctorRoutes);
+app.use('/api/appointments', appointmentRoutes);
 
 // Start the server
 app.listen(PORT, () => {
