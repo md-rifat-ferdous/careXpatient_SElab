@@ -9,6 +9,14 @@ build
 *storybook.log
 storybook-static
 
+# Environment variables (contain secrets)
+.env
+packages/prisma/.env
+backend/.env
+
+# Turbo cache
+.turbo
+
 # AI and Tool Metadata
 .gemini
 .antigravity

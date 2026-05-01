@@ -1,18 +1,22 @@
 {
-  "name": "carexpatient-monorepo",
-  "version": "1.0.0",
+  "name": "carexpatient",
+  "packageManager": "npm@10.2.4",
   "private": true,
   "workspaces": [
     "apps/*",
+    "backend",
     "packages/*"
   ],
   "scripts": {
-    "dev": "turbo dev",
-    "build": "turbo build",
-    "lint": "turbo lint",
-    "storybook": "npm run storybook --workspace=packages/ui"
+    "dev:landing": "turbo run dev --filter=landing-page",
+    "dev:web": "turbo run dev --filter=web",
+    "dev:backend": "turbo run dev --filter=@carexpatient/backend",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "type-check": "turbo run type-check",
+    "prisma:generate": "turbo run prisma:generate --filter=@carexpatient/backend"
   },
   "devDependencies": {
-    "turbo": "latest"
+    "turbo": "^2.0.0"
   }
 }
