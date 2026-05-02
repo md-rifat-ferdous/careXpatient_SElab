@@ -1,0 +1,73 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id        String   @id @default(uuid())
+  phone     String   @unique
+  fullName  String
+  password  String
+  role      String   @default("Patient") // "Patient", "Admin"
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  orders    Order[]
+}
+
+model Lab {
+  id        String    @id @default(uuid())
+  name      String
+  address   String?
+  phone     String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  tests     LabTest[]
+}
+
+model LabTest {
+  id            String   @id @default(uuid())
+  name          String
+  tag           String
+  tagColor      String
+  description   String
+  prerequisites String
+  deliveryTime  String
+  sampleType    String
+  price         Float
+  labId         String
+  category      String   @default("All") // "Blood", "Imaging", "Cardiac", "Full Body Checkup"
+  lab           Lab      @relation(fields: [labId], references: [id])
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  orderItems OrderItem[]
+}
+
+model Order {
+  id                 String      @id @default(uuid())
+  userId             String
+  user               User        @relation(fields: [userId], references: [id])
+  status             String      @default("Pending") // "Pending", "Processing", "Completed", "Cancelled"
+  subtotal           Float
+  vat                Float
+  homeCollectionFee  Float
+  totalAmount        Float
+  homeCollection     Boolean     @default(false)
+  collectionAddress  String?
+  createdAt          DateTime    @default(now())
+  updatedAt          DateTime    @updatedAt
+  items              OrderItem[]
+}
+
+model OrderItem {
+  id        String   @id @default(uuid())
+  orderId   String
+  labTestId String
+  price     Float
+  order     Order    @relation(fields: [orderId], references: [id])
+  labTest   LabTest  @relation(fields: [labTestId], references: [id])
+}

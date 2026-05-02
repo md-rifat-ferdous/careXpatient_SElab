@@ -1,0 +1,90 @@
+@import "tailwindcss";
+
+:root {
+  --primary: #006b5f;
+  --secondary: #006b5e;
+  --tertiary: #50616b;
+  --background: #f9f9ff;
+  --foreground: #111c2d;
+  --subtle-gray: #94A3B8;
+  --on-surface: #111c2d;
+  --surface: #f9f9ff;
+  --primary-container: #14b8a6;
+  --error: #ba1a1a;
+}
+
+@theme inline {
+  --color-primary: var(--primary);
+  --color-secondary: var(--secondary);
+  --color-tertiary: var(--tertiary);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-subtle-gray: var(--subtle-gray);
+  --color-on-surface: var(--on-surface);
+  --color-surface: var(--surface);
+  --color-primary-container: var(--primary-container);
+  --color-error: var(--error);
+  --font-body: 'Inter', sans-serif;
+  --font-h1: 'Inter', sans-serif;
+  --font-h2: 'Inter', sans-serif;
+  --font-h3: 'Inter', sans-serif;
+  --font-button: 'Inter', sans-serif;
+  --font-caption: 'Inter', sans-serif;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: 'Inter', sans-serif;
+}
+
+.glass {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slide-in-bottom {
+  from { transform: translateY(2rem); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.animate-in {
+  animation-duration: 0.7s;
+  animation-fill-mode: both;
+}
+
+.fade-in {
+  animation-name: fade-in;
+}
+
+.slide-in-from-bottom-8 {
+  animation-name: slide-in-bottom;
+}
+
+.delay-100 { animation-delay: 100ms; }
+.delay-200 { animation-delay: 200ms; }
+.delay-300 { animation-delay: 300ms; }
+.duration-700 { animation-duration: 700ms; }
+.duration-1000 { animation-duration: 1000ms; }
+
+.transition-all {
+  transition-property: all;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 300ms;
+}
