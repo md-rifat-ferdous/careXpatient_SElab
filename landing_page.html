@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>careXpatient - Healthcare that feels like care</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "background": "#f9f9ff",
+                        "tertiary-fixed": "#d3e5f1",
+                        "on-tertiary-fixed": "#0c1e26",
+                        "surface-white": "#FFFFFF",
+                        "tertiary": "#50616b",
+                        "subtle-gray": "#94A3B8",
+                        "on-secondary-container": "#007164",
+                        "primary": "#006b5f",
+                        "tertiary-fixed-dim": "#b7c9d5",
+                        "on-primary": "#ffffff",
+                        "on-primary-container": "#00423b",
+                        "secondary-fixed": "#6ef9e2",
+                        "error-container": "#ffdad6",
+                        "on-surface": "#111c2d",
+                        "secondary-fixed-dim": "#4ddcc6",
+                        "background-off-white": "#F8FAFC",
+                        "surface-dim": "#cfdaf2",
+                        "secondary-container": "#6ef9e2",
+                        "surface-container-highest": "#d8e3fb",
+                        "outline": "#6c7a77",
+                        "tertiary-container": "#95a7b2",
+                        "inverse-primary": "#4fdbc8",
+                        "on-tertiary": "#ffffff",
+                        "on-surface-variant": "#3c4947",
+                        "on-error": "#ffffff",
+                        "on-tertiary-fixed-variant": "#384953",
+                        "surface-bright": "#f9f9ff",
+                        "outline-variant": "#bbcac6",
+                        "on-tertiary-container": "#2c3d46",
+                        "primary-fixed-dim": "#4fdbc8",
+                        "on-secondary-fixed-variant": "#005047",
+                        "on-primary-fixed": "#00201c",
+                        "on-primary-fixed-variant": "#005048",
+                        "surface-variant": "#d8e3fb",
+                        "on-background": "#111c2d",
+                        "inverse-surface": "#263143",
+                        "primary-container": "#14b8a6",
+                        "surface-container-low": "#f0f3ff",
+                        "error": "#ba1a1a",
+                        "on-secondary-fixed": "#00201b",
+                        "surface-tint": "#006b5f",
+                        "on-error-container": "#93000a",
+                        "surface-container": "#e7eeff",
+                        "inverse-on-surface": "#ecf1ff",
+                        "on-secondary": "#ffffff",
+                        "surface-container-high": "#dee8ff",
+                        "secondary": "#006b5e",
+                        "primary-fixed": "#71f8e4",
+                        "surface-container-lowest": "#ffffff",
+                        "surface": "#f9f9ff"
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    spacing: {
+                        "container-max": "1280px",
+                        "gutter": "1.5rem",
+                        "xl": "2.5rem",
+                        "md": "1rem",
+                        "sm": "0.5rem",
+                        "lg": "1.5rem",
+                        "xs": "0.25rem"
+                    },
+                    fontFamily: {
+                        "h3": ["Inter"],
+                        "h2": ["Inter"],
+                        "caption": ["Inter"],
+                        "button": ["Inter"],
+                        "body": ["Inter"],
+                        "h1": ["Inter"]
+                    },
+                    fontSize: {
+                        "h3": ["24px", { "lineHeight": "1.4", "fontWeight": "600" }],
+                        "h2": ["32px", { "lineHeight": "1.3", "fontWeight": "600" }],
+                        "caption": ["14px", { "lineHeight": "1.5", "fontWeight": "400" }],
+                        "button": ["16px", { "lineHeight": "1.0", "fontWeight": "500" }],
+                        "body": ["16px", { "lineHeight": "1.6", "fontWeight": "400" }],
+                        "h1": ["48px", { "lineHeight": "1.2", "fontWeight": "600" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .glass-card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+        .soft-shadow {
+            box-shadow: 0 10px 40px -10px rgba(17, 28, 45, 0.08);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body text-body antialiased selection:bg-primary-container selection:text-white">
+<!-- TopNavBar Component -->
+<header class="fixed top-0 w-full z-50 bg-white/90 backdrop-blur-md shadow-sm border-b border-slate-100 font-['Inter'] antialiased">
+<div class="flex justify-between items-center h-20 px-6 md:px-12 max-w-[1280px] mx-auto">
+<!-- Brand -->
+<a class="flex items-center gap-2" href="#">
+<span class="material-symbols-outlined text-primary-container" data-icon="medical_services" style="font-variation-settings: 'FILL' 1;">medical_services</span>
+<span class="text-2xl font-bold tracking-tight text-teal-600">careXpatient</span>
+</a>
+<!-- Navigation Links (Desktop) -->
+<nav class="hidden md:flex items-center gap-8">
+<a class="text-teal-600 font-semibold border-b-2 border-teal-600 pb-1 hover:bg-slate-50 rounded-lg transition-all px-2" href="#">Home</a>
+<a class="text-slate-600 hover:text-teal-500 hover:bg-slate-50 rounded-lg transition-all px-2 py-1" href="#">Find Doctors</a>
+<a class="text-slate-600 hover:text-teal-500 hover:bg-slate-50 rounded-lg transition-all px-2 py-1" href="#">Book Tests</a>
+<a class="text-slate-600 hover:text-teal-500 hover:bg-slate-50 rounded-lg transition-all px-2 py-1" href="#">How it Works</a>
+</nav>
+<!-- Actions -->
+<div class="flex items-center gap-4">
+<button class="hidden md:block text-slate-600 hover:text-teal-500 transition-colors font-button text-button">EN/BN</button>
+<button class="bg-primary-container text-white px-6 py-3 rounded-full font-button text-button hover:bg-teal-500 transition-colors shadow-sm hover:shadow-md transform hover:scale-95 duration-150 ease-in-out">
+                    Get Started
+                </button>
+</div>
+</div>
+</header>
+<main class="pt-20">
+<!-- Hero Section -->
+<section class="relative pt-12 pb-32 md:pt-24 md:pb-48 px-6 overflow-hidden">
+<div class="absolute inset-0 z-0 bg-gradient-to-b from-surface-container-low to-background"></div>
+<div class="max-w-[1280px] mx-auto relative z-10 grid md:grid-cols-2 gap-12 items-center">
+<div class="space-y-8 pr-0 md:pr-12">
+<span class="inline-block px-4 py-2 rounded-full bg-surface-container text-primary font-medium text-sm">
+                        Trusted Healthcare Platform
+                    </span>
+<h1 class="font-h1 text-h1 text-on-surface">
+                        Healthcare that feels like care — <span class="text-primary-container">right when you need it.</span>
+</h1>
+<p class="font-body text-body text-tertiary text-lg">
+                        Find top-rated doctors, book convenient lab tests at home, and manage your family's digital health records securely in one place.
+                    </p>
+<div class="flex flex-col sm:flex-row gap-4 pt-4">
+<button class="bg-primary-container text-white px-8 py-4 rounded-xl font-button text-button hover:bg-teal-500 transition-colors shadow-md flex items-center justify-center gap-2">
+                            Find a Doctor Now
+                            <span class="material-symbols-outlined" data-icon="arrow_forward">arrow_forward</span>
+</button>
+<button class="border-2 border-primary-container text-primary-container px-8 py-4 rounded-xl font-button text-button hover:bg-surface-container transition-colors flex items-center justify-center gap-2">
+                            Book a Lab Test
+                        </button>
+</div>
+</div>
+<div class="relative h-[400px] md:h-[600px] rounded-[2rem] overflow-hidden shadow-2xl">
+<img alt="Smiling female doctor in a bright, modern clinic consulting with a patient, soft warm natural light, empathetic healthcare setting" class="w-full h-full object-cover" data-alt="Smiling female doctor in a bright, modern clinic consulting with a patient, soft warm natural light, empathetic healthcare setting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuADe1NI2tt2FvBI41gXrMqgJoSVxqiFnaEdAEshqd89NpDOo5sE_A1V4HrOx9T9XuKMkx8Mlq0RfHCmPBy9EF6mDJ3fBdUQBS7_2yte48F9zikq8y-O_EcP6Gp5KNi401sO_GdyMJKfnuN3Buenj4h_HT-xB6ANhkoSvyyWCMMWW65L8HKlPTVsG30cakgtYriUaWKjAULWW7WMQBuKGv_UATEySSvepz3asSWoAtcEqq4m2iS7kbf0nPNt1OUn5XvPbJ8I2r9M688"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent"></div>
+</div>
+</div>
+</section>
+<!-- Quick Search Floating Card -->
+<section class="max-w-[1000px] mx-auto px-6 relative z-20 -mt-24 md:-mt-32 mb-24">
+<div class="glass-card rounded-[1.5rem] soft-shadow p-6 md:p-8">
+<!-- Tabs -->
+<div class="flex gap-4 mb-8 border-b border-surface-container pb-4">
+<button class="text-primary-container font-medium border-b-2 border-primary-container pb-4 -mb-[17px] px-4 flex items-center gap-2">
+<span class="material-symbols-outlined" data-icon="stethoscope">stethoscope</span>
+                        Find Doctors
+                    </button>
+<button class="text-subtle-gray hover:text-on-surface transition-colors font-medium pb-4 -mb-[17px] px-4 flex items-center gap-2">
+<span class="material-symbols-outlined" data-icon="science">science</span>
+                        Book Lab Tests
+                    </button>
+</div>
+<!-- Search Form -->
+<div class="grid md:grid-cols-3 gap-4">
+<div class="relative">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-subtle-gray" data-icon="search">search</span>
+<input class="w-full pl-12 pr-4 py-4 rounded-xl border border-outline-variant bg-surface-white focus:ring-2 focus:ring-primary-container focus:border-transparent outline-none transition-all" placeholder="Specialty, symptoms, or doctor name" type="text"/>
+</div>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-subtle-gray" data-icon="location_on">location_on</span>
+<input class="w-full pl-12 pr-4 py-4 rounded-xl border border-outline-variant bg-surface-white focus:ring-2 focus:ring-primary-container focus:border-transparent outline-none transition-all" placeholder="Location or Zip Code" type="text"/>
+</div>
+<button class="bg-primary text-white py-4 rounded-xl font-button text-button hover:bg-secondary transition-colors shadow-sm flex items-center justify-center gap-2">
+                        Search Now
+                    </button>
+</div>
+</div>
+</section>
+<!-- How It Works Section -->
+<section class="py-24 bg-surface-white px-6">
+<div class="max-w-[1280px] mx-auto">
+<div class="text-center max-w-2xl mx-auto mb-16">
+<h2 class="font-h2 text-h2 text-on-surface mb-4">Simple steps to better health</h2>
+<p class="font-body text-body text-tertiary">We've designed our platform to remove the friction from healthcare, making it easy to get the care you need.</p>
+</div>
+<div class="grid md:grid-cols-4 gap-8">
+<!-- Step 1 -->
+<div class="text-center group">
+<div class="w-20 h-20 mx-auto bg-surface-container rounded-2xl flex items-center justify-center mb-6 group-hover:-translate-y-2 transition-transform duration-300">
+<span class="material-symbols-outlined text-4xl text-primary-container" data-icon="person_search" style="font-variation-settings: 'FILL' 1;">person_search</span>
+</div>
+<h3 class="font-h3 text-h3 text-on-surface mb-2">Find Your Doctor</h3>
+<p class="font-body text-body text-tertiary text-sm">Search by specialty, condition, or location to find the perfect match.</p>
+</div>
+<!-- Step 2 -->
+<div class="text-center group">
+<div class="w-20 h-20 mx-auto bg-surface-container rounded-2xl flex items-center justify-center mb-6 group-hover:-translate-y-2 transition-transform duration-300">
+<span class="material-symbols-outlined text-4xl text-primary-container" data-icon="calendar_month" style="font-variation-settings: 'FILL' 1;">calendar_month</span>
+</div>
+<h3 class="font-h3 text-h3 text-on-surface mb-2">Book an Appointment</h3>
+<p class="font-body text-body text-tertiary text-sm">Choose a convenient time slot for an in-person or video consultation.</p>
+</div>
+<!-- Step 3 -->
+<div class="text-center group">
+<div class="w-20 h-20 mx-auto bg-surface-container rounded-2xl flex items-center justify-center mb-6 group-hover:-translate-y-2 transition-transform duration-300">
+<span class="material-symbols-outlined text-4xl text-primary-container" data-icon="forum" style="font-variation-settings: 'FILL' 1;">forum</span>
+</div>
+<h3 class="font-h3 text-h3 text-on-surface mb-2">Consult &amp; Treat</h3>
+<p class="font-body text-body text-tertiary text-sm">Get expert medical advice, prescriptions, and follow-up care plans.</p>
+</div>
+<!-- Step 4 -->
+<div class="text-center group">
+<div class="w-20 h-20 mx-auto bg-surface-container rounded-2xl flex items-center justify-center mb-6 group-hover:-translate-y-2 transition-transform duration-300">
+<span class="material-symbols-outlined text-4xl text-primary-container" data-icon="folder_managed" style="font-variation-settings: 'FILL' 1;">folder_managed</span>
+</div>
+<h3 class="font-h3 text-h3 text-on-surface mb-2">Track Health Records</h3>
+<p class="font-body text-body text-tertiary text-sm">Access all your prescriptions, lab reports, and history in one secure place.</p>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer Component -->
+<footer class="bg-slate-50 w-full border-t border-slate-200 mt-auto font-['Inter'] text-sm">
+<div class="grid grid-cols-1 md:grid-cols-2 gap-8 py-12 px-6 md:px-12 max-w-[1280px] mx-auto">
+<div class="space-y-4">
+<a class="flex items-center gap-2" href="#">
+<span class="material-symbols-outlined text-teal-600" data-icon="medical_services" style="font-variation-settings: 'FILL' 1;">medical_services</span>
+<span class="text-lg font-bold text-slate-900">careXpatient</span>
+</a>
+<p class="text-slate-500">Empowering your health journey with accessible, compassionate care.</p>
+<div class="flex gap-4 pt-4">
+<button class="bg-slate-900 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-slate-800 transition-colors">
+<span class="material-symbols-outlined" data-icon="phone_iphone">phone_iphone</span>
+                        App Store
+                    </button>
+<button class="bg-slate-900 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-slate-800 transition-colors">
+<span class="material-symbols-outlined" data-icon="android">android</span>
+                        Google Play
+                    </button>
+</div>
+</div>
+<div class="flex flex-col md:items-end justify-between">
+<nav class="flex flex-wrap gap-6 mb-8 md:mb-0">
+<a class="text-slate-500 hover:text-teal-600 hover:underline transition-all duration-200" href="#">Privacy Policy</a>
+<a class="text-slate-500 hover:text-teal-600 hover:underline transition-all duration-200" href="#">Terms of Service</a>
+<a class="text-slate-500 hover:text-teal-600 hover:underline transition-all duration-200" href="#">Contact Support</a>
+<a class="text-slate-500 hover:text-teal-600 hover:underline transition-all duration-200" href="#">Careers</a>
+</nav>
+<div class="flex items-center justify-between w-full md:justify-end gap-6 border-t md:border-none border-slate-200 pt-6 md:pt-0">
+<span class="text-slate-500">© 2024 careXpatient. All rights reserved.</span>
+<button class="text-teal-600 font-medium flex items-center gap-1 hover:text-teal-700 transition-colors">
+<span class="material-symbols-outlined text-sm" data-icon="language">language</span>
+                        English
+                    </button>
+</div>
+</div>
+</div>
+</footer>
+</body></html>

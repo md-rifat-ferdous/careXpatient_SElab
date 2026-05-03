@@ -9,12 +9,16 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@carexpatient/ui": "*",
+    "@types/pg": "^8.20.0",
     "next": "16.2.4",
+    "pg": "^8.20.0",
     "react": "19.2.4",
-    "react-dom": "19.2.4",
-    "@carexpatient/ui": "*"
+    "react-dom": "19.2.4"
   },
   "devDependencies": {
+    "@carexpatient/tailwind-config": "*",
+    "@carexpatient/typescript-config": "*",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
@@ -22,8 +26,6 @@
     "eslint": "^9",
     "eslint-config-next": "16.2.4",
     "tailwindcss": "^4",
-    "typescript": "^5",
-    "@carexpatient/typescript-config": "*",
-    "@carexpatient/tailwind-config": "*"
+    "typescript": "^5"
   }
 }

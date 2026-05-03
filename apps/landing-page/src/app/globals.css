@@ -1,21 +1,73 @@
 @import "tailwindcss";
 
 :root {
-  --primary: #14B8A6;
-  --secondary: #5EEAD4;
-  --tertiary: #E0F2FE;
-  --background: #F8FAFC;
-  --foreground: #1E293B;
+  --background: #f9f9ff;
+  --on-background: #111c2d;
+  --surface: #f9f9ff;
+  --on-surface: #111c2d;
+  --surface-variant: #d8e3fb;
+  --on-surface-variant: #3c4947;
+  --primary: #006b5f;
+  --on-primary: #ffffff;
+  --primary-container: #14b8a6;
+  --on-primary-container: #00423b;
+  --secondary: #006b5e;
+  --on-secondary: #ffffff;
+  --secondary-container: #6ef9e2;
+  --on-secondary-container: #007164;
+  --tertiary: #50616b;
+  --on-tertiary: #ffffff;
+  --tertiary-container: #95a7b2;
+  --on-tertiary-container: #2c3d46;
+  --error: #ba1a1a;
+  --on-error: #ffffff;
+  --error-container: #ffdad6;
+  --on-error-container: #93000a;
+  --outline: #6c7a77;
+  --outline-variant: #bbcac6;
+  --surface-container-highest: #d8e3fb;
+  --surface-container-high: #dee8ff;
+  --surface-container: #e7eeff;
+  --surface-container-low: #f0f3ff;
+  --surface-container-lowest: #ffffff;
   --subtle-gray: #94A3B8;
+  --background-off-white: #F8FAFC;
+  --surface-white: #FFFFFF;
 }
 
 @theme inline {
-  --color-primary: var(--primary);
-  --color-secondary: var(--secondary);
-  --color-tertiary: var(--tertiary);
   --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  --color-on-background: var(--on-background);
+  --color-surface: var(--surface);
+  --color-on-surface: var(--on-surface);
+  --color-surface-variant: var(--surface-variant);
+  --color-on-surface-variant: var(--on-surface-variant);
+  --color-primary: var(--primary);
+  --color-on-primary: var(--on-primary);
+  --color-primary-container: var(--primary-container);
+  --color-on-primary-container: var(--on-primary-container);
+  --color-secondary: var(--secondary);
+  --color-on-secondary: var(--on-secondary);
+  --color-secondary-container: var(--secondary-container);
+  --color-on-secondary-container: var(--on-secondary-container);
+  --color-tertiary: var(--tertiary);
+  --color-on-tertiary: var(--on-tertiary);
+  --color-tertiary-container: var(--tertiary-container);
+  --color-on-tertiary-container: var(--on-tertiary-container);
+  --color-error: var(--error);
+  --color-on-error: var(--on-error);
+  --color-error-container: var(--error-container);
+  --color-on-error-container: var(--on-error-container);
+  --color-outline: var(--outline);
+  --color-outline-variant: var(--outline-variant);
+  --color-surface-container-highest: var(--surface-container-highest);
+  --color-surface-container-high: var(--surface-container-high);
+  --color-surface-container: var(--surface-container);
+  --color-surface-container-low: var(--surface-container-low);
+  --color-surface-container-lowest: var(--surface-container-lowest);
   --color-subtle-gray: var(--subtle-gray);
+  --color-background-off-white: var(--background-off-white);
+  --color-surface-white: var(--surface-white);
 }
 
 body {
