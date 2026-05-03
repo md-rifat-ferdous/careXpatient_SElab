@@ -35,9 +35,9 @@ export default function LandingPage() {
               <span className="text-foreground/50">বাংলা</span>
             </button>
             <button className="hidden sm:block font-semibold hover:text-primary transition-colors px-4 py-2">Login</button>
-            <button className="bg-primary text-white px-6 py-2.5 rounded-full font-semibold shadow-lg shadow-primary/20 hover:scale-105 active:scale-95 transition-all">
+            <Link href="/report" className="bg-primary text-white px-6 py-2.5 rounded-full font-semibold shadow-lg shadow-primary/20 hover:scale-105 active:scale-95 transition-all inline-block text-center">
               Get Started
-            </button>
+            </Link>
             
             {/* Hamburger Menu Button */}
             <button 
@@ -380,9 +380,9 @@ export default function LandingPage() {
               Join 50,000+ members who have made the switch to smarter, more compassionate healthcare.
             </p>
             <div className="flex flex-wrap justify-center gap-6 relative z-10">
-              <button className="bg-primary text-white px-10 py-5 rounded-2xl font-bold text-xl shadow-2xl shadow-primary/20 hover:scale-105 transition-all">
+              <Link href="/report" className="bg-primary text-white px-10 py-5 rounded-2xl font-bold text-xl shadow-2xl shadow-primary/20 hover:scale-105 transition-all inline-block text-center">
                 Join Now for Free
-              </button>
+              </Link>
               <div className="flex gap-4">
                 <button className="bg-white/10 hover:bg-white/20 text-white p-1 rounded-2xl transition-all border border-white/10">
                   <img src="https://upload.wikimedia.org/wikipedia/commons/3/3c/Download_on_the_App_Store_Badge.svg" alt="App Store" className="h-14" />

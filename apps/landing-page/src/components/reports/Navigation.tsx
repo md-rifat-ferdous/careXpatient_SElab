@@ -1,9 +1,10 @@
 import React from 'react';
+import Link from 'next/link';
 
 export const TopNavBar = () => (
   <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 h-16 bg-white/90 backdrop-blur-md shadow-sm border-b border-slate-100 font-inter text-sm antialiased no-print">
     <div className="flex items-center gap-8">
-      <span className="text-xl font-bold tracking-tight text-teal-600">careXpatient</span>
+      <Link href="/" className="text-xl font-bold tracking-tight text-teal-600">careXpatient</Link>
       <div className="hidden md:flex items-center bg-slate-100 rounded-full px-4 py-1.5 w-64 lg:w-96">
         <span className="material-symbols-outlined text-slate-400 text-lg mr-2">search</span>
         <input 
@@ -39,31 +40,31 @@ export const SideNavBar = () => (
   <aside className="fixed left-0 top-16 bottom-0 flex flex-col py-6 w-64 hidden md:flex bg-white border-r border-slate-100 font-inter text-sm font-medium z-40 no-print">
     <div className="mb-8 px-6">
       <div className="flex items-center gap-2">
-        <span className="text-lg font-black text-teal-600">careXpatient</span>
+        <Link href="/" className="text-lg font-black text-teal-600">careXpatient</Link>
       </div>
       <p className="text-xs text-slate-400 mt-1 uppercase tracking-widest">Patient Portal</p>
     </div>
     <nav className="space-y-1">
       {[
-        { icon: 'dashboard', label: 'Dashboard', active: false },
-        { icon: 'calendar_today', label: 'Appointments', active: false },
-        { icon: 'biotech', label: 'Lab Tests', active: false },
-        { icon: 'description', label: 'Reports', active: true },
-        { icon: 'medication', label: 'Prescriptions', active: false },
-        { icon: 'group', label: 'Family Profile', active: false }
+        { icon: 'dashboard', label: 'Dashboard', href: '/', active: false },
+        { icon: 'calendar_today', label: 'Appointments', href: '#', active: false },
+        { icon: 'biotech', label: 'Lab Tests', href: '#', active: false },
+        { icon: 'description', label: 'Reports', href: '/report', active: true },
+        { icon: 'medication', label: 'Prescriptions', href: '#', active: false },
+        { icon: 'group', label: 'Family Profile', href: '#', active: false }
       ].map((item, i) => (
-        <a 
+        <Link 
           key={i}
           className={`mx-2 px-4 py-3 flex items-center gap-3 transition-colors ${
             item.active 
               ? 'bg-teal-50 text-teal-600 rounded-lg' 
               : 'text-slate-500 hover:bg-slate-50 hover:text-teal-600'
           }`}
-          href="#"
+          href={item.href}
         >
           <span className="material-symbols-outlined">{item.icon}</span>
           {item.label}
-        </a>
+        </Link>
       ))}
     </nav>
     <div className="mt-auto px-6">

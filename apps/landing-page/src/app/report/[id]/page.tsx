@@ -186,11 +186,10 @@ const ReportSidebar = ({ data }: { data: any }) => (
   </aside>
 );
 
-export default function ReportDetailsPage({ params }: { params: { id: string } }) {
-  // In a real app, params is an async object in Next.js 15, but for this mock we use the value directly
-  // We'll treat it as a promise for better future-proofing if needed
-  const reportId = params.id;
-  const data = getReportData(reportId);
+export default async function ReportDetailsPage({ params }: { params: Promise<{ id: string }> }) {
+  // In a real app, params is an async object in Next.js 15+
+  const { id } = await params;
+  const data = getReportData(id);
 
   return (
     <div className="bg-[#f8fafc] min-h-screen text-slate-900 antialiased font-sans">
