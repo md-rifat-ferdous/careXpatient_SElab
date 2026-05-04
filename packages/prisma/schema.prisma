@@ -1,5 +1,6 @@
 generator client {
   provider = "prisma-client-js"
+  output   = "./client"
 }
 
 datasource db {
@@ -218,10 +219,16 @@ model Prescription {
 }
 
 model LabTest {
-  id         BigInt   @id @default(autoincrement())
-  name       String   @db.VarChar(255)
-  price      Decimal? @db.Decimal(10, 2)
-  sampleType String?  @map("sample_type") @db.VarChar(100)
+  id            BigInt   @id @default(autoincrement())
+  name          String   @db.VarChar(255)
+  price         Decimal? @db.Decimal(10, 2)
+  sampleType    String?  @map("sample_type") @db.VarChar(100)
+  tag           String?  @db.VarChar(100)
+  tagColor      String?  @map("tag_color") @db.VarChar(50)
+  description   String?  @db.Text
+  prerequisites String?  @db.Text
+  deliveryTime  String?  @map("delivery_time") @db.VarChar(100)
+  category      String   @default("All") @db.VarChar(100)
 
   orders LabOrderTest[]
 
@@ -298,4 +305,35 @@ model Payment {
   refundReason  String?        @map("refund_reason") @db.Text
 
   @@map("Payment")
+}
+
+model Reports {
+  id          Int      @id @default(autoincrement())
+  patientName String   @map("patient_name") @db.Text
+  testName    String   @map("test_name") @db.Text
+  labName     String   @map("lab_name") @db.Text
+  reportDate  DateTime @map("report_date") @db.Date
+  sampleId    String   @map("sample_id") @db.Text
+  age         String?  @db.Text
+  gender      String?  @db.Text
+  referrer    String?  @db.Text
+  time        String?  @db.Text
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamp(6)
+
+  parameters ReportParameters[]
+
+  @@map("reports")
+}
+
+model ReportParameters {
+  id       Int     @id @default(autoincrement())
+  reportId Int     @map("report_id")
+  name     String  @db.Text
+  result   String  @db.Text
+  unit     String  @db.Text
+  range    String  @db.Text
+
+  report Reports @relation(fields: [reportId], references: [id], onDelete: Cascade)
+
+  @@map("report_parameters")
 }
