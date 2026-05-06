@@ -107,7 +107,7 @@ export default function ReportsPage() {
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <Link href={report.fileUrl || `/reports/${report.id}`} target={report.fileUrl ? "_blank" : "_self"} className="flex-1 md:flex-none px-6 py-2.5 bg-teal-600 text-white rounded-lg font-medium text-base hover:bg-teal-700 transition-colors shadow-sm shadow-teal-200 text-center">
+          <Link href={`/reports/${report.id}`} className="flex-1 md:flex-none px-6 py-2.5 bg-teal-600 text-white rounded-lg font-medium text-base hover:bg-teal-700 transition-colors shadow-sm shadow-teal-200 text-center">
             View Report
           </Link>
           {report.fileUrl && (
