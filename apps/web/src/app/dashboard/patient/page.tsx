@@ -24,7 +24,7 @@ export default function PatientDashboard() {
   };
 
   const features = [
-    { icon: '📅', title: 'Book Appointment', desc: 'Find and book doctors near you', color: 'bg-teal-50 border-teal-100', soon: true },
+    { icon: '📅', title: 'Book Appointment', desc: 'Find and book doctors near you', color: 'bg-teal-50 border-teal-100', soon: false, href: '/dashboard/patient/appointments' },
     { icon: '🧪', title: 'Lab Orders', desc: 'Order tests & view results', color: 'bg-sky-50 border-sky-100', soon: true },
     { icon: '📋', title: 'Medical Records', desc: 'Prescriptions and history', color: 'bg-violet-50 border-violet-100', soon: true },
     { icon: '💊', title: 'Medications', desc: 'Track your medications', color: 'bg-amber-50 border-amber-100', soon: true },
@@ -76,14 +76,18 @@ export default function PatientDashboard() {
         {/* Feature grid */}
         <div className="grid grid-cols-2 gap-3">
           {features.map((f) => (
-            <button key={f.title} className={`${f.color} border rounded-xl p-4 text-left transition-all hover:shadow-md relative overflow-hidden`}>
+            <Link 
+              key={f.title} 
+              href={f.href || '#'}
+              className={`${f.color} border rounded-xl p-4 text-left transition-all hover:shadow-md relative overflow-hidden flex flex-col`}
+            >
               <div className="text-2xl mb-2">{f.icon}</div>
               <p className="font-semibold text-foreground text-sm">{f.title}</p>
               <p className="text-xs text-subtle-gray mt-0.5">{f.desc}</p>
               {f.soon && (
                 <span className="absolute top-2 right-2 text-xs bg-white/80 text-subtle-gray rounded-full px-2 py-0.5 font-medium">Soon</span>
               )}
-            </button>
+            </Link>
           ))}
         </div>
       </main>
