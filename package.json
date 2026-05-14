@@ -4,7 +4,6 @@
   "packageManager": "npm@11.12.1",
   "workspaces": [
     "apps/*",
-    "backend",
     "packages/*"
   ],
   "scripts": {

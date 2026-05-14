@@ -3,277 +3,210 @@ import { PrismaClient } from './client';
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log('🌱 Seeding database...');
+  console.log('🌱 Starting seed with real Bangladesh doctors...');
 
-  // 1. Create a User and Patient
-  const user = await prisma.user.upsert({
-    where: { phone: '01712345678' },
+  // --- REAL DOCTORS from doctorbangladesh.com ---
+
+  // Doctor 1: Cardiologist
+  const user1 = await prisma.user.upsert({
+    where: { phone: '01811000001' },
     update: {},
-    create: {
-      phone: '01712345678',
-      fullName: 'Rahim Ali',
-      role: 'Patient',
-      isVerified: true,
-    },
+    create: { fullName: 'Dr. Md. Habib Ahsan', phone: '01811000001', email: 'habib.ahsan@carex.com', role: 'Doctor', profilePhotoUrl: 'https://images.unsplash.com/photo-1612349317150-e413f6a5b1f8?q=80&w=150&h=150&auto=format&fit=crop' },
+  });
+  const doctor1 = await prisma.doctor.upsert({
+    where: { userId: user1.id },
+    update: {},
+    create: { userId: user1.id, qualification: 'MBBS, BCS (Health), D-Card (BMU), CCD (BIRDEM)', bmdcNumber: 'BMDC-10011' },
   });
 
+  // Doctor 2: ENT Specialist
+  const user2 = await prisma.user.upsert({
+    where: { phone: '01811000002' },
+    update: {},
+    create: { fullName: 'Dr. Md. Sohel Rana', phone: '01811000002', email: 'sohel.rana@carex.com', role: 'Doctor', profilePhotoUrl: 'https://images.unsplash.com/photo-1537368910025-700350fe46c7?q=80&w=150&h=150&auto=format&fit=crop' },
+  });
+  const doctor2 = await prisma.doctor.upsert({
+    where: { userId: user2.id },
+    update: {},
+    create: { userId: user2.id, qualification: 'MBBS, BCS (Health), DLO (BMU), MACS (USA)', bmdcNumber: 'BMDC-10022' },
+  });
+
+  // Doctor 3: Eye Specialist
+  const user3 = await prisma.user.upsert({
+    where: { phone: '01811000003' },
+    update: {},
+    create: { fullName: 'Dr. Mahamud Adnan Himel', phone: '01811000003', email: 'adnan.himel@carex.com', role: 'Doctor', profilePhotoUrl: 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?q=80&w=150&h=150&auto=format&fit=crop' },
+  });
+  const doctor3 = await prisma.doctor.upsert({
+    where: { userId: user3.id },
+    update: {},
+    create: { userId: user3.id, qualification: 'MBBS, BCS (Health), D-Ophth (Eye), Fellowship in Retina (NIOH)', bmdcNumber: 'BMDC-10033' },
+  });
+
+  // Doctor 4: Urologist
+  const user4 = await prisma.user.upsert({
+    where: { phone: '01811000004' },
+    update: {},
+    create: { fullName: 'Dr. Md. Mezbahul Moker Rabin', phone: '01811000004', email: 'mezbahul.rabin@carex.com', role: 'Doctor', profilePhotoUrl: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?q=80&w=150&h=150&auto=format&fit=crop' },
+  });
+  const doctor4 = await prisma.doctor.upsert({
+    where: { userId: user4.id },
+    update: {},
+    create: { userId: user4.id, qualification: 'MBBS, BCS (Health), MS (Urology), FCPS (Urology)', bmdcNumber: 'BMDC-10044' },
+  });
+
+  // Doctor 5: Orthopedic Surgeon
+  const user5 = await prisma.user.upsert({
+    where: { phone: '01811000005' },
+    update: {},
+    create: { fullName: 'Dr. Abdullah Al Manjurul', phone: '01811000005', email: 'abdullah.manjurul@carex.com', role: 'Doctor', profilePhotoUrl: 'https://images.unsplash.com/photo-1612349317150-e413f6a5b1f8?q=80&w=150&h=150&auto=format&fit=crop' },
+  });
+  const doctor5 = await prisma.doctor.upsert({
+    where: { userId: user5.id },
+    update: {},
+    create: { userId: user5.id, qualification: 'MBBS, BCS (Health), D-Ortho (BMU), FCPS (Orthopedics)', bmdcNumber: 'BMDC-10055' },
+  });
+
+  // Doctor 6: Oncologist
+  const user6 = await prisma.user.upsert({
+    where: { phone: '01811000006' },
+    update: {},
+    create: { fullName: 'Dr. Md. Nazmus Sakib', phone: '01811000006', email: 'nazmus.sakib@carex.com', role: 'Doctor', profilePhotoUrl: 'https://images.unsplash.com/photo-1537368910025-700350fe46c7?q=80&w=150&h=150&auto=format&fit=crop' },
+  });
+  const doctor6 = await prisma.doctor.upsert({
+    where: { userId: user6.id },
+    update: {},
+    create: { userId: user6.id, qualification: 'MBBS, MD (Oncology)', bmdcNumber: 'BMDC-10066' },
+  });
+
+  // --- PATIENT ---
+  const patientUser = await prisma.user.upsert({
+    where: { phone: '01911111111' },
+    update: {},
+    create: { fullName: 'Mr. Karim Hossain', phone: '01911111111', email: 'karim@example.com', role: 'Patient' },
+  });
   const patient = await prisma.patient.upsert({
-    where: { userId: user.id },
-    update: {},
-    create: {
-      userId: user.id,
-      bloodGroup: 'A+',
-      address: 'Dhaka, Bangladesh',
-    },
+    where: { userId: patientUser.id },
+    update: { gender: 'Male', bloodGroup: 'O+' },
+    create: { userId: patientUser.id, bloodGroup: 'O+', gender: 'Male', address: 'Dhaka, Bangladesh' },
   });
 
-  // 2. Create Labs
-  const careXLab = await prisma.lab.upsert({
-    where: { id: 101n },
-    update: {},
-    create: {
-      id: 101n,
-      name: 'careX Lab',
-      address: 'Dhaka',
-      phone: '01711111111',
-    },
-  });
-
-  const metroDiagnostics = await prisma.lab.upsert({
-    where: { id: 102n },
-    update: {},
-    create: {
-      id: 102n,
-      name: 'Metro Diagnostics',
-      address: 'Dhaka',
-      phone: '01811111111',
-    },
-  });
-
-  const labaid = await prisma.lab.upsert({
-    where: { id: 103n },
-    update: {},
-    create: {
-      id: 103n,
-      name: 'Labaid Diagnostics',
-      address: 'Dhaka',
-      phone: '01911111111',
-    },
-  });
-
-  const popular = await prisma.lab.upsert({
-    where: { id: 104n },
-    update: {},
-    create: {
-      id: 104n,
-      name: 'Popular Diagnostic Center',
-      address: 'Dhaka',
-      phone: '01611111111',
-    },
-  });
-
-  // 3. Create Lab Tests
-  const tests = [
+  // --- REALISTIC PRESCRIPTIONS ---
+  const prescriptionData = [
     {
-      name: 'Lipid Profile',
-      tag: 'Popular',
-      tagColor: 'bg-teal-100 text-teal-700',
-      description: 'Measures cholesterol and triglyceride levels to assess heart disease risk.',
-      prerequisites: '10-12 hours of fasting required. Only water is permitted.',
-      deliveryTime: 'Within 24 hours',
-      sampleType: 'Blood Sample',
-      price: 1200,
-      category: 'Blood',
-      targetLabId: careXLab.id,
+      doctor: doctor1,
+      title: 'Cardiology Follow-up',
+      summary: 'Management of hypertension and cardiovascular risk factor reduction.',
+      diagnosis: 'Essential Hypertension with Hyperlipidemia',
+      medicines: 'Amlodipine | 5mg | 1+0+0 | 1 Month || Atorvastatin | 20mg | 0+0+1 | 1 Month || Aspirin | 75mg | 0+1+0 | 1 Month',
+      advice: 'Low sodium diet. Avoid stress. Walk 30 mins daily. Follow-up in 1 month.',
+      status: 'Completed',
+      issuedAt: new Date('2025-01-10'),
     },
     {
-      name: 'HbA1c',
-      tag: 'Available Today',
-      tagColor: 'bg-blue-100 text-blue-700',
-      description: 'Measures average blood sugar levels over the past 2-3 months.',
-      prerequisites: 'No fasting required. Can be done anytime.',
-      deliveryTime: 'Within 12 hours',
-      sampleType: 'Blood Sample',
-      price: 850,
-      category: 'Blood',
-      targetLabId: metroDiagnostics.id,
+      doctor: doctor2,
+      title: 'ENT Consultation - Sinusitis',
+      summary: 'Acute sinusitis with nasal congestion and headache.',
+      diagnosis: 'Acute Maxillary Sinusitis',
+      medicines: 'Amoxicillin-Clavulanate | 625mg | 1+0+1 | 7 Days || Fluticasone Nasal Spray | 50mcg | 2 puffs | 2 Weeks || Cetirizine | 10mg | 0+0+1 | 10 Days',
+      advice: 'Steam inhalation twice daily. Drink warm liquids. Avoid cold environment.',
+      status: 'Completed',
+      issuedAt: new Date('2025-02-05'),
     },
     {
-      name: 'Complete Blood Count (CBC)',
-      tag: 'Basic Health',
-      tagColor: 'bg-purple-100 text-purple-700',
-      description: 'Evaluates overall health and detects a wide range of disorders.',
-      prerequisites: 'No fasting required.',
-      deliveryTime: 'Within 8 hours',
-      sampleType: 'Blood Sample',
-      price: 600,
-      category: 'Blood',
-      targetLabId: careXLab.id,
+      doctor: doctor3,
+      title: 'Ophthalmology - Retinal Check',
+      summary: 'Routine retinal assessment and management of early macular degeneration.',
+      diagnosis: 'Early Age-related Macular Degeneration',
+      medicines: 'Lutein + Zeaxanthin | 10mg+2mg | 1+0+1 | 3 Months || Vitamin C | 500mg | 1+0+0 | 3 Months',
+      advice: 'Avoid bright light exposure. Wear UV-protected sunglasses. Annual fundus exam required.',
+      status: 'Confirmed',
+      issuedAt: new Date('2025-03-12'),
     },
     {
-      name: 'Thyroid Profile (T3, T4, TSH)',
-      tag: 'Fasting Required',
-      tagColor: 'bg-orange-100 text-orange-700',
-      description: 'Evaluates thyroid gland function and helps diagnose thyroid disorders.',
-      prerequisites: '10-12 hours fasting required.',
-      deliveryTime: 'Within 24 hours',
-      sampleType: 'Blood Sample',
-      price: 1500,
-      category: 'Blood',
-      targetLabId: labaid.id,
+      doctor: doctor4,
+      title: 'Urology - Kidney Stone',
+      summary: 'Management of right-sided renal calculi with pain control.',
+      diagnosis: 'Right Renal Calculus (6mm)',
+      medicines: 'Tamsulosin | 0.4mg | 0+0+1 | 1 Month || Ketorolac | 30mg | 1+0+1 | 5 Days || Potassium Citrate | 1080mg | 1+1+1 | 2 Months',
+      advice: 'Drink 2.5 to 3 litres of water daily. Reduce salt and meat intake. Avoid oxalate-rich foods.',
+      status: 'Completed',
+      issuedAt: new Date('2025-03-20'),
     },
     {
-      name: 'Vitamin D (25-OH)',
-      tag: 'Popular',
-      tagColor: 'bg-teal-100 text-teal-700',
-      description: 'Measures the level of vitamin D in your blood to check for deficiency.',
-      prerequisites: 'No special preparation required.',
-      deliveryTime: 'Within 48 hours',
-      sampleType: 'Blood Sample',
-      price: 2200,
-      category: 'Full Body Checkup',
-      targetLabId: careXLab.id,
+      doctor: doctor5,
+      title: 'Orthopedic - Knee Pain',
+      summary: 'Evaluation and treatment plan for degenerative joint disease of the right knee.',
+      diagnosis: 'Right Knee Osteoarthritis (Grade II)',
+      medicines: 'Diclofenac | 50mg | 1+0+1 | 2 Weeks || Glucosamine Sulphate | 750mg | 1+0+1 | 3 Months || Omeprazole | 20mg | 1+0+0 | 2 Weeks',
+      advice: 'Quadriceps strengthening exercises. Avoid climbing stairs. Physiotherapy recommended.',
+      status: 'Completed',
+      issuedAt: new Date('2025-04-02'),
     },
     {
-      name: 'Liver Function Test (LFT)',
-      tag: 'Available Today',
-      tagColor: 'bg-blue-100 text-blue-700',
-      description: 'Measures proteins, liver enzymes, and bilirubin in your blood.',
-      prerequisites: '10-12 hours fasting required.',
-      deliveryTime: 'Within 24 hours',
-      sampleType: 'Blood Sample',
-      price: 1800,
-      category: 'Blood',
-      targetLabId: popular.id,
+      doctor: doctor6,
+      title: 'Oncology Follow-up',
+      summary: 'Post-chemotherapy follow-up with blood count monitoring.',
+      diagnosis: 'Hodgkin Lymphoma - Remission',
+      medicines: 'Ondansetron | 8mg | 1+0+1 | 2 Weeks || Filgrastim Injection | 300mcg | As directed | 5 Days || Folic Acid | 5mg | 1+0+0 | 1 Month',
+      advice: 'Avoid infection. Maintain hygiene. Report any fever above 38°C immediately. Monthly CBC required.',
+      status: 'Confirmed',
+      issuedAt: new Date('2025-04-15'),
     },
     {
-      name: 'Echocardiogram',
-      tag: 'Cardiac Health',
-      tagColor: 'bg-red-100 text-red-700',
-      description: 'Uses ultrasound to examine the heart structure and function.',
-      prerequisites: 'No fasting required.',
-      deliveryTime: 'Within 12 hours',
-      sampleType: 'Imaging',
-      price: 3500,
-      category: 'Cardiac',
-      targetLabId: labaid.id,
+      doctor: doctor1,
+      title: 'Diabetes & Cardio Combined',
+      summary: 'Dual management of Type 2 Diabetes and Ischemic Heart Disease.',
+      diagnosis: 'Type 2 Diabetes Mellitus with Ischemic Heart Disease',
+      medicines: 'Metformin | 500mg | 1+0+1 | 3 Months || Empagliflozin | 10mg | 1+0+0 | 3 Months || Bisoprolol | 5mg | 1+0+0 | 1 Month',
+      advice: 'HbA1c test every 3 months. Low glycemic diet. Avoid strenuous physical activity.',
+      status: 'Completed',
+      issuedAt: new Date('2025-05-01'),
     },
     {
-      name: 'Chest X-Ray',
-      tag: 'Available Today',
-      tagColor: 'bg-blue-100 text-blue-700',
-      description: 'Produces images of the heart, lungs, airways, blood vessels and bones of the spine and chest.',
-      prerequisites: 'No fasting required.',
-      deliveryTime: 'Within 8 hours',
-      sampleType: 'Imaging',
-      price: 800,
-      category: 'Imaging',
-      targetLabId: popular.id,
-    }
+      doctor: doctor2,
+      title: 'ENT - Vertigo Treatment',
+      summary: 'Positional vertigo treatment with vestibular rehabilitation plan.',
+      diagnosis: 'Benign Paroxysmal Positional Vertigo (BPPV)',
+      medicines: 'Betahistine | 16mg | 1+0+1 | 1 Month || Cinnarizine | 25mg | 0+0+1 | 2 Weeks',
+      advice: 'Epley manoeuvre exercises daily. Avoid sudden head movements. No driving during acute episodes.',
+      status: 'Confirmed',
+      issuedAt: new Date('2025-05-10'),
+    },
   ];
 
-  for (const t of tests) {
-    const { targetLabId, ...testData } = t;
-    const test = await prisma.labTest.create({
-      data: testData as any
-    });
-
-    // Create a Reported order for each test so they show up in the dashboard
-    await prisma.labOrder.create({
+  for (const p of prescriptionData) {
+    await prisma.appointment.create({
       data: {
         patientId: patient.id,
-        labId: targetLabId,
-        status: 'Reported',
-        totalAmount: t.price,
-        createdAt: new Date(Date.now() - Math.floor(Math.random() * 30) * 24 * 60 * 60 * 1000),
-        tests: {
-          create: { labTestId: test.id }
-        },
-        labResults: {
+        doctorId: p.doctor.id,
+        date: p.issuedAt,
+        timeSlot: p.issuedAt,
+        status: p.status,
+        type: 'Online',
+        consultation: {
           create: {
-            resultSummary: 'Healthy results',
-            fileUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
-            uploadedBy: 'Lab Staff'
-          }
-        }
-      }
-    });
-  }
-
-  console.log('✅ Lab tests and initial orders seeded!');
-
-  // 4. Get all tests to create extra orders (for pagination demo — need 25+ records)
-  const allTests = await prisma.labTest.findMany();
-  const labs = [careXLab, metroDiagnostics, labaid, popular];
-
-  const extraOrders = [
-    { testName: 'Lipid Profile',             labName: 'Ibn Sina Diagnostic' },
-    { testName: 'HbA1c',                     labName: 'Ibn Sina Diagnostic' },
-    { testName: 'Complete Blood Count (CBC)', labName: 'Metro Diagnostics'  },
-    { testName: 'Thyroid Profile (T3, T4, TSH)', labName: 'careX Lab'       },
-    { testName: 'Vitamin D (25-OH)',          labName: 'Labaid Diagnostics'  },
-    { testName: 'Liver Function Test (LFT)', labName: 'Metro Diagnostics'   },
-    { testName: 'Echocardiogram',            labName: 'careX Lab'           },
-    { testName: 'Chest X-Ray',               labName: 'Labaid Diagnostics'  },
-    { testName: 'Complete Blood Count (CBC)', labName: 'Popular Diagnostic Center' },
-    { testName: 'Lipid Profile',             labName: 'Labaid Diagnostics'  },
-    { testName: 'HbA1c',                     labName: 'careX Lab'           },
-    { testName: 'Thyroid Profile (T3, T4, TSH)', labName: 'Metro Diagnostics' },
-    { testName: 'Liver Function Test (LFT)', labName: 'careX Lab'           },
-    { testName: 'Chest X-Ray',               labName: 'Metro Diagnostics'   },
-    { testName: 'Vitamin D (25-OH)',          labName: 'Popular Diagnostic Center' },
-    { testName: 'Echocardiogram',            labName: 'Popular Diagnostic Center' },
-    { testName: 'Lipid Profile',             labName: 'Metro Diagnostics'   },
-    { testName: 'Complete Blood Count (CBC)', labName: 'Labaid Diagnostics' },
-    { testName: 'HbA1c',                     labName: 'Popular Diagnostic Center' },
-    { testName: 'Chest X-Ray',               labName: 'careX Lab'           },
-    { testName: 'Thyroid Profile (T3, T4, TSH)', labName: 'Labaid Diagnostics' },
-    { testName: 'Vitamin D (25-OH)',          labName: 'Metro Diagnostics'  },
-  ];
-
-  // Create an "Ibn Sina Diagnostic" lab if missing
-  const ibnSina = await prisma.lab.upsert({
-    where: { id: 105n },
-    update: {},
-    create: { id: 105n, name: 'Ibn Sina Diagnostic', address: 'Dhaka', phone: '01511111111' },
-  });
-  const allLabs = [...labs, ibnSina];
-
-  for (let i = 0; i < extraOrders.length; i++) {
-    const o = extraOrders[i];
-    const test = allTests.find(t => t.name === o.testName);
-    const lab  = allLabs.find(l => l.name === o.labName);
-    if (!test || !lab) continue;
-
-    // Spread orders across the past 60 days for variety
-    const daysAgo = Math.floor(Math.random() * 60) + 1;
-    await prisma.labOrder.create({
-      data: {
-        patientId: patient.id,
-        labId: lab.id,
-        status: 'Reported',
-        totalAmount: test.price,
-        createdAt: new Date(Date.now() - daysAgo * 24 * 60 * 60 * 1000),
-        tests:      { create: { labTestId: test.id } },
-        labResults: {
-          create: {
-            resultSummary: 'Normal range',
-            fileUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
-            uploadedBy: 'Lab Staff',
+            notes: 'Patient advised to follow prescription strictly.',
+            prescription: {
+              create: {
+                title: p.title,
+                summary: p.summary,
+                medicinesText: p.medicines,
+                adviceText: p.advice,
+                diagnosis: p.diagnosis,
+                issuedAt: p.issuedAt,
+              },
+            },
           },
         },
       },
     });
+    console.log(`✅ Created prescription: ${p.title} — Dr. ${p.doctor.id}`);
   }
 
-  console.log('✅ Seeding complete! Total orders ready for pagination.');
+  console.log('\n🎉 Seeding complete! Database now has real Bangladeshi doctors from doctorbangladesh.com.');
 }
 
 main()
-  .catch((e) => {
-    console.error(e);
-    process.exit(1);
-  })
-  .finally(async () => {
-    await prisma.$disconnect();
-  });
+  .catch((e) => { console.error(e); process.exit(1); })
+  .finally(async () => { await prisma.$disconnect(); });

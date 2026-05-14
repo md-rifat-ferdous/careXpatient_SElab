@@ -1,5 +1,8 @@
+'use client';
+
 import React from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 
 export const TopNavBar = () => (
   <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 h-16 bg-white/90 backdrop-blur-md shadow-sm border-b border-slate-100 font-inter text-sm antialiased no-print">
@@ -36,45 +39,56 @@ export const TopNavBar = () => (
   </nav>
 );
 
-export const SideNavBar = () => (
-  <aside className="fixed left-0 top-16 bottom-0 flex flex-col py-6 w-64 hidden md:flex bg-white border-r border-slate-100 font-inter text-sm font-medium z-40 no-print">
-    <div className="mb-8 px-6">
-      <div className="flex items-center gap-2">
-        <Link href="/" className="text-lg font-black text-teal-600">careXpatient</Link>
+export const SideNavBar = () => {
+  const pathname = usePathname();
+
+  const navItems = [
+    { icon: 'dashboard', label: 'Dashboard', href: '/dashboard' },
+    { icon: 'calendar_today', label: 'Appointments', href: '/dashboard/appointments' },
+    { icon: 'biotech', label: 'Lab Tests', href: '/dashboard/lab-tests' },
+    { icon: 'description', label: 'Reports', href: '/reports' },
+    { icon: 'medication', label: 'Prescriptions', href: '/prescriptions' },
+    { icon: 'group', label: 'Family Profile', href: '/dashboard/family' }
+  ];
+
+  return (
+    <aside className="fixed left-0 top-16 bottom-0 flex flex-col py-6 w-64 hidden md:flex bg-white border-r border-slate-100 font-inter text-sm font-medium z-40 no-print">
+      <div className="mb-8 px-6">
+        <div className="flex items-center gap-2">
+          <Link href="/" className="text-lg font-black text-teal-600">careXpatient</Link>
+        </div>
+        <p className="text-xs text-slate-400 mt-1 uppercase tracking-widest">Patient Portal</p>
       </div>
-      <p className="text-xs text-slate-400 mt-1 uppercase tracking-widest">Patient Portal</p>
-    </div>
-    <nav className="space-y-1">
-      {[
-        { icon: 'dashboard', label: 'Dashboard', href: '/', active: false },
-        { icon: 'calendar_today', label: 'Appointments', href: '#', active: false },
-        { icon: 'biotech', label: 'Lab Tests', href: '#', active: false },
-        { icon: 'description', label: 'Reports', href: '/report', active: true },
-        { icon: 'medication', label: 'Prescriptions', href: '#', active: false },
-        { icon: 'group', label: 'Family Profile', href: '#', active: false }
-      ].map((item, i) => (
-        <Link 
-          key={i}
-          className={`mx-2 px-4 py-3 flex items-center gap-3 transition-colors ${
-            item.active 
-              ? 'bg-teal-50 text-teal-600 rounded-lg' 
-              : 'text-slate-500 hover:bg-slate-50 hover:text-teal-600'
-          }`}
-          href={item.href}
-        >
-          <span className="material-symbols-outlined">{item.icon}</span>
-          {item.label}
-        </Link>
-      ))}
-    </nav>
-    <div className="mt-auto px-6">
-      <div className="bg-teal-600 rounded-xl p-4 text-white">
-        <p className="font-bold text-sm mb-1">Need help?</p>
-        <p className="text-xs text-white/80 mb-3 leading-relaxed">Our support team is available 24/7 for you.</p>
-        <button className="bg-white text-teal-600 w-full py-2 rounded-lg text-xs font-bold hover:bg-slate-50 transition-colors">
-          Contact Support
-        </button>
+      <nav className="space-y-1">
+        {navItems
+          .filter(item => !(pathname === '/prescriptions' && item.label === 'Family Profile'))
+          .map((item, i) => {
+            const isActive = pathname === item.href || (item.href !== '/' && pathname?.startsWith(item.href));
+            return (
+              <Link 
+                key={i}
+                className={`mx-2 px-4 py-3 flex items-center gap-3 transition-colors ${
+                  isActive 
+                    ? 'bg-teal-50 text-teal-600 rounded-lg' 
+                    : 'text-slate-500 hover:bg-slate-50 hover:text-teal-600'
+                }`}
+                href={item.href}
+              >
+                <span className="material-symbols-outlined">{item.icon}</span>
+                {item.label}
+              </Link>
+            );
+          })}
+      </nav>
+      <div className="mt-auto px-6">
+        <div className="bg-teal-600 rounded-xl p-4 text-white">
+          <p className="font-bold text-sm mb-1">Need help?</p>
+          <p className="text-xs text-white/80 mb-3 leading-relaxed">Our support team is available 24/7 for you.</p>
+          <button className="bg-white text-teal-600 w-full py-2 rounded-lg text-xs font-bold hover:bg-slate-50 transition-colors">
+            Contact Support
+          </button>
+        </div>
       </div>
-    </div>
-  </aside>
-);
+    </aside>
+  );
+};

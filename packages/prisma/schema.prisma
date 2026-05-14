@@ -80,6 +80,7 @@ model Patient {
   userId         BigInt    @unique @map("user_id")
   dateOfBirth    DateTime? @map("date_of_birth") @db.Date
   bloodGroup     String?   @map("blood_group") @db.VarChar(10)
+  gender         String?   @db.VarChar(20)
   address        String?   @db.Text
   allergies      String?   @db.Text
   medicalHistory String?   @map("medical_history") @db.Text
@@ -206,6 +207,8 @@ model Consultation {
 model Prescription {
   id               BigInt   @id @default(autoincrement())
   consultationId   BigInt   @unique @map("consultation_id")
+  title            String?  @db.VarChar(255)
+  summary          String?  @db.Text
   medicinesText    String?  @map("medicines_text") @db.Text
   adviceText       String?  @map("advice_text") @db.Text
   diagnosis        String?  @db.Text
