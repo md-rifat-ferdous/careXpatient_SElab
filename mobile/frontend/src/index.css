@@ -1,0 +1,81 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Manrope:wght@600;700&display=swap");
+
+:root {
+  --primary: #00478d;
+  --primary-container: #d3e4ff;
+  --on-primary-container: #001c38;
+  --secondary: #585f66;
+  --tertiary-container: #d1fad0;
+  --on-tertiary-container: #002204;
+  --error-container: #ffdad6;
+  --on-error-container: #410002;
+  --error: #ba1a1a;
+  
+  --surface: #ffffff;
+  --background: #f8f9ff;
+  --on-surface: #1a1c1e;
+  --on-surface-variant: #44474f;
+  --outline-variant: #c4c6d0;
+  
+  --font-heading: "Manrope", sans-serif;
+  --font-body: "Inter", sans-serif;
+  
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: var(--font-body);
+  background-color: var(--background);
+  color: var(--on-surface);
+  max-width: 430px;
+  margin: 0 auto;
+  position: relative;
+}
+
+h1,h2,h3,h4 { font-family: var(--font-heading); font-weight: 700; }
+
+.card {
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--outline-variant);
+  padding: 16px;
+  box-shadow: none;
+}
+
+.chip {
+  padding: 4px 12px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.chip-success { background: var(--tertiary-container); color: var(--on-tertiary-container); }
+.chip-pending  { background: #fff8e1; color: #8d6e11; }
+.chip-cancelled{ background: var(--error-container); color: var(--on-error-container); }
+
+.btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  padding: 12px 20px; border-radius: 100px; font-weight: 600;
+  cursor: pointer; border: none; font-family: var(--font-body);
+  transition: all 0.2s; gap: 8px; font-size: 14px;
+}
+.btn-primary { background: var(--primary); color: #fff; }
+.btn-outline { background: transparent; border: 1px solid var(--outline-variant); color: var(--primary); }
+.text-muted { color: var(--on-surface-variant); font-size: 13px; }
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.fade-in {
+  animation: fadeIn 0.3s ease-out forwards;
+}
+
+

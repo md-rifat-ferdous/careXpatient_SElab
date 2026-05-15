@@ -1,0 +1,20 @@
+{
+  "name": "carexpatient-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "web/frontend",
+    "web/backend",
+    "mobile/frontend",
+    "mobile/backend"
+  ],
+  "scripts": {
+    "dev:web": "concurrently \"npm run dev -w carex-web-frontend\" \"npm start -w carex-web-backend\"",
+    "dev:mobile": "concurrently \"npm run dev -w carex-mobile-frontend\" \"npm start -w carex-mobile-backend\"",
+    "dev": "npm run dev:web",
+    "install-all": "npm install"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}
