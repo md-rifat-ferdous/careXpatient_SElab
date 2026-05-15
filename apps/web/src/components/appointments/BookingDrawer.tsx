@@ -158,7 +158,7 @@ export default function BookingDrawer({ isOpen, onClose, doctor }: BookingDrawer
 
             <div className="w-full bg-gradient-to-br from-teal-50 to-slate-50 border border-teal-100 rounded-2xl p-5 text-left mb-8 space-y-3">
               <div className="flex items-center gap-3 pb-3 border-b border-teal-100">
-                <img src={doctor.user.profilePhotoUrl || ''} alt={doctor.user.fullName} className="w-12 h-12 rounded-xl object-cover" />
+                <img src={doctor.user.profilePhotoUrl || 'https://via.placeholder.com/150'} alt={doctor.user.fullName} className="w-12 h-12 rounded-xl object-cover" />
                 <div>
                   <p className="font-bold text-slate-800 text-sm">{doctor.user.fullName}</p>
                   <p className="text-xs text-teal-600">{doctor.specialties[0]?.specialty.name}</p>
@@ -229,7 +229,7 @@ export default function BookingDrawer({ isOpen, onClose, doctor }: BookingDrawer
 
             <div className="flex-1 overflow-y-auto px-6 py-5 space-y-6">
               <div className="flex items-center gap-4 p-4 bg-slate-50 border border-slate-100 rounded-xl">
-                <img src={doctor.user.profilePhotoUrl || ''} alt={doctor.user.fullName} className="w-14 h-14 rounded-xl object-cover shrink-0" />
+                <img src={doctor.user.profilePhotoUrl || 'https://via.placeholder.com/150'} alt={doctor.user.fullName} className="w-14 h-14 rounded-xl object-cover shrink-0" />
                 <div>
                   <p className="font-bold text-slate-800">{doctor.user.fullName}</p>
                   <p className="text-xs text-teal-600 font-semibold">{doctor.specialties[0]?.specialty.name}</p>

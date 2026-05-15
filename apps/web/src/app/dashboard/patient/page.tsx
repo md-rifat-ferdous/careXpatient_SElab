@@ -33,31 +33,8 @@ export default function PatientDashboard() {
   ];
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="bg-white border-b border-border px-6 py-4 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl gradient-teal flex items-center justify-center">
-            <span className="text-white font-bold text-xs">cXp</span>
-          </div>
-          <span className="font-bold text-foreground">care<span className="text-primary">X</span>patient</span>
-        </div>
-        <div className="flex items-center gap-3">
-          <div className="text-right hidden sm:block">
-            <p className="text-sm font-medium text-foreground">{user?.fullName || 'Patient'}</p>
-            <p className="text-xs text-subtle-gray">{user?.phone}</p>
-          </div>
-          <button
-            onClick={handleLogout}
-            className="text-sm text-subtle-gray hover:text-error transition-colors border border-border rounded-lg px-3 py-1.5"
-          >
-            Sign out
-          </button>
-        </div>
-      </header>
-
-      <main className="max-w-2xl mx-auto px-6 py-10">
-        {/* Welcome banner */}
+    <div className="max-w-2xl mx-auto py-6">
+      {/* Welcome banner */}
         <div className="bg-gradient-to-r from-teal-500 to-sky-500 rounded-2xl p-6 mb-8 text-white">
           <p className="text-white/70 text-sm mb-1">Welcome back 👋</p>
           <h1 className="text-2xl font-bold">{user?.fullName || 'Patient'}</h1>
@@ -90,7 +67,6 @@ export default function PatientDashboard() {
             </Link>
           ))}
         </div>
-      </main>
     </div>
   );
 }
