@@ -4,8 +4,15 @@ import dotenv from 'dotenv';
 import authRoutes from './routes/auth.routes';
 import doctorRoutes from './routes/doctor.routes';
 import appointmentRoutes from './routes/appointment.routes';
+import prescriptionRoutes from './routes/prescription.routes';
+
 // Load environment variables from .env file
 dotenv.config();
+
+// BigInt serialization fix
+(BigInt.prototype as any).toJSON = function() {
+  return this.toString();
+};
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -18,6 +25,7 @@ app.use(express.json());
 app.use('/api/auth', authRoutes);
 app.use('/api/doctors', doctorRoutes);
 app.use('/api/appointments', appointmentRoutes);
+app.use('/api/prescriptions', prescriptionRoutes);
 
 // Basic health check route
 app.get('/', (req, res) => {

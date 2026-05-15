@@ -26,7 +26,7 @@ export default function PatientDashboard() {
   const features = [
     { icon: '📅', title: 'Book Appointment', desc: 'Find and book doctors near you', color: 'bg-teal-50 border-teal-100', soon: false, href: '/dashboard/patient/appointments' },
     { icon: '🧪', title: 'Lab Orders', desc: 'Order tests & view results', color: 'bg-sky-50 border-sky-100', soon: true },
-    { icon: '📋', title: 'Medical Records', desc: 'Prescriptions and history', color: 'bg-violet-50 border-violet-100', soon: true },
+    { icon: '📋', title: 'Medical Records', desc: 'Prescriptions and history', color: 'bg-violet-50 border-violet-100', soon: false, href: '/dashboard/patient/prescriptions' },
     { icon: '💊', title: 'Medications', desc: 'Track your medications', color: 'bg-amber-50 border-amber-100', soon: true },
     { icon: '🏥', title: 'My Doctors', desc: 'Your care team', color: 'bg-rose-50 border-rose-100', soon: true },
     { icon: '⚙️', title: 'Settings', desc: 'Profile & preferences', color: 'bg-slate-50 border-slate-100', soon: false },
