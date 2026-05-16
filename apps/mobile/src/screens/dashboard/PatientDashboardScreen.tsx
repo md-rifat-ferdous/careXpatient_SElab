@@ -3,7 +3,19 @@ import { View, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity } from 're
 import { Typography } from '../../components/ui/Typography';
 import { Card } from '../../components/ui/Card';
 import { useAuthStore } from '../../store/auth.store';
-import { LogOut, Calendar, Beaker, FileText, Settings } from 'lucide-react-native';
+import {
+  LogOut as LogOutRaw,
+  Calendar as CalendarRaw,
+  Beaker as BeakerRaw,
+  FileText as FileTextRaw,
+  Settings as SettingsRaw
+} from 'lucide-react-native';
+
+const LogOut = LogOutRaw as any;
+const Calendar = CalendarRaw as any;
+const Beaker = BeakerRaw as any;
+const FileText = FileTextRaw as any;
+const Settings = SettingsRaw as any;
 
 export default function PatientDashboardScreen({ navigation }: any) {
   const { user, logout } = useAuthStore();
@@ -61,21 +73,21 @@ export default function PatientDashboardScreen({ navigation }: any) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F8FAFC' },
-  header: { 
-    flexDirection: 'row', 
-    justifyContent: 'space-between', 
-    alignItems: 'center', 
-    padding: 24, 
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 24,
     backgroundColor: 'white',
     borderBottomWidth: 1,
     borderBottomColor: '#E2E8F0',
   },
   logoutButton: { padding: 8, borderRadius: 12, backgroundColor: '#FEF2F2' },
   content: { padding: 24 },
-  banner: { 
-    backgroundColor: '#14B8A6', 
-    padding: 20, 
-    marginBottom: 24, 
+  banner: {
+    backgroundColor: '#14B8A6',
+    padding: 20,
+    marginBottom: 24,
     borderWidth: 0,
     shadowColor: '#14B8A6',
     shadowOpacity: 0.3,

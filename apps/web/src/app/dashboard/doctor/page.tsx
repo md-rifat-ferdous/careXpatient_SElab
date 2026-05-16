@@ -1,72 +1,80 @@
-"use client";
-
 import React from 'react';
-import { useAuthStore } from '@/store/auth.store';
-import { useRouter } from 'next/navigation';
+import { Users, Calendar, FileText, TrendingUp } from 'lucide-react';
+import { Card } from '@/components/ui/Card';
 
-/* TODO: Implement role-specific Doctor dashboard features:
- * - My Appointments (today's schedule, upcoming, past)
- * - Write Prescription (patient search, medication, advice)
- * - My Patients (patient list, medical history access)
- * - Consultation Room (video call, notes)
- * - Clinic Management (manage clinic slots, availability)
- * - Earnings & Analytics (revenue, patient count)
- * - Profile & Credentials (update bio, certificates)
- */
-
-export default function DoctorDashboard() {
-  const { user, clearAuth } = useAuthStore();
-  const router = useRouter();
-
-  const features = [
-    { icon: '📅', title: "Today's Schedule", desc: 'View appointments for today', color: 'bg-sky-50 border-sky-100' },
-    { icon: '👥', title: 'My Patients', desc: 'Patient list and history', color: 'bg-teal-50 border-teal-100' },
-    { icon: '💊', title: 'Prescriptions', desc: 'Write & manage prescriptions', color: 'bg-violet-50 border-violet-100' },
-    { icon: '🏥', title: 'My Clinic', desc: 'Manage clinic settings', color: 'bg-rose-50 border-rose-100' },
-    { icon: '📊', title: 'Analytics', desc: 'Earnings & patient stats', color: 'bg-amber-50 border-amber-100' },
-    { icon: '⚙️', title: 'Profile', desc: 'Update credentials', color: 'bg-slate-50 border-slate-100' },
+export default function DoctorDashboardPage() {
+  const stats = [
+    { name: 'Total Patients', value: '128', icon: Users, color: 'text-blue-600', bg: 'bg-blue-50' },
+    { name: 'Appointments Today', value: '12', icon: Calendar, color: 'text-primary', bg: 'bg-secondary' },
+    { name: 'Reports Pending', value: '8', icon: FileText, color: 'text-orange-600', bg: 'bg-orange-50' },
+    { name: 'Revenue', value: '$12,450', icon: TrendingUp, color: 'text-green-600', bg: 'bg-green-50' },
   ];
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="bg-white border-b border-border px-6 py-4 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl gradient-teal flex items-center justify-center">
-            <span className="text-white font-bold text-xs">cXp</span>
+    <div className="space-y-8">
+      <div>
+        <h1 className="text-2xl font-bold text-text">Welcome back, Dr. Sarah</h1>
+        <p className="text-text-muted">Here's what's happening with your practice today.</p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {stats.map((stat) => (
+          <div key={stat.name} className="bg-white p-6 rounded-2xl shadow-soft border border-gray-50">
+            <div className={`w-12 h-12 ${stat.bg} ${stat.color} rounded-xl flex items-center justify-center mb-4`}>
+              <stat.icon size={24} />
+            </div>
+            <p className="text-sm text-text-muted font-medium">{stat.name}</p>
+            <p className="text-2xl font-bold text-text mt-1">{stat.value}</p>
           </div>
-          <span className="font-bold text-foreground">care<span className="text-primary">X</span>patient</span>
-        </div>
-        <button onClick={() => { clearAuth(); router.push('/login'); }}
-          className="text-sm text-subtle-gray hover:text-error transition-colors border border-border rounded-lg px-3 py-1.5">
-          Sign out
-        </button>
-      </header>
+        ))}
+      </div>
 
-      <main className="max-w-2xl mx-auto px-6 py-10">
-        <div className="bg-gradient-to-r from-sky-500 to-blue-600 rounded-2xl p-6 mb-8 text-white">
-          <p className="text-white/70 text-sm mb-1">Doctor Portal 🩺</p>
-          <h1 className="text-2xl font-bold">Dr. {user?.fullName || 'Doctor'}</h1>
-          <p className="text-white/80 text-sm mt-1">Your patients are waiting for your expertise.</p>
-        </div>
-
-        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6 flex items-start gap-3">
-          <span className="text-amber-500 text-lg">🚧</span>
-          <div>
-            <p className="font-semibold text-amber-900 text-sm">Dashboard Under Development</p>
-            <p className="text-amber-700 text-xs mt-0.5">Doctor features are being built. Coming soon!</p>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="bg-white p-6 rounded-2xl shadow-soft border border-gray-50">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-lg font-bold text-text">Upcoming Appointments</h2>
+            <button className="text-sm text-primary font-medium">View All</button>
+          </div>
+          <div className="space-y-4">
+            {[1, 2, 3].map((_, i) => (
+              <div key={i} className="flex items-center justify-between p-4 rounded-xl hover:bg-gray-50 transition-colors border border-transparent hover:border-gray-100">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-gray-100 rounded-full" />
+                  <div>
+                    <p className="font-semibold text-text text-sm">Patient Name</p>
+                    <p className="text-xs text-text-muted">General Consultation</p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="text-sm font-medium text-text">10:30 AM</p>
+                  <p className="text-xs text-text-muted">Today</p>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
-          {features.map((f) => (
-            <button key={f.title} className={`${f.color} border rounded-xl p-4 text-left transition-all hover:shadow-md`}>
-              <div className="text-2xl mb-2">{f.icon}</div>
-              <p className="font-semibold text-foreground text-sm">{f.title}</p>
-              <p className="text-xs text-subtle-gray mt-0.5">{f.desc}</p>
-            </button>
-          ))}
+        <div className="bg-white p-6 rounded-2xl shadow-soft border border-gray-50">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-lg font-bold text-text">Recent Patient Activity</h2>
+            <button className="text-sm text-primary font-medium">View All</button>
+          </div>
+          <div className="space-y-6">
+            {[1, 2, 3].map((_, i) => (
+              <div key={i} className="flex gap-4">
+                <div className="relative">
+                  <div className="w-2 h-2 bg-primary rounded-full" />
+                  <div className="absolute top-2 left-1/2 -translate-x-1/2 w-0.5 h-full bg-gray-50" />
+                </div>
+                <div>
+                  <p className="text-sm text-text"><span className="font-bold">John Doe</span> completed a <span className="text-primary font-medium">Blood Test</span></p>
+                  <p className="text-xs text-text-muted mt-1">2 hours ago</p>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
-      </main>
+      </div>
     </div>
   );
 }

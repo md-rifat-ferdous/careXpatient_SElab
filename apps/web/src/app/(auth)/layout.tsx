@@ -13,13 +13,8 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
 
         {/* Top: Logo */}
         <div className="relative z-10">
-          <Link href="/" className="flex items-center gap-3 group">
-            <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center backdrop-blur-sm border border-white/30 group-hover:bg-white/30 transition-all">
-              <span className="text-white font-bold text-sm tracking-tight">cXp</span>
-            </div>
-            <span className="text-white font-bold text-xl tracking-tight">
-              care<span className="text-white/70">X</span>patient
-            </span>
+          <Link href="/" className="group">
+            <span className="text-white font-bold text-xl tracking-tight">careXpatient</span>
           </Link>
         </div>
 
@@ -90,13 +85,8 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
       <div className="flex-1 flex flex-col min-h-screen overflow-y-auto">
         {/* Mobile header */}
         <div className="lg:hidden px-6 pt-6 pb-4 border-b border-border">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg gradient-teal flex items-center justify-center">
-              <span className="text-white font-bold text-xs">cXp</span>
-            </div>
-            <span className="font-bold text-foreground">
-              care<span className="text-primary">X</span>patient
-            </span>
+          <Link href="/" className="group">
+            <span className="font-bold text-primary text-lg tracking-tight">careXpatient</span>
           </Link>
         </div>
 

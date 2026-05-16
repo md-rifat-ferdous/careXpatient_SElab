@@ -62,7 +62,7 @@ export default function DoctorSignupForm() {
     setIsLoading(true);
     try {
       const payload = {
-        fullName: data.fullName,
+        name: data.fullName,
         phone: data.phone,
         email: data.email || undefined,
         password: data.password,
@@ -70,6 +70,7 @@ export default function DoctorSignupForm() {
         nidNumber: data.nidNumber || undefined,
         bmdcNumber: data.bmdcNumber,
         qualification: data.qualification,
+        specialty: data.specialty,
         experienceYears: data.experienceYears ? parseInt(data.experienceYears) : undefined,
         fee: data.fee ? parseFloat(data.fee) : undefined,
         about: data.about || undefined,

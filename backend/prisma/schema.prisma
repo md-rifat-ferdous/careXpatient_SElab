@@ -1,0 +1,73 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model Doctor {
+  id              String    @id @default(uuid())
+  email           String?   @unique
+  password        String
+  name            String
+  phone           String?   @unique
+  specialty       String?
+  bmdcNumber      String?
+  qualification   String?
+  nidNumber       String?
+  experienceYears Int?
+  fee             Float?
+  about           String?
+  patients        Patient[]
+  prescriptions   Prescription[]
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+model Patient {
+  id            String         @id @default(uuid())
+  doctorId      String
+  doctor        Doctor         @relation(fields: [doctorId], references: [id])
+  name          String
+  age           Int?
+  gender        String?
+  phone         String?
+  email         String?
+  lastVisit     DateTime?
+  reports       Report[]
+  prescriptions Prescription[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+}
+
+model Report {
+  id                     String   @id @default(uuid())
+  patientId              String
+  patient                Patient  @relation(fields: [patientId], references: [id])
+  name                   String
+  labName                String?
+  date                   DateTime
+  fileUrl                String?
+  description            String?
+  doctorNotes            String?
+  followUpRecommendation String?
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+}
+
+model Prescription {
+  id          String    @id @default(uuid())
+  patientId   String
+  patient     Patient   @relation(fields: [patientId], references: [id])
+  doctorId    String
+  doctor      Doctor    @relation(fields: [doctorId], references: [id])
+  medications String    // Stored as JSON string
+  date        DateTime
+  notes       String?
+  status      String    @default("active")
+  archivedAt  DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}

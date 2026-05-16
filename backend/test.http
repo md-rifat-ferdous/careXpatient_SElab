@@ -1,0 +1,42 @@
+### 1. Register a new Doctor
+POST http://localhost:5000/api/auth/register
+Content-Type: application/json
+
+{
+  "email": "doctor@example.com",
+  "password": "password123",
+  "name": "Dr. Sarah Johnson",
+  "specialty": "Cardiology"
+}
+
+###
+
+### 2. Login as the Doctor (Copy the token from the response)
+POST http://localhost:5000/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "doctor@example.com",
+  "password": "password123"
+}
+
+###
+
+### 3. Add a new Patient (Paste the token where it says YOUR_TOKEN_HERE)
+POST http://localhost:5000/api/patients
+Content-Type: application/json
+Authorization: Bearer YOUR_TOKEN_HERE
+
+{
+  "name": "John Doe",
+  "age": 45,
+  "gender": "Male",
+  "phone": "123-456-7890",
+  "email": "john@example.com"
+}
+
+###
+
+### 4. Get all Patients for this Doctor (Paste your token here too)
+GET http://localhost:5000/api/patients
+Authorization: Bearer YOUR_TOKEN_HERE

@@ -56,7 +56,7 @@ export default function LabSignupForm() {
     setIsLoading(true);
     try {
       const payload = {
-        fullName: data.fullName,
+        name: data.fullName,
         phone: data.phone,
         email: data.email || undefined,
         password: data.password,

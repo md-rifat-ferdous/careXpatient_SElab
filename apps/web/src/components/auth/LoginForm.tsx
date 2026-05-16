@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuthStore } from '@/store/auth.store';
 import { authApi } from '@/lib/api';
@@ -231,16 +231,16 @@ function LoginFormContent({ role, onBack }: { role: Role; onBack: () => void }) 
   const cfg = ROLE_CONFIG[role];
 
   const [method, setMethod] = useState<LoginMethod>('password');
-  const [phone, setPhone] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [phone, setPhone] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [otpStep, setOtpStep] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const validate = () => {
     const newErrors: Record<string, string> = {};
-    if (!phone.trim()) newErrors.phone = 'Phone number is required';
-    else if (!/^01[3-9]\d{8}$/.test(phone)) newErrors.phone = 'Enter a valid BD phone number';
+    if (!email.trim()) newErrors.email = 'Email is required';
     if (method === 'password') {
       if (!password) newErrors.password = 'Password is required';
     }
@@ -253,18 +253,25 @@ function LoginFormContent({ role, onBack }: { role: Role; onBack: () => void }) 
     if (!validate()) return;
     setIsLoading(true);
     try {
-      const res = await authApi.login({ phone, password, role });
-      if (res.success) {
-        setAuth(res.data.user as any, res.data.token);
-        toast(`Welcome back! Redirecting to your dashboard...`, 'success');
-        // Role-based redirect
-        const redirectMap: Record<Role, string> = {
-          Patient: '/dashboard/patient',
-          Doctor: '/dashboard/doctor',
-          Lab: '/dashboard/lab',
-        };
-        setTimeout(() => router.push(redirectMap[role]), 1200);
-      }
+      // Connect to real backend API
+      const res = await fetch('http://localhost:5000/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+      const data = await res.json();
+      
+      if (!res.ok) throw new Error(data.message);
+
+      setAuth({ id: data.id, role, email: data.email, fullName: data.name, phone: '' }, data.token);
+      toast(`Welcome back! Redirecting to your dashboard...`, 'success');
+      
+      const redirectMap: Record<Role, string> = {
+        Patient: '/dashboard/patient',
+        Doctor: '/dashboard/doctor',
+        Lab: '/dashboard/lab',
+      };
+      setTimeout(() => router.push(redirectMap[role]), 1200);
     } catch (err: any) {
       toast(err.message || 'Login failed. Please check your credentials.', 'error');
     } finally {
@@ -335,21 +342,39 @@ function LoginFormContent({ role, onBack }: { role: Role; onBack: () => void }) 
       )}
 
       <form onSubmit={method === 'password' ? handlePasswordLogin : (e) => { e.preventDefault(); handleOtpProceed(); }} className="space-y-4">
-        <FormField label="Phone Number" error={errors.phone} required>
-          <Input
-            id={`${role.toLowerCase()}-login-phone`}
-            type="tel"
-            placeholder="01XXXXXXXXX"
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-            error={!!errors.phone}
-            leftIcon={
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-              </svg>
-            }
-          />
-        </FormField>
+        {method === 'password' ? (
+          <FormField label="Email Address" error={errors.email} required>
+            <Input
+              id={`${role.toLowerCase()}-login-email`}
+              type="email"
+              placeholder={role === 'Doctor' ? 'doctor@example.com' : 'patient@example.com'}
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              error={!!errors.email}
+              leftIcon={
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+              }
+            />
+          </FormField>
+        ) : (
+          <FormField label="Phone Number" error={errors.phone} required>
+            <Input
+              id={`${role.toLowerCase()}-login-phone`}
+              type="tel"
+              placeholder="017XXXXXXXX"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value.replace(/\D/g, '').slice(0, 11))}
+              error={!!errors.phone}
+              leftIcon={
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                </svg>
+              }
+            />
+          </FormField>
+        )}
 
         {method === 'password' && (
           <FormField label="Password" error={errors.password} required>
@@ -398,9 +423,29 @@ function LoginFormContent({ role, onBack }: { role: Role; onBack: () => void }) 
 // ===== DEFAULT EXPORT =====
 export default function LoginForm() {
   const [selectedRole, setSelectedRole] = useState<Role | null>(null);
+  const searchParams = useSearchParams();
+  const [showExpiredAlert, setShowExpiredAlert] = useState(false);
+
+  useEffect(() => {
+    if (searchParams.get('expired') === 'true') {
+      setShowExpiredAlert(true);
+    }
+  }, [searchParams]);
 
   if (!selectedRole) {
-    return <RolePicker onSelect={setSelectedRole} />;
+    return (
+      <>
+        {showExpiredAlert && (
+          <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-xl flex items-center gap-3 text-amber-800 animate-slide-up">
+            <svg className="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+            <p className="text-sm font-medium">Session expired. Please login again.</p>
+          </div>
+        )}
+        <RolePicker onSelect={setSelectedRole} />
+      </>
+    );
   }
 
   return (
