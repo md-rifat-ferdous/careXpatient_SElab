@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState } from 'react';
+import React from 'react';
+import { usePathname } from 'next/navigation';
 import Sidebar from './Sidebar';
 
 interface DashboardLayoutProps {
@@ -8,22 +9,26 @@ interface DashboardLayoutProps {
 }
 
 const DashboardLayout = ({ children }: DashboardLayoutProps) => {
+  const pathname = usePathname();
+  // Pages that manage their own scroll/height (no inner padding)
+  const fullHeightPages = ['/dashboard/patient/lab-tests'];
+  const isFullHeight = fullHeightPages.some(p => pathname.startsWith(p));
+
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="flex h-screen bg-slate-50 overflow-hidden">
       <Sidebar />
-      <div className="transition-all duration-300 md:pl-64">
-        {/* Mobile Header (Hidden on Desktop) */}
-        <header className="md:hidden bg-white border-b border-slate-200 p-4 flex items-center justify-between sticky top-0 z-40">
+      <div className="flex-1 flex flex-col md:pl-64 overflow-hidden">
+        {/* Mobile Header */}
+        <header className="md:hidden bg-white border-b border-slate-200 p-4 flex items-center justify-between shrink-0">
            <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-lg bg-teal-500 flex items-center justify-center">
               <span className="text-white font-bold text-[10px]">cXp</span>
             </div>
             <span className="font-bold text-slate-900 text-sm">care<span className="text-teal-600">X</span>patient</span>
           </div>
-          {/* We could add a mobile menu trigger here if needed, but the current sidebar is fixed */}
         </header>
-        
-        <main className="p-4 md:p-8">
+
+        <main className={`flex-1 overflow-hidden ${isFullHeight ? '' : 'overflow-y-auto p-4 md:p-8'}`}>
           {children}
         </main>
       </div>

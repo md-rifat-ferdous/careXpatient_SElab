@@ -11,6 +11,7 @@
   --tertiary: #E0F2FE;
   --background: #F8FAFC;
   --foreground: #1E293B;
+  --on-surface: #1E293B;
   --subtle-gray: #94A3B8;
   --border: #E2E8F0;
   --card: #FFFFFF;
@@ -30,6 +31,7 @@
   --color-tertiary: var(--tertiary);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-on-surface: var(--on-surface);
   --color-subtle-gray: var(--subtle-gray);
   --color-border: var(--border);
   --color-card: var(--card);

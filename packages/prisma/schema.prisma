@@ -220,11 +220,19 @@ model Prescription {
 }
 
 model LabTest {
-  id         BigInt   @id @default(autoincrement())
-  name       String   @db.VarChar(255)
-  price      Decimal? @db.Decimal(10, 2)
-  sampleType String?  @map("sample_type") @db.VarChar(100)
+  id            BigInt   @id @default(autoincrement())
+  name          String   @db.VarChar(255)
+  price         Decimal? @db.Decimal(10, 2)
+  sampleType    String?  @map("sample_type") @db.VarChar(100)
+  tag           String?  @db.VarChar(50)
+  tagColor      String?  @map("tag_color") @db.VarChar(50)
+  description   String?  @db.Text
+  prerequisites String?  @db.Text
+  deliveryTime  String?  @map("delivery_time") @db.VarChar(50)
+  category      String?  @default("All") @db.VarChar(50)
+  labId         BigInt?  @map("lab_id")
 
+  lab    Lab?           @relation(fields: [labId], references: [id])
   orders LabOrderTest[]
 
   @@map("LabTest")
@@ -239,8 +247,9 @@ model Lab {
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
   updatedAt DateTime @default(now()) @map("updated_at") @db.Timestamptz
 
-  user   User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  orders LabOrder[]
+  user     User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  orders   LabOrder[]
+  labTests LabTest[]
 
   @@map("Lab")
 }
@@ -250,6 +259,9 @@ model LabOrder {
   patientId         BigInt         @map("patient_id")
   labId             BigInt         @map("lab_id")
   status            LabOrderStatus @default(Requested)
+  subtotal          Decimal?       @db.Decimal(10, 2)
+  vat               Decimal?       @db.Decimal(10, 2)
+  homeCollectionFee Decimal?       @map("home_collection_fee") @db.Decimal(10, 2)
   totalAmount       Decimal?       @map("total_amount") @db.Decimal(10, 2)
   homeCollection    Boolean?       @default(false) @map("home_collection")
   collectionAddress String?        @map("collection_address") @db.Text
