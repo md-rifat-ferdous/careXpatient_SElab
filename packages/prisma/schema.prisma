@@ -69,9 +69,11 @@ model User {
   updatedAt       DateTime  @default(now()) @map("updated_at") @db.Timestamptz
   deletedAt       DateTime? @map("deleted_at") @db.Timestamptz
 
-  patient Patient?
-  doctor  Doctor?
-  lab     Lab?
+  patient       Patient?
+  doctor        Doctor?
+  lab           Lab?
+  notifications Notification[]
+  auditLogs     AuditLog[]
 
   @@map("User")
 }
@@ -112,7 +114,8 @@ model Doctor {
   user         User              @relation(fields: [userId], references: [id], onDelete: Cascade)
   specialties  DoctorSpecialty[]
   clinics      DoctorClinic[]
-  appointments Appointment[]
+  appointments      Appointment[]
+  availabilitySlots AvailabilitySlot[]
 
   @@map("Doctor")
 }
@@ -302,4 +305,52 @@ model Payment {
   refundReason  String?        @map("refund_reason") @db.Text
 
   @@map("Payment")
+}
+
+model AvailabilitySlot {
+  id              BigInt   @id @default(autoincrement())
+  doctorId        BigInt   @map("doctor_id")
+  dayOfWeek       Int      @map("day_of_week") // 0-6 (Sunday-Saturday)
+  startTime       DateTime @map("start_time") @db.Time
+  endTime         DateTime @map("end_time") @db.Time
+  isRecurring     Boolean  @default(true) @map("is_recurring")
+  maxAppointments Int      @default(10) @map("max_appointments")
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  doctor Doctor @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+
+  @@map("AvailabilitySlot")
+}
+
+model AuditLog {
+  id         BigInt   @id @default(autoincrement())
+  userId     BigInt   @map("user_id")
+  action     String   @db.VarChar(100) // e.g., "VIEW_PATIENT_RECORD", "ISSUE_PRESCRIPTION"
+  resource   String   @db.VarChar(100) // e.g., "Patient:123", "Prescription:456"
+  metadata   Json?    @db.JsonB
+  ipAddress  String?  @map("ip_address") @db.VarChar(45)
+  userAgent  String?  @map("user_agent") @db.Text
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([resource])
+  @@map("AuditLog")
+}
+
+model Notification {
+  id        BigInt   @id @default(autoincrement())
+  userId    BigInt   @map("user_id")
+  title     String   @db.VarChar(255)
+  message   String   @db.Text
+  type      String   @db.VarChar(50) // e.g., "APPOINTMENT", "PRESCRIPTION", "SYSTEM"
+  isRead    Boolean  @default(false) @map("is_read")
+  link      String?  @db.Text
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("Notification")
 }

@@ -68,8 +68,8 @@ export default function PrescriptionManagementPage() {
     <div className="w-full space-y-6">
       {/* Page Header */}
       <header className="mb-6">
-        <h1 className="text-3xl font-bold text-slate-900 mb-2">Prescriptions</h1>
-        <p className="text-base text-slate-500 font-medium">
+        <h1 className="text-3xl font-bold text-text mb-2">Prescriptions</h1>
+        <p className="text-base text-text-muted font-medium">
           Access and manage your digital healthcare records in one secure place.
         </p>
       </header>
@@ -94,7 +94,7 @@ export default function PrescriptionManagementPage() {
           {selectedId && (
             <button 
               onClick={() => setSelectedId(null)}
-              className="mb-6 flex items-center gap-2 text-slate-500 hover:text-teal-600 transition-colors font-medium bg-white px-4 py-2 rounded-xl border border-slate-200 shadow-sm inline-flex"
+              className="mb-6 flex items-center gap-2 text-text-muted hover:text-primary transition-colors font-medium bg-surface px-4 py-2 rounded-xl border border-border-soft shadow-soft inline-flex"
             >
               <span className="material-symbols-outlined">arrow_back</span>
               Back to Prescriptions
@@ -115,22 +115,22 @@ export default function PrescriptionManagementPage() {
               
               {/* Pagination */}
               {!loading && totalPages > 1 && (
-                <div className="flex items-center justify-between bg-white px-6 py-4 rounded-xl shadow-sm border border-slate-100 mt-8">
-                  <p className="text-sm text-slate-500">
-                      Page <span className="font-bold text-slate-900">{page}</span> of <span className="font-bold text-slate-900">{totalPages}</span>
+                <div className="flex items-center justify-between bg-surface px-6 py-4 rounded-xl shadow-soft border border-border-soft mt-8">
+                  <p className="text-sm text-text-muted">
+                      Page <span className="font-bold text-text">{page}</span> of <span className="font-bold text-text">{totalPages}</span>
                   </p>
                   <div className="flex gap-2">
                     <button 
                       disabled={page === 1}
                       onClick={() => setPage(p => p - 1)}
-                      className={`w-10 h-10 flex items-center justify-center rounded-lg border border-slate-200 transition-colors ${page === 1 ? 'opacity-30 cursor-not-allowed' : 'text-slate-600 hover:bg-slate-50'}`}
+                      className={`w-10 h-10 flex items-center justify-center rounded-lg border border-border-soft transition-colors ${page === 1 ? 'opacity-30 cursor-not-allowed' : 'text-text-muted hover:bg-surface-muted'}`}
                     >
                       <span className="material-symbols-outlined">chevron_left</span>
                     </button>
                     <button 
                       disabled={page === totalPages}
                       onClick={() => setPage(p => p + 1)}
-                      className={`w-10 h-10 flex items-center justify-center rounded-lg border border-slate-200 transition-colors ${page === totalPages ? 'opacity-30 cursor-not-allowed' : 'text-slate-600 hover:bg-slate-50'}`}
+                      className={`w-10 h-10 flex items-center justify-center rounded-lg border border-border-soft transition-colors ${page === totalPages ? 'opacity-30 cursor-not-allowed' : 'text-text-muted hover:bg-surface-muted'}`}
                     >
                       <span className="material-symbols-outlined">chevron_right</span>
                     </button>
@@ -141,9 +141,9 @@ export default function PrescriptionManagementPage() {
           ) : (
             <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
               {detailLoading ? (
-                <div className="bg-white rounded-[32px] border border-[#F1F5F9] p-20 flex flex-col items-center justify-center min-h-[600px] shadow-sm">
-                  <div className="w-12 h-12 border-4 border-[#0D9488]/20 border-t-[#0D9488] rounded-full animate-spin"></div>
-                  <p className="mt-4 text-[#64748B] font-medium">Fetching secure record...</p>
+                <div className="bg-surface rounded-[32px] border border-border-soft p-20 flex flex-col items-center justify-center min-h-[600px] shadow-soft">
+                  <div className="w-12 h-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
+                  <p className="mt-4 text-text-muted font-medium">Fetching secure record...</p>
                 </div>
               ) : selectedPrescription && (
                 <PrescriptionDetailView 

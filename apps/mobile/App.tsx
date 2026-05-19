@@ -1,27 +1,33 @@
-import React, { useState } from 'react';
-import { View } from 'react-native';
+import React from 'react';
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { StatusBar } from 'expo-status-bar';
+
+import PatientDashboardScreen from './src/screens/dashboard/PatientDashboardScreen';
 import PrescriptionListScreen from './src/screens/prescriptions/PrescriptionListScreen';
 import PrescriptionDetailScreen from './src/screens/prescriptions/PrescriptionDetailScreen';
+import { theme } from './src/lib/theme';
+
+const Stack = createNativeStackNavigator();
 
 export default function App() {
-  const [currentScreen, setCurrentScreen] = useState('list');
-  const [selectedId, setSelectedId] = useState<number | null>(null);
-
-  const mockNavigation = {
-    navigate: (screen: string, params?: any) => {
-      setCurrentScreen(screen);
-      if (params && params.id) setSelectedId(params.id);
-    },
-    goBack: () => setCurrentScreen('list')
-  };
-
   return (
-    <View style={{ flex: 1 }}>
-      {currentScreen === 'list' ? (
-        <PrescriptionListScreen navigation={mockNavigation} />
-      ) : (
-        <PrescriptionDetailScreen route={{ params: { id: selectedId } }} navigation={mockNavigation} />
-      )}
-    </View>
+    <SafeAreaProvider>
+      <StatusBar style="dark" />
+      <NavigationContainer>
+        <Stack.Navigator 
+          initialRouteName="Dashboard"
+          screenOptions={{
+            headerShown: false,
+            contentStyle: { backgroundColor: theme.colors.surfaceMuted }
+          }}
+        >
+          <Stack.Screen name="Dashboard" component={PatientDashboardScreen} />
+          <Stack.Screen name="PrescriptionList" component={PrescriptionListScreen} />
+          <Stack.Screen name="PrescriptionDetail" component={PrescriptionDetailScreen} />
+        </Stack.Navigator>
+      </NavigationContainer>
+    </SafeAreaProvider>
   );
 }

@@ -1,72 +1,132 @@
 "use client";
 
 import React from 'react';
-import { useAuthStore } from '@/store/auth.store';
-import { useRouter } from 'next/navigation';
-
-/* TODO: Implement role-specific Doctor dashboard features:
- * - My Appointments (today's schedule, upcoming, past)
- * - Write Prescription (patient search, medication, advice)
- * - My Patients (patient list, medical history access)
- * - Consultation Room (video call, notes)
- * - Clinic Management (manage clinic slots, availability)
- * - Earnings & Analytics (revenue, patient count)
- * - Profile & Credentials (update bio, certificates)
- */
+import { motion } from 'framer-motion';
+import { 
+  Typography, 
+  Card, 
+  Button, 
+  Badge,
+  cn 
+} from '@carexpatient/ui';
+import { 
+  Users, 
+  Calendar, 
+  TrendingUp, 
+  Clock, 
+  ArrowRight,
+  Plus,
+  Activity,
+  Award
+} from 'lucide-react';
+import { ClinicQueue } from '@/components/doctor/ClinicQueue';
 
 export default function DoctorDashboard() {
-  const { user, clearAuth } = useAuthStore();
-  const router = useRouter();
-
-  const features = [
-    { icon: '📅', title: "Today's Schedule", desc: 'View appointments for today', color: 'bg-sky-50 border-sky-100' },
-    { icon: '👥', title: 'My Patients', desc: 'Patient list and history', color: 'bg-teal-50 border-teal-100' },
-    { icon: '💊', title: 'Prescriptions', desc: 'Write & manage prescriptions', color: 'bg-violet-50 border-violet-100' },
-    { icon: '🏥', title: 'My Clinic', desc: 'Manage clinic settings', color: 'bg-rose-50 border-rose-100' },
-    { icon: '📊', title: 'Analytics', desc: 'Earnings & patient stats', color: 'bg-amber-50 border-amber-100' },
-    { icon: '⚙️', title: 'Profile', desc: 'Update credentials', color: 'bg-slate-50 border-slate-100' },
+  const stats = [
+    { label: 'Total Patients', value: '1.2K', icon: <Users className="w-5 h-5" />, color: 'text-primary bg-primary/10', trend: '+12%' },
+    { label: 'Appointments', value: '42', icon: <Calendar className="w-5 h-5" />, color: 'text-blue-600 bg-blue-50', trend: 'Today' },
+    { label: 'Avg. Rating', value: '4.9', icon: <Award className="w-5 h-5" />, color: 'text-amber-600 bg-amber-50', trend: 'Top 5%' },
+    { label: 'Clinical Hours', value: '160', icon: <Clock className="w-5 h-5" />, color: 'text-rose-600 bg-rose-50', trend: 'This Month' },
   ];
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="bg-white border-b border-border px-6 py-4 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl gradient-teal flex items-center justify-center">
-            <span className="text-white font-bold text-xs">cXp</span>
-          </div>
-          <span className="font-bold text-foreground">care<span className="text-primary">X</span>patient</span>
+    <div className="max-w-7xl mx-auto space-y-8 pb-12">
+      {/* Header */}
+      <section className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+          <Typography variant="h1">Doctor Workspace</Typography>
+          <Typography variant="body" className="text-text-muted mt-1">Welcome back, Dr. Sarah Johnson. You have 12 patients in the queue.</Typography>
         </div>
-        <button onClick={() => { clearAuth(); router.push('/login'); }}
-          className="text-sm text-subtle-gray hover:text-error transition-colors border border-border rounded-lg px-3 py-1.5">
-          Sign out
-        </button>
-      </header>
+        <div className="flex gap-3">
+          <Button variant="outline" className="rounded-xl h-12 px-6">Manage Schedule</Button>
+          <Button className="rounded-xl h-12 px-6 shadow-lg shadow-primary/20 gap-2">
+            <Plus className="w-4 h-4" /> New Consultation
+          </Button>
+        </div>
+      </section>
 
-      <main className="max-w-2xl mx-auto px-6 py-10">
-        <div className="bg-gradient-to-r from-sky-500 to-blue-600 rounded-2xl p-6 mb-8 text-white">
-          <p className="text-white/70 text-sm mb-1">Doctor Portal 🩺</p>
-          <h1 className="text-2xl font-bold">Dr. {user?.fullName || 'Doctor'}</h1>
-          <p className="text-white/80 text-sm mt-1">Your patients are waiting for your expertise.</p>
+      {/* Stats Grid */}
+      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {stats.map((stat, i) => (
+          <Card key={i} className="group hover:-translate-y-1 transition-transform">
+            <div className="flex justify-between items-start mb-4">
+              <div className={cn("w-12 h-12 rounded-xl flex items-center justify-center", stat.color)}>
+                {stat.icon}
+              </div>
+              <Typography variant="small" className="text-[10px] font-black text-primary bg-primary/5 px-2 py-0.5 rounded-full uppercase tracking-widest">
+                {stat.trend}
+              </Typography>
+            </div>
+            <div>
+              <Typography variant="small" className="uppercase tracking-[0.2em] text-[10px] font-bold text-text-muted">
+                {stat.label}
+              </Typography>
+              <Typography variant="h3" className="text-2xl mt-1">
+                {stat.value}
+              </Typography>
+            </div>
+          </Card>
+        ))}
+      </section>
+
+      {/* Main Content */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        {/* Left: Queue & Performance */}
+        <div className="lg:col-span-2 space-y-8">
+          <ClinicQueue />
+          
+          <Card className="p-8 bg-gradient-to-br from-primary-dark to-primary text-white overflow-hidden relative">
+            <div className="relative z-10">
+              <Typography variant="h2" className="text-white mb-2">Practice Performance</Typography>
+              <Typography variant="body" className="text-white/70 mb-6 max-w-md">Your clinic has seen a 15% increase in online consultations this week. Keep up the great work!</Typography>
+              <Button className="bg-white text-primary hover:bg-surface-muted rounded-xl px-8 font-bold">
+                Detailed Analytics <ArrowRight className="w-4 h-4 ml-2" />
+              </Button>
+            </div>
+            <Activity className="absolute bottom-[-20%] right-[-10%] w-64 h-64 text-white/5" />
+          </Card>
         </div>
 
-        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6 flex items-start gap-3">
-          <span className="text-amber-500 text-lg">🚧</span>
-          <div>
-            <p className="font-semibold text-amber-900 text-sm">Dashboard Under Development</p>
-            <p className="text-amber-700 text-xs mt-0.5">Doctor features are being built. Coming soon!</p>
-          </div>
-        </div>
+        {/* Right: Notifications & Quick Access */}
+        <div className="space-y-8">
+           <Card className="h-fit">
+              <Typography variant="h3" className="mb-6">Clinical Updates</Typography>
+              <div className="space-y-6">
+                {[
+                  { title: 'New Lab Results', desc: 'Patient: Nusrat Jahan', time: '10 mins ago', color: 'bg-blue-100 text-blue-600' },
+                  { title: 'Appointment Request', desc: 'Patient: Rahim Ali', time: '1 hour ago', color: 'bg-primary/10 text-primary' },
+                  { title: 'System Maintenance', desc: 'Scheduled for midnight', time: '2 hours ago', color: 'bg-amber-100 text-amber-600' },
+                ].map((update, i) => (
+                  <div key={i} className="flex gap-4">
+                    <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0", update.color)}>
+                      <Activity className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <Typography variant="body" className="font-bold text-sm leading-none mb-1">{update.title}</Typography>
+                      <Typography variant="small" className="text-[11px] text-text-muted">{update.desc}</Typography>
+                      <Typography variant="small" className="text-[9px] text-text-muted uppercase tracking-widest mt-1 block">{update.time}</Typography>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <Button variant="ghost" className="w-full mt-8 text-xs font-bold uppercase tracking-widest text-text-muted hover:text-primary">
+                Clear All
+              </Button>
+           </Card>
 
-        <div className="grid grid-cols-2 gap-3">
-          {features.map((f) => (
-            <button key={f.title} className={`${f.color} border rounded-xl p-4 text-left transition-all hover:shadow-md`}>
-              <div className="text-2xl mb-2">{f.icon}</div>
-              <p className="font-semibold text-foreground text-sm">{f.title}</p>
-              <p className="text-xs text-subtle-gray mt-0.5">{f.desc}</p>
-            </button>
-          ))}
+           <Card className="bg-surface-muted/50 border-dashed">
+              <Typography variant="h3" className="mb-4">Quick Tools</Typography>
+              <div className="grid grid-cols-2 gap-3">
+                {['E-Prescription', 'Lab Referral', 'Medical Certificate', 'Report Viewer'].map((tool) => (
+                  <button key={tool} className="p-3 bg-white border border-border-soft rounded-xl text-[10px] font-bold text-text-muted hover:border-primary/30 hover:text-primary transition-all text-center">
+                    {tool}
+                  </button>
+                ))}
+              </div>
+           </Card>
         </div>
-      </main>
+      </div>
     </div>
   );
 }
