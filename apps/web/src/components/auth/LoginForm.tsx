@@ -239,8 +239,9 @@ function LoginFormContent({ role, onBack }: { role: Role; onBack: () => void }) 
 
   const validate = () => {
     const newErrors: Record<string, string> = {};
-    if (!phone.trim()) newErrors.phone = 'Phone number is required';
-    else if (!/^01[3-9]\d{8}$/.test(phone)) newErrors.phone = 'Enter a valid BD phone number';
+    const cleanPhone = phone.trim();
+    if (!cleanPhone) newErrors.phone = 'Phone number is required';
+    else if (!/^01[3-9]\d{8}$/.test(cleanPhone)) newErrors.phone = 'Enter a valid BD phone number';
     if (method === 'password') {
       if (!password) newErrors.password = 'Password is required';
     }
@@ -253,7 +254,7 @@ function LoginFormContent({ role, onBack }: { role: Role; onBack: () => void }) 
     if (!validate()) return;
     setIsLoading(true);
     try {
-      const res = await authApi.login({ phone, password, role });
+      const res = await authApi.login({ phone: phone.trim(), password, role });
       if (res.success) {
         setAuth(res.data.user as any, res.data.token);
         toast(`Welcome back! Redirecting to your dashboard...`, 'success');
@@ -273,7 +274,8 @@ function LoginFormContent({ role, onBack }: { role: Role; onBack: () => void }) 
   };
 
   const handleOtpProceed = () => {
-    if (!phone.trim() || !/^01[3-9]\d{8}$/.test(phone)) {
+    const cleanPhone = phone.trim();
+    if (!cleanPhone || !/^01[3-9]\d{8}$/.test(cleanPhone)) {
       setErrors({ phone: 'Enter a valid BD phone number first' });
       return;
     }

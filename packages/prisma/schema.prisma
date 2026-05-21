@@ -272,10 +272,24 @@ model LabOrder {
   patient    Patient        @relation(fields: [patientId], references: [id])
   lab        Lab            @relation(fields: [labId], references: [id])
   tests      LabOrderTest[]
-  labResults LabResult[]
+  labResults  LabResult[]
+  parameters  ReportParameter[]
 
   @@index([patientId])
   @@map("LabOrder")
+}
+
+model ReportParameter {
+  id             BigInt  @id @default(autoincrement())
+  labOrderId     BigInt  @map("lab_order_id")
+  parameterName  String  @map("parameter_name") @db.VarChar(255)
+  value          String  @db.VarChar(255)
+  unit           String? @db.VarChar(100)
+  referenceRange String? @map("reference_range") @db.VarChar(255)
+
+  labOrder LabOrder @relation(fields: [labOrderId], references: [id], onDelete: Cascade)
+
+  @@map("ReportParameter")
 }
 
 model LabOrderTest {

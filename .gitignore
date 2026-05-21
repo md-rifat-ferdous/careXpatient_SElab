@@ -22,7 +22,7 @@ backend/.env
 .antigravity
 .cursor
 .vscode/ai-cache
-*.artifact.md
+*.tsbuildinfo
 walkthrough.md
 implementation_plan.md
 task.md

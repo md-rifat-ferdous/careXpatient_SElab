@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "npm run storybook",
     "build": "tsc",
-    "storybook": "storybook dev -p 6006",
+    "storybook": "storybook dev -p 6007",
     "build-storybook": "storybook build"
   },
   "devDependencies": {

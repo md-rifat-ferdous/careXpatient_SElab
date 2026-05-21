@@ -30,8 +30,9 @@ export default function DoctorSignupForm() {
     const newErrors: Record<string, string> = {};
     if (stepIndex === 0) {
       if (!data.fullName?.trim()) newErrors.fullName = 'Full name is required';
-      if (!data.phone?.trim()) newErrors.phone = 'Phone number is required';
-      else if (!/^01[3-9]\d{8}$/.test(data.phone)) newErrors.phone = 'Enter a valid BD phone (01XXXXXXXXX)';
+      const cleanPhone = data.phone?.trim() || '';
+      if (!cleanPhone) newErrors.phone = 'Phone number is required';
+      else if (!/^01[3-9]\d{8}$/.test(cleanPhone)) newErrors.phone = 'Enter a valid BD phone (01XXXXXXXXX)';
       if (!data.password) newErrors.password = 'Password is required';
       else if (data.password.length < 6) newErrors.password = 'Minimum 6 characters';
       if (data.password !== data.confirmPassword) newErrors.confirmPassword = 'Passwords do not match';
@@ -63,7 +64,7 @@ export default function DoctorSignupForm() {
     try {
       const payload = {
         fullName: data.fullName,
-        phone: data.phone,
+        phone: data.phone?.trim() || '',
         email: data.email || undefined,
         password: data.password,
         role: 'Doctor' as const,

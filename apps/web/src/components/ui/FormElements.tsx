@@ -46,7 +46,7 @@ export function Input({ error, leftIcon, rightElement, className, ...props }: In
         </div>
       )}
       <input
-        className={`cx-input ${leftIcon ? 'pl-10' : ''} ${rightElement ? 'pr-12' : ''} ${error ? 'error' : ''} ${className || ''}`}
+        className={`cx-input ${leftIcon ? 'has-left-icon' : ''} ${rightElement ? 'has-right-element' : ''} ${error ? 'error' : ''} ${className || ''}`}
         {...props}
       />
       {rightElement && (
@@ -69,7 +69,7 @@ export function PasswordInput({ error, ...props }: PasswordInputProps) {
     <div className="relative">
       <input
         type={show ? 'text' : 'password'}
-        className={`cx-input pr-12 ${error ? 'error' : ''}`}
+        className={`cx-input has-right-element ${error ? 'error' : ''}`}
         {...props}
       />
       <button

@@ -6,6 +6,8 @@ import doctorRoutes from './routes/doctor.routes';
 import appointmentRoutes from './routes/appointment.routes';
 import labTestRoutes from './routes/labTest.routes';
 import labOrderRoutes from './routes/labOrder.routes';
+import reportsRoutes from './routes/reports.routes';
+import prescriptionRoutes from './routes/prescription.routes';
 // Load environment variables from .env file
 dotenv.config();
 
@@ -22,6 +24,8 @@ app.use('/api/doctors', doctorRoutes);
 app.use('/api/appointments', appointmentRoutes);
 app.use('/api/lab-tests', labTestRoutes);
 app.use('/api/orders', labOrderRoutes);
+app.use('/api/reports', reportsRoutes);
+app.use('/api/prescriptions', prescriptionRoutes);
 
 // Basic health check route
 app.get('/', (req, res) => {

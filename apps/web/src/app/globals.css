@@ -176,6 +176,14 @@ body {
   box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.08);
 }
 
+.cx-input.has-left-icon {
+  padding-left: 2.75rem;
+}
+
+.cx-input.has-right-element {
+  padding-right: 3rem;
+}
+
 /* ===== BUTTON STYLES ===== */
 .cx-btn-primary {
   width: 100%;
