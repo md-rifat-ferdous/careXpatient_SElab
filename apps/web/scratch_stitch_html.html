@@ -1,0 +1,345 @@
+<!DOCTYPE html><html class="light" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>My Clinic - Directory | careXpatient</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "surface-container-lowest": "#ffffff",
+            "on-secondary-container": "#5c6274",
+            "surface-container-low": "#f0f3ff",
+            "on-tertiary-fixed-variant": "#7a2f0f",
+            "on-error": "#ffffff",
+            "on-primary": "#ffffff",
+            "on-background": "#151c27",
+            "tertiary-fixed-dim": "#ffb59a",
+            "outline": "#6c7a77",
+            "on-secondary": "#ffffff",
+            "surface-container-highest": "#dce2f3",
+            "surface-variant": "#dce2f3",
+            "on-tertiary": "#ffffff",
+            "tertiary-fixed": "#ffdbcf",
+            "surface-container": "#e7eefe",
+            "on-secondary-fixed-variant": "#404758",
+            "on-secondary-fixed": "#141b2b",
+            "primary-container": "#00a99d",
+            "success-standard": "#10B981",
+            "tertiary-container": "#df7c56",
+            "tertiary": "#994624",
+            "surface": "#f9f9ff",
+            "inverse-on-surface": "#ebf1ff",
+            "primary-fixed-dim": "#59dacd",
+            "surface-dim": "#d3daea",
+            "secondary-fixed-dim": "#c0c6db",
+            "on-surface": "#151c27",
+            "secondary-container": "#d9dff5",
+            "on-primary-fixed-variant": "#00504a",
+            "primary-fixed": "#78f7e9",
+            "on-tertiary-container": "#591a00",
+            "error-container": "#ffdad6",
+            "secondary": "#575e70",
+            "surface-bright": "#f9f9ff",
+            "inverse-surface": "#2a313d",
+            "surface-muted": "#F9FAFB",
+            "surface-container-high": "#e2e8f8",
+            "on-tertiary-fixed": "#380d00",
+            "error": "#ba1a1a",
+            "on-primary-fixed": "#00201d",
+            "on-error-container": "#93000a",
+            "on-surface-variant": "#3c4947",
+            "border-soft": "#E5E7EB",
+            "on-primary-container": "#003631",
+            "surface-tint": "#006a62",
+            "background": "#f9f9ff",
+            "outline-variant": "#bbc9c6",
+            "clinical-blue": "#0284C7",
+            "primary": "#006a62",
+            "inverse-primary": "#59dacd",
+            "alert-critical": "#EF4444",
+            "secondary-fixed": "#dce2f7"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.125rem",
+            "lg": "0.25rem",
+            "xl": "0.5rem",
+            "full": "0.75rem"
+          },
+          "spacing": {
+            "base": "4px",
+            "card-padding": "20px",
+            "input-gap": "8px",
+            "gutter": "16px",
+            "container-margin": "24px"
+          },
+          "fontFamily": {
+            "label-md": ["Inter"],
+            "data-mono": ["jetbrainsMono"],
+            "body-md": ["Inter"],
+            "body-lg": ["Inter"],
+            "headline-sm": ["Inter"],
+            "label-sm": ["Inter"],
+            "headline-lg": ["Inter"],
+            "headline-md": ["Inter"]
+          },
+          "fontSize": {
+            "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+            "data-mono": ["13px", {"lineHeight": "18px", "fontWeight": "400"}],
+            "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+            "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+            "headline-sm": ["18px", {"lineHeight": "28px", "fontWeight": "600"}],
+            "label-sm": ["11px", {"lineHeight": "14px", "fontWeight": "500"}],
+            "headline-lg": ["30px", {"lineHeight": "38px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+            "headline-md": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600"}]
+          }
+        },
+      },
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    }
+  </style>
+<style data-stitch-cursor=""></style><style data-stitch-scroll-lock=""></style></head>
+<body class="bg-background text-on-background font-body-md">
+<div class="flex min-h-screen overflow-hidden">
+<!-- SideNavBar -->
+<aside class="hidden md:flex flex-col gap-2 p-4 h-screen w-64 border-r border-border-soft bg-surface-muted dark:bg-surface-dim shrink-0">
+<div class="mb-8 flex items-center gap-3 px-2">
+<span class="material-symbols-outlined text-primary text-3xl" data-icon="medical_services">medical_services</span>
+<h1 class="font-headline-md text-headline-md font-bold text-primary dark:text-primary-fixed">careXpatient</h1>
+</div>
+<div class="flex items-center gap-3 p-3 mb-6 bg-surface-container-lowest rounded-xl border border-border-soft">
+<img alt="Dr. Sarah Jenkins" class="w-10 h-10 rounded-full object-cover" data-alt="A professional headshot of a female doctor in her late 40s, Dr. Sarah Jenkins, wearing a clean white clinical coat and a stethoscope around her neck. The setting is a bright, high-key medical office with soft teal accents. The lighting is crisp and professional, reflecting a modern healthcare environment with a clinical precision aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAHM3VU2qF-mUTZ1QVDG8Ll5xbIMw5DwqjdJ_DI-OjNPdHGlTmRTf2DFq2hP1leM9HN7hMG547VOcg7ifHn8oBle0xpgbNKuMnVJefyvqV7bqGwl_BQ-9Buzmz7SWipHnTNNIayoEvZUDuCtA4wF17BzyAT1aUCZQUDYY77XHh5MEDbkBsoE68CmKxzQzDit7Jr4LYInNdWKgEOlLU2g88yAnQIQWcXL8gPpCENBybQiJqAkGLSnfMV3wNBLhtCn5d-Pbdk28dVTOCv">
+<div>
+<p class="font-label-md text-label-md text-on-surface">Dr. Sarah Jenkins</p>
+<p class="text-[10px] text-secondary">Chief of Surgery</p>
+</div>
+</div>
+<nav class="flex flex-col gap-1 overflow-y-auto">
+<a class="flex items-center gap-3 px-4 py-3 text-secondary dark:text-on-secondary-fixed-variant hover:text-primary dark:hover:text-primary-fixed hover:bg-surface-container dark:hover:bg-secondary-container transition-all font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+          Dashboard
+        </a>
+<a class="flex items-center gap-3 px-4 py-3 text-secondary dark:text-on-secondary-fixed-variant hover:text-primary dark:hover:text-primary-fixed hover:bg-surface-container dark:hover:bg-secondary-container transition-all font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined" data-icon="calendar_today">calendar_today</span>
+          Appointments
+        </a>
+<a class="flex items-center gap-3 px-4 py-3 text-secondary dark:text-on-secondary-fixed-variant hover:text-primary dark:hover:text-primary-fixed hover:bg-surface-container dark:hover:bg-secondary-container transition-all font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined" data-icon="groups">groups</span>
+          My Patients
+        </a>
+<a class="flex items-center gap-3 px-4 py-3 bg-primary-container dark:bg-primary text-on-primary-container dark:text-on-primary rounded-xl font-bold font-label-md text-label-md scale-[0.99]" href="#">
+<span class="material-symbols-outlined" data-icon="medical_services">medical_services</span>
+          My Clinic
+        </a>
+<a class="flex items-center gap-3 px-4 py-3 text-secondary dark:text-on-secondary-fixed-variant hover:text-primary dark:hover:text-primary-fixed hover:bg-surface-container dark:hover:bg-secondary-container transition-all font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined" data-icon="payments">payments</span>
+          Earnings
+        </a>
+<div class="mt-auto flex flex-col gap-1">
+<a class="flex items-center gap-3 px-4 py-3 text-secondary dark:text-on-secondary-fixed-variant hover:text-primary dark:hover:text-primary-fixed hover:bg-surface-container dark:hover:bg-secondary-container transition-all font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+            Settings
+          </a>
+<a class="flex items-center gap-3 px-4 py-3 text-secondary dark:text-on-secondary-fixed-variant hover:text-primary dark:hover:text-primary-fixed hover:bg-surface-container dark:hover:bg-secondary-container transition-all font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined" data-icon="logout">logout</span>
+            Logout
+          </a>
+</div>
+</nav>
+</aside>
+<!-- Main Content Canvas -->
+<main class="flex-1 flex flex-col h-screen overflow-y-auto">
+<!-- TopNavBar -->
+<header class="flex justify-between items-center h-16 w-full px-6 bg-surface dark:bg-inverse-surface border-b border-border-soft dark:border-outline-variant sticky top-0 z-10">
+<div class="flex items-center gap-4 flex-1">
+<div class="relative w-full max-w-md">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-xl" data-icon="search">search</span>
+<input class="w-full pl-10 pr-4 py-2 bg-surface-container-low border-none rounded-full font-body-md focus:ring-2 focus:ring-primary/20" placeholder="Search clinics or locations..." type="text">
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 rounded-full hover:bg-surface-container-low transition-colors relative">
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="notifications">notifications</span>
+<span class="absolute top-2 right-2 w-2 h-2 bg-alert-critical rounded-full"></span>
+</button>
+<div class="h-8 w-[1px] bg-border-soft mx-2"></div>
+<img alt="Dr. Sarah Jenkins" class="w-8 h-8 rounded-full border border-primary-container" data-alt="Close-up of Dr. Sarah Jenkins profile picture, showcasing a professional and approachable medical specialist. The lighting is clean and balanced, with a neutral studio background that emphasizes the clinical precision and modern corporate aesthetic of the careXpatient platform." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCXFCwa8ostA1oJZv82ekk4hjd-qgsJXFzUeosYHBreqFGc7HtuQFdyEy0MvbJKiMAGTWL2v_vlEzVWBd7P4tJfnjaCNVYe5KOAbe6GgOjbHUvO53uGfD9uQwrPaDBedVnE84ud6g11S6vTuMdZNSbSM5uIggy6MFV-oixzNbi9UAA9Oq74qpOYN13ZmtBddPyWYGdmt7VuaoAk9IA7rjpWn0gwPWbtLRyolOxEak1WMoxGuybX3msfj7pbxlw-h3owVHQT9C2GdIRd">
+</div>
+</header>
+<!-- Content Canvas -->
+<div class="p-container-margin max-w-7xl mx-auto w-full">
+<!-- Header Section -->
+<div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+<div>
+<h2 class="font-headline-lg text-headline-lg text-on-background">My Clinic - Directory</h2>
+<p class="font-body-md text-body-md text-on-surface-variant mt-1">Manage your professional schedules across multiple healthcare facilities.</p>
+</div>
+<button class="flex items-center gap-2 px-6 py-3 bg-primary text-on-primary rounded-full font-label-md text-label-md hover:opacity-90 active:scale-[0.98] transition-all shadow-sm">
+<span class="material-symbols-outlined" data-icon="add">add</span>
+            Register New Clinic
+          </button>
+</div>
+<!-- Directory Bento/Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-gutter">
+<!-- Clinic Card 1 -->
+<div class="bg-surface-container-lowest border border-border-soft rounded-xl overflow-hidden flex flex-col group hover:shadow-md transition-shadow">
+<div class="h-48 relative overflow-hidden">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="A photograph of the sleek, glass-fronted exterior of the City Health Center, an urban medical facility with a clean, modern architectural design. The lighting is mid-afternoon bright, casting soft shadows. The overall aesthetic is one of hygienic, high-end professional healthcare, dominated by white and teal accents." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBMv_TYSrT_3KeSZg3p4zjLr_-N3VuAHM_P7u0cwzTi9tou4pVL2vZoyJm7GN2F439-5pG6aXAJqxV5GrJBKhnobb1IlFJe8vtNM57MEVVn_o76WHPU-IB3PvxUPx1kA2-dHXtvssMjQ0Is3uF1pa5ltC7X9ivYhDBaBIMQjQ7UYNIwQBpC3gE5dGZaVnMhNsEpMVN7UQTOjVK91lHv_9_apw6FZdmjqSv0I0z9ruJzumTS39aRFwMooTXDpKvCQtr1qEQAcazWQVRk">
+<div class="absolute top-4 right-4 px-3 py-1 bg-success-standard/10 text-success-standard border border-success-standard/20 rounded-full font-label-sm text-label-sm backdrop-blur-md">
+                Active
+              </div>
+</div>
+<div class="p-card-padding flex-1 flex flex-col">
+<h3 class="font-headline-sm text-headline-sm text-on-surface mb-1">Square Hospitals Ltd.</h3>
+<div class="flex items-start gap-2 text-on-surface-variant mb-6">
+<span class="material-symbols-outlined text-primary text-lg" data-icon="location_on">location_on</span>
+<p class="font-body-md text-body-md">18/F, West Panthapath, Dhaka</p>
+</div>
+<div class="mt-auto flex flex-col gap-3">
+<div class="flex justify-between items-center py-2 border-y border-border-soft/50">
+<span class="text-secondary text-label-sm font-label-sm">Primary Shift</span>
+<span class="text-on-surface font-data-mono text-data-mono">Mon-Wed | 08:00 - 16:00</span>
+</div>
+<button class="w-full py-3 border-2 border-primary text-primary font-label-md text-label-md rounded-lg hover:bg-primary/5 active:scale-[0.99] transition-all flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-lg" data-icon="event_note">event_note</span>
+                  Manage Schedule
+                </button>
+</div>
+</div>
+</div>
+<!-- Clinic Card 2 -->
+<div class="bg-surface-container-lowest border border-border-soft rounded-xl overflow-hidden flex flex-col group hover:shadow-md transition-shadow">
+<div class="h-48 relative overflow-hidden">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="A serene landscape shot of Green Valley Clinic, a low-rise medical building surrounded by lush green lawns and professional landscaping. The building has large windows reflecting a clear blue sky. The lighting is soft and morning-fresh, creating a calm and reliable clinical environment consistent with the brand's teal-based palette." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAC39k9HeAha4gzW-KGW0XgXhHExi3ZKECyY5MERbQ3D2Okk8t5-PVIM065tJcZ8WUCIMPrKj5aqvErqw86QEdUlPVz-iUv9Nlt-UqLANJ9GknEk8PhYg8a-SVyTLsLDovXBDfvR9HHxJe2-vF7Fc3zEzvPGIz_tdS1ZT5i0S8rMv3ev5yge4uUXkmqdRCR8Zl2ZHOrAr1x0uatoco0DGhDqVmYG7W_NMNTvE_VeHsZtM17G4BUpgQZF960MxwlsimZC6nuR38eoJGi">
+<div class="absolute top-4 right-4 px-3 py-1 bg-success-standard/10 text-success-standard border border-success-standard/20 rounded-full font-label-sm text-label-sm backdrop-blur-md">
+                Active
+              </div>
+</div>
+<div class="p-card-padding flex-1 flex flex-col">
+<h3 class="font-headline-sm text-headline-sm text-on-surface mb-1">Labaid Specialized Hospital</h3>
+<div class="flex items-start gap-2 text-on-surface-variant mb-6">
+<span class="material-symbols-outlined text-primary text-lg" data-icon="location_on">location_on</span>
+<p class="font-body-md text-body-md">House-06, Road-04, Dhanmondi, Dhaka</p>
+</div>
+<div class="mt-auto flex flex-col gap-3">
+<div class="flex justify-between items-center py-2 border-y border-border-soft/50">
+<span class="text-secondary text-label-sm font-label-sm">Primary Shift</span>
+<span class="text-on-surface font-data-mono text-data-mono">Thu | 09:00 - 18:00</span>
+</div>
+<button class="w-full py-3 border-2 border-primary text-primary font-label-md text-label-md rounded-lg hover:bg-primary/5 active:scale-[0.99] transition-all flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-lg" data-icon="event_note">event_note</span>
+                  Manage Schedule
+                </button>
+</div>
+</div>
+</div>
+<!-- Clinic Card 3 -->
+<div class="bg-surface-container-lowest border border-border-soft rounded-xl overflow-hidden flex flex-col group hover:shadow-md transition-shadow">
+<div class="h-48 relative overflow-hidden">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="The grand entrance of St. Mary's Hospital, featuring a professional reception area visible through clean glass doors. The lighting is bright and hospital-sterile but welcoming, with polished marble floors and a sophisticated corporate interior. The color scheme is a mix of pristine whites and deep teal branding elements." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBljrzyx7-vgwipwujMdjsDmqubqekSgAgmB4LhEnM-ooBLWtML5fBoUXV1THcKYzDjuyrQ1Kwk2x97PoxIKwKUFtlqOHispOiYm2fpPhYHRcO4snqRjwp_j_O7GfU3qJrpJubsto0kp9QhvJeLo9WhDsEAdXjfgmOFhy88ndtAKpIhI2Pi7-NAlNGCdg5WNQ6BXkxInQ56g5uGpIFkbsgScwrbPm5BDfFNeWm2gmJjs07LJQXJc12TqXzi6AkloaZS8_tixS3_YvQ9">
+<div class="absolute top-4 right-4 px-3 py-1 bg-tertiary-container/10 text-tertiary-container border border-tertiary-container/20 rounded-full font-label-sm text-label-sm backdrop-blur-md">
+                Consultant Only
+              </div>
+</div>
+<div class="p-card-padding flex-1 flex flex-col">
+<h3 class="font-headline-sm text-headline-sm text-on-surface mb-1">United Hospital Limited</h3>
+<div class="flex items-start gap-2 text-on-surface-variant mb-6">
+<span class="material-symbols-outlined text-primary text-lg" data-icon="location_on">location_on</span>
+<p class="font-body-md text-body-md">Plot 15, Road 71, Gulshan-2, Dhaka</p>
+</div>
+<div class="mt-auto flex flex-col gap-3">
+<div class="flex justify-between items-center py-2 border-y border-border-soft/50">
+<span class="text-secondary text-label-sm font-label-sm">Primary Shift</span>
+<span class="text-on-surface font-data-mono text-data-mono">Fri | On-Call</span>
+</div>
+<button class="w-full py-3 border-2 border-primary text-primary font-label-md text-label-md rounded-lg hover:bg-primary/5 active:scale-[0.99] transition-all flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-lg" data-icon="event_note">event_note</span>
+                  Manage Schedule
+                </button>
+</div>
+</div>
+</div>
+<!-- Featured Add Card (Visual Interest) -->
+
+</div>
+<!-- Recent Activity Table Section -->
+<div class="mt-12">
+<div class="flex items-center justify-between mb-4 px-2">
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Recent Schedule Modifications</h3>
+<button class="text-primary font-label-md text-label-md hover:underline flex items-center gap-1">
+              View History <span class="material-symbols-outlined text-sm" data-icon="arrow_forward">arrow_forward</span>
+</button>
+</div>
+<div class="bg-surface-container-lowest border border-border-soft rounded-xl overflow-hidden">
+<table class="w-full border-collapse">
+<thead>
+<tr class="bg-surface-muted border-b border-border-soft text-left">
+<th class="p-4 font-label-md text-label-md text-secondary">CLINIC</th>
+<th class="p-4 font-label-md text-label-md text-secondary">MODIFICATION</th>
+<th class="p-4 font-label-md text-label-md text-secondary">DATE</th>
+<th class="p-4 font-label-md text-label-md text-secondary">STATUS</th>
+</tr>
+</thead>
+<tbody class="font-body-md text-body-md">
+<tr class="border-b border-border-soft hover:bg-surface-muted/50 transition-colors">
+<td class="p-4 font-semibold">Square Hospitals Ltd.</td>
+<td class="p-4">Extended Monday shift by 2 hours</td>
+<td class="p-4 text-secondary">Oct 24, 2023</td>
+<td class="p-4"><span class="px-2 py-1 bg-success-standard/10 text-success-standard text-[10px] uppercase font-bold rounded">Approved</span></td>
+</tr>
+<tr class="border-b border-border-soft bg-surface-muted/30 hover:bg-surface-muted/50 transition-colors">
+<td class="p-4 font-semibold">Labaid Specialized Hospital</td>
+<td class="p-4">Emergency block added (Surgery)</td>
+<td class="p-4 text-secondary">Oct 22, 2023</td>
+<td class="p-4"><span class="px-2 py-1 bg-success-standard/10 text-success-standard text-[10px] uppercase font-bold rounded">Approved</span></td>
+</tr>
+<tr class="hover:bg-surface-muted/50 transition-colors">
+<td class="p-4 font-semibold">United Hospital Limited</td>
+<td class="p-4">Shift trade request with Dr. Aris</td>
+<td class="p-4 text-secondary">Oct 20, 2023</td>
+<td class="p-4"><span class="px-2 py-1 bg-tertiary-container/10 text-tertiary-container text-[10px] uppercase font-bold rounded">Pending</span></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<!-- Footer Spacer -->
+<div class="h-24"></div>
+</main>
+</div>
+<!-- Mobile Bottom Navigation -->
+<nav class="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-surface-container-lowest border-t border-border-soft flex items-center justify-around px-2 z-50">
+<button class="flex flex-col items-center gap-1 text-secondary">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="text-[10px] font-medium">Dashboard</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-secondary">
+<span class="material-symbols-outlined" data-icon="calendar_today">calendar_today</span>
+<span class="text-[10px] font-medium">Appts</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-primary">
+<span class="material-symbols-outlined" data-icon="medical_services">medical_services</span>
+<span class="text-[10px] font-bold">My Clinic</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-secondary">
+<span class="material-symbols-outlined" data-icon="groups">groups</span>
+<span class="text-[10px] font-medium">Patients</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-secondary">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="text-[10px] font-medium">Settings</span>
+</button>
+</nav>
+
+
+</body></html>

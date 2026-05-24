@@ -1,0 +1,78 @@
+@theme {
+  --color-primary: #006a62;
+  --color-primary-container: #00a99d;
+  --color-on-primary: #ffffff;
+  --color-on-primary-container: #003631;
+
+  --color-secondary: #575e70;
+  --color-secondary-container: #d9dff5;
+  --color-on-secondary: #ffffff;
+  --color-on-secondary-container: #5c6274;
+
+  --color-tertiary: #994624;
+  --color-tertiary-container: #df7c56;
+  --color-on-tertiary: #ffffff;
+  --color-on-tertiary-container: #591a00;
+
+  --color-surface: #f9f9ff;
+  --color-surface-dim: #d3daea;
+  --color-surface-bright: #f9f9ff;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-low: #f0f3ff;
+  --color-surface-container: #e7eefe;
+  --color-surface-container-high: #e2e8f8;
+  --color-surface-container-highest: #dce2f3;
+  --color-on-surface: #151c27;
+  --color-on-surface-variant: #3c4947;
+  --color-surface-muted: #f9fafb;
+
+  --color-background: #f9f9ff;
+  --color-on-background: #151c27;
+
+  --color-border-soft: #e5e7eb;
+  --color-outline: #6c7a77;
+  --color-outline-variant: #bbc9c6;
+
+  --color-success-standard: #10b981;
+  --color-alert-critical: #ef4444;
+
+  --font-heading: "Inter", sans-serif;
+  --font-body: "Inter", sans-serif;
+  --font-body-md: "Inter", sans-serif;
+  --font-headline-sm: "Inter", sans-serif;
+  --font-headline-md: "Inter", sans-serif;
+  --font-headline-lg: "Inter", sans-serif;
+  --font-label-md: "Inter", sans-serif;
+  --font-label-sm: "Inter", sans-serif;
+  --font-data-mono: "JetBrains Mono", monospace;
+
+  --spacing-gutter: 1rem;
+  --spacing-card-padding: 1.25rem;
+  --spacing-container-margin: 1.5rem;
+
+  --radius-sm: 0.125rem;
+  --radius-md: 0.25rem;
+  --radius-lg: 0.5rem;
+  --radius-xl: 0.75rem;
+  --radius-2xl: 1rem;
+  --radius-full: 9999px;
+
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+}
+
+@layer base {
+  h1 {
+    @apply font-heading text-4xl font-bold tracking-tight leading-tight;
+    color: var(--color-on-surface);
+  }
+  h2 {
+    @apply font-heading text-2xl font-semibold tracking-tight leading-snug;
+    color: var(--color-on-surface);
+  }
+  body {
+    @apply font-body text-base;
+    background-color: var(--color-background);
+    color: var(--color-on-surface);
+  }
+}

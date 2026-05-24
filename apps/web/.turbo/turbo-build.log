@@ -1,0 +1,25 @@
+
+> web@0.1.0 build
+> next build
+
+   ▲ Next.js 15.1.4
+   - Environments: .env
+
+   Creating an optimized production build ...
+ ✓ Compiled successfully
+   Skipping linting
+   Checking validity of types ...
+   Collecting page data ...
+unhandledRejection [Error: Incompatible React versions: The "react" and "react-dom" packages must have the exact same version. Instead got:
+  - react:      19.1.0
+  - react-dom:  19.0.0
+Learn more: https://react.dev/warnings/version-mismatch] {
+  type: 'Error'
+}
+npm error Lifecycle script `build` failed with error:
+npm error code 1
+npm error path D:\careXpatient\MY CLINIC\apps\web
+npm error workspace web@0.1.0
+npm error location D:\careXpatient\MY CLINIC\apps\web
+npm error command failed
+npm error command C:\WINDOWS\system32\cmd.exe /d /s /c next build

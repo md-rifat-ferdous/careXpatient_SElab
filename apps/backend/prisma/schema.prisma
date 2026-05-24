@@ -1,0 +1,100 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String
+  role      String   @default("DOCTOR")
+  clinics   DoctorClinic[]
+  prescriptions Prescription[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Clinic {
+  id        String   @id @default(cuid())
+  name      String
+  address   String
+  image     String?
+  doctors   DoctorClinic[]
+  modifications ScheduleModification[]
+  prescriptions Prescription[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model DoctorClinic {
+  id        String   @id @default(cuid())
+  userId    String
+  clinicId  String
+  shift     String
+  status    String   @default("Active") // e.g., "Active", "Consultant Only", "Pending"
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  clinic    Clinic   @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, clinicId])
+}
+
+model ScheduleModification {
+  id        String   @id @default(cuid())
+  clinicId  String
+  type      String   // e.g., "Shift Extension", "Emergency Block", "Shift Trade"
+  description String
+  date      DateTime
+  status    String   @default("Pending") // "Pending", "Approved", "Rejected"
+  clinic    Clinic   @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Patient {
+  id        String   @id @default(cuid())
+  name      String
+  age       Int
+  gender    String
+  weight    String?
+  bp        String?
+  prescriptions Prescription[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Prescription {
+  id               String   @id @default(cuid())
+  patientId        String
+  doctorId         String
+  clinicId         String
+  diagnosis        String?
+  chiefComplaints  String?  // JSON or newline separated
+  clinicalHistory  String?
+  doctorNotes      String?
+  verified         Boolean  @default(true)
+  patient          Patient  @relation(fields: [patientId], references: [id])
+  user             User     @relation(fields: [doctorId], references: [id])
+  clinic           Clinic   @relation(fields: [clinicId], references: [id])
+  medicines        Medicine[]
+  issuedAt         DateTime @default(now())
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+model Medicine {
+  id             String   @id @default(cuid())
+  prescriptionId String
+  name           String
+  dosage         String
+  duration       String
+  instruction    String
+  prescription   Prescription @relation(fields: [prescriptionId], references: [id], onDelete: Cascade)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
