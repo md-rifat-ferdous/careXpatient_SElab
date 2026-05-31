@@ -1,32 +1,65 @@
 import React from "react";
 import { SideNavBar, TopNavBar } from "@/components/layout/Sidebar";
 import { ScheduleManagerClient } from "./ScheduleManagerClient";
-import { getDoctorClinics, getRecentModifications } from "@/server/doctorSchedule/queries/scheduleQueries";
+import { getDoctorClinics, getRecentModifications } from "@/server/doctorSchedule/scheduleService";
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 
-// Force dynamic since we want to see live db updates
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
-export default async function DoctorScheduleManagerPage({ params }: { params: Promise<{ clinicId: string }> }) {
-  const resolvedParams = await params;
-  const clinicId = resolvedParams.clinicId;
-  
-  const clinicsResponse = await getDoctorClinics();
-  const modificationsResponse = await getRecentModifications();
+export default async function ClinicScheduleManagerPage({
+  params,
+}: {
+  params: Promise<{ clinicId: string }>;
+}) {
+  const { clinicId } = await params;
 
-  const clinics = clinicsResponse.success && clinicsResponse.data ? clinicsResponse.data : [];
-  const modifications = modificationsResponse.success && modificationsResponse.data ? modificationsResponse.data : [];
+  const [clinicsRes, modsRes] = await Promise.all([
+    getDoctorClinics(),
+    getRecentModifications(),
+  ]);
+
+  const clinics = clinicsRes.success ? clinicsRes.data : [];
+  const modifications = modsRes.success ? modsRes.data : [];
+
+  // Check if this clinic actually belongs to the doctor
+  const targetClinic = clinics.find((c) => c.clinic.id === clinicId);
+
+  if (!targetClinic) {
+    return (
+      <div className="flex h-screen overflow-hidden bg-background">
+        <SideNavBar role="Doctor" />
+        <div className="flex-1 md:ml-64 flex flex-col h-screen bg-background">
+          <TopNavBar role="Doctor" title="Schedule Manager" />
+          <main className="flex-1 overflow-y-auto pt-20 flex items-center justify-center">
+            <div className="text-center space-y-4 p-8">
+              <h2 className="text-2xl font-black text-gray-800">Clinic Not Found</h2>
+              <p className="text-gray-500 text-sm max-w-xs mx-auto">
+                This clinic doesn&apos;t exist or is not registered under your profile.
+              </p>
+              <Link
+                href="/doctor/schedule"
+                className="inline-flex items-center gap-2 px-5 py-2.5 bg-primary text-white rounded-xl font-bold text-sm hover:opacity-90 transition-all"
+              >
+                <ArrowLeft size={16} />
+                Back to My Clinics
+              </Link>
+            </div>
+          </main>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-screen overflow-hidden bg-background">
       <SideNavBar role="Doctor" />
-
-      {/* Main Content Canvas */}
-      <div className="flex-1 md:ml-64 flex flex-col h-screen relative bg-background">
-        <TopNavBar role="Doctor" title="Dashboard" />
+      <div className="flex-1 md:ml-64 flex flex-col h-screen bg-background">
+        <TopNavBar role="Doctor" title={targetClinic.clinic.name} />
         <main className="flex-1 overflow-y-auto pt-20">
-          <ScheduleManagerClient 
-            initialClinics={clinics as any} 
-            initialModifications={modifications as any} 
+          <ScheduleManagerClient
+            initialClinics={clinics}
+            initialModifications={modifications}
             focusClinicId={clinicId}
           />
         </main>

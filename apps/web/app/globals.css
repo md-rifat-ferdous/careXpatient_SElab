@@ -381,3 +381,67 @@ body {
   border: 2px solid rgba(20, 184, 166, 0.3);
   animation: pulse-ring 1.5s ease infinite;
 }
+
+/* ===== PRINT STYLES FOR WEEKLY SCHEDULE DOWNLOAD ===== */
+@media print {
+  /* Hide everything except the weekly schedule viewer */
+  body * {
+    visibility: hidden;
+  }
+
+  /* Show only the weekly schedule viewer and its children */
+  #weekly-schedule-viewer,
+  #weekly-schedule-viewer * {
+    visibility: visible;
+  }
+
+  /* Position the viewer to fill the entire page */
+  #weekly-schedule-viewer {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    page-break-inside: avoid;
+  }
+
+  /* Remove hover effects and animations for print */
+  #weekly-schedule-viewer * {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  /* Hide the download/print button itself when printing */
+  #weekly-schedule-viewer button {
+    display: none !important;
+  }
+
+  /* Ensure good typography and layout for print */
+  @page {
+    margin: 1cm;
+    size: A4 landscape;
+  }
+
+  /* Make text and borders crisp on paper */
+  #weekly-schedule-viewer h3,
+  #weekly-schedule-viewer h4,
+  #weekly-schedule-viewer h5,
+  #weekly-schedule-viewer span,
+  #weekly-schedule-viewer p {
+    color: #1E293B !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* Ensure background colors are printed */
+  #weekly-schedule-viewer .bg-primary\/5,
+  #weekly-schedule-viewer [class*="bg-"] {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}

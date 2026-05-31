@@ -1,0 +1,32 @@
+{
+  "compilerOptions": {
+    "target": "es2019",
+    "module": "Node16",
+    "lib": ["dom", "esnext"],
+    "strict": true,
+    "moduleResolution": "node16",
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["apps/web/*"],
+      "@/lib/*": ["apps/web/lib/*"],
+      "@/components/*": ["apps/web/components/*"],
+      "@/server/*": ["apps/web/server/*"],
+      "@/app/*": ["apps/web/app/*"]
+    },
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "outDir": "dist",
+    "rootDir": ".",
+    "jsx": "react-jsx"
+  },
+  "include": [
+    "apps/**/*.ts",
+    "apps/**/*.tsx",
+    "packages/**/*.ts",
+    "packages/**/*.tsx"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist"
+  ]
+}

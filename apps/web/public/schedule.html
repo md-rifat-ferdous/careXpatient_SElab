@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Doctor Schedule Dashboard</title>
+  <style>
+    :root {
+      --bg-primary: hsl(210, 20%, 12%);
+      --bg-card: hsl(210, 20%, 18%);
+      --accent: hsl(200, 80%, 50%);
+      --text-primary: hsl(0, 0%, 95%);
+      --text-muted: hsl(0, 0%, 60%);
+      --border-radius: 12px;
+    }
+    @media (prefers-color-scheme: light) {
+      :root {
+        --bg-primary: hsl(0, 0%, 95%);
+        --bg-card: hsl(0, 0%, 100%);
+        --text-primary: hsl(210, 10%, 10%);
+        --text-muted: hsl(210, 5%, 45%);
+      }
+    }
+    body {
+      margin: 0;
+      font-family: 'Inter', system-ui, sans-serif;
+      background: linear-gradient(135deg, var(--bg-primary) 0%, #0a0a0a 100%);
+      color: var(--text-primary);
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+      padding: 2rem;
+    }
+    .card {
+      background: var(--bg-card);
+      border-radius: var(--border-radius);
+      box-shadow: 0 4px 30px rgba(0,0,0,0.5);
+      padding: 2rem;
+      width: 100%;
+      max-width: 900px;
+    }
+    h1 {
+      margin: 0 0 1rem 0;
+      font-size: 2rem;
+      color: var(--accent);
+    }
+    .schedule-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    .schedule-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    .schedule-item:last-child {
+      border-bottom: none;
+    }
+    .slot-time {
+      font-weight: 600;
+    }
+    .slot-type {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+    .btn {
+      display: inline-block;
+      padding: 0.6rem 1.2rem;
+      margin-top: 1rem;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: var(--border-radius);
+      cursor: pointer;
+      text-decoration: none;
+      transition: background 0.3s ease;
+    }
+    .btn:hover {
+      background: hsl(200, 80%, 45%);
+    }
+  </style>
+</head>
+<body>
+  <section class="card">
+    <h1>Today's Schedule</h1>
+    <ul class="schedule-list">
+      <li class="schedule-item">
+        <span class="slot-time">09:00 – 10:00</span>
+        <span class="slot-type">General Consultation</span>
+      </li>
+      <li class="schedule-item">
+        <span class="slot-time">10:30 – 12:00</span>
+        <span class="slot-type">Pediatrics</span>
+      </li>
+      <li class="schedule-item">
+        <span class="slot-time">13:00 – 14:30</span>
+        <span class="slot-type">Dermatology</span>
+      </li>
+      <li class="schedule-item">
+        <span class="slot-time">15:00 – 16:00</span>
+        <span class="slot-type">On‑Call</span>
+      </li>
+    </ul>
+    <a href="#" class="btn">Add New Slot</a>
+  </section>
+</body>
+</html>

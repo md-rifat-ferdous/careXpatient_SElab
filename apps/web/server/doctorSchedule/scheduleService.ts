@@ -1,9 +1,159 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
+import { revalidatePath } from "next/cache";
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 
-const DOCTOR_ID = "cmp8t673300001dk1emj4wgvr"; 
+// Authentication helper – returns cookie value or falls back to seeded doctor ID
+async function getAuthenticatedDoctorId(): Promise<string> {
+  const cookieStore = await cookies();
+  const sessionDoctorId = cookieStore.get("doctor_id")?.value;
+  if (sessionDoctorId) {
+    console.log("Resolved doctorId from cookie:", sessionDoctorId);
+    return sessionDoctorId;
+  }
+  // Fallback to seeded doctor (email defined in seed.ts)
+  const seededDoctor = await db.user.findUnique({ where: { email: "doctor@carexpatient.com" } });
+  const fallbackId = seededDoctor?.id;
+  console.log("Resolved doctorId from seed fallback:", fallbackId);
+  return fallbackId!; // non-null assertion – seeded doctor should exist
+}
+
+// ─── Types ─────────────────────────────────────────────────────────────────────
+
+
+
+
+// ─── Types ─────────────────────────────────────────────────────────────────────
+
+export type ClinicInfo = {
+  id: string;
+  name: string;
+  address: string;
+  image: string | null;
+};
+
+export type DoctorClinicInfo = {
+  id: string;
+  shift: string;
+  status: string;
+  clinic: ClinicInfo;
+};
+
+export type ModificationInfo = {
+  id: string;
+  type: string;
+  description: string | null;
+  dateISO: string; // serialized as ISO string, never Date
+  status: string;
+  clinic: ClinicInfo;
+  replacementClinic?: ClinicInfo | null;
+  originalModificationId?: string | null;
+};
+
+// ─── Queries ────────────────────────────────────────────────────────────────────
+
+export async function getDoctorClinics(): Promise<{
+  success: boolean;
+  data: DoctorClinicInfo[];
+  error?: string;
+}> {
+  try {
+  const doctorId = await getAuthenticatedDoctorId();
+  const rows = await db.doctorClinic.findMany({
+    where: { userId: doctorId },
+    include: { clinic: true },
+    orderBy: { createdAt: "asc" },
+  });
+
+    return {
+      success: true,
+      data: rows.map((dc) => ({
+        id: dc.id,
+        shift: dc.shift,
+        status: dc.status,
+        clinic: {
+          id: dc.clinic.id,
+          name: dc.clinic.name,
+          address: dc.clinic.address,
+          image: dc.clinic.image,
+        },
+      })),
+    };
+  } catch (err: any) {
+    console.error("[getDoctorClinics]", err.message);
+    return { success: false, data: [], error: err.message };
+  }
+}
+
+export async function getRecentModifications(): Promise<{
+  success: boolean;
+  data: ModificationInfo[];
+  error?: string;
+}> {
+  try {
+  const doctorId = await getAuthenticatedDoctorId();
+  const doctorClinics = await db.doctorClinic.findMany({
+    where: { userId: doctorId },
+    select: { clinicId: true },
+  });
+
+    const clinicIds = doctorClinics.map((dc) => dc.clinicId);
+    if (clinicIds.length === 0) return { success: true, data: [] };
+
+    const rows = await db.scheduleModification.findMany({
+      where: {
+        OR: [
+          { clinicId: { in: clinicIds } },
+          { doctorId: doctorId },
+        ],
+      },
+      include: { clinic: true, replacementClinic: true },
+      orderBy: { date: "desc" },
+      take: 100,
+    });
+
+    return {
+      success: true,
+      data: rows.map((mod) => ({
+        id: mod.id,
+        type: mod.type,
+        description: mod.description,
+        dateISO: mod.date.toISOString(), // ← always a string, never a Date
+        status: mod.status,
+        clinic: {
+          id: mod.clinic.id,
+          name: mod.clinic.name,
+          address: mod.clinic.address,
+          image: mod.clinic.image,
+        },
+        replacementClinic: mod.replacementClinic
+          ? {
+              id: mod.replacementClinic.id,
+              name: mod.replacementClinic.name,
+              address: mod.replacementClinic.address,
+              image: mod.replacementClinic.image,
+            }
+          : null,
+        originalModificationId: mod.originalModificationId,
+      })),
+    };
+  } catch (err: any) {
+    console.error("[getRecentModifications]", err.message);
+    return { success: false, data: [], error: err.message };
+  }
+}
+
+// ─── Actions ────────────────────────────────────────────────────────────────────
+
+function safeRevalidate(paths: string[]) {
+  for (const p of paths) {
+    try {
+      revalidatePath(p);
+    } catch (_) {}
+  }
+}
 
 // ─── Conflict Detection Helpers ──────────────────────────────────────────────────
 
@@ -247,6 +397,59 @@ async function checkScheduleConflict(
 
 // ─── Actions ────────────────────────────────────────────────────────────────────
 
+export async function registerClinic(data: {
+  name: string;
+  address: string;
+  shift: string;
+}) {
+  try {
+    const doctorId = await getAuthenticatedDoctorId();
+    const proposedDays = parseDaysFromShift(data.shift);
+    const proposedTimes = parseTimesFromShift(data.shift);
+
+    if (proposedTimes) {
+      const existingDoctorClinics = await db.doctorClinic.findMany({
+        where: { userId: doctorId },
+        include: { clinic: true },
+      });
+
+      for (const dc of existingDoctorClinics) {
+        const existingDays = parseDaysFromShift(dc.shift);
+        const hasCommonDay = proposedDays.some(day => existingDays.includes(day));
+        if (hasCommonDay) {
+          const existingTimes = parseTimesFromShift(dc.shift);
+          if (existingTimes) {
+            const overlap = Math.max(proposedTimes.startMinutes, existingTimes.startMinutes) < Math.min(proposedTimes.endMinutes, existingTimes.endMinutes);
+            if (overlap) {
+              return {
+                success: false,
+                error: `Overlap Conflict: Your proposed shift overlaps with your existing shift at "${dc.clinic.name}" (${dc.shift}).`
+              };
+            }
+          }
+        }
+      }
+    }
+
+    const clinic = await db.clinic.create({
+      data: { name: data.name.trim(), address: data.address.trim() },
+    });
+    await db.doctorClinic.create({
+      data: {
+        userId: doctorId,
+        clinicId: clinic.id,
+        shift: data.shift.trim(),
+        status: "Active",
+      },
+    });
+    safeRevalidate(["/doctor/schedule"]);
+    return { success: true };
+  } catch (err: any) {
+    console.error("[registerClinic]", err.message);
+    return { success: false, error: err.message };
+  }
+}
+
 export async function createSlot(data: {
   clinicId: string;
   date: string;
@@ -256,13 +459,18 @@ export async function createSlot(data: {
   notes?: string;
 }) {
   try {
+    const doctorId = await getAuthenticatedDoctorId();
     const slotDate = new Date(data.date);
     const slotStartMin = parseTimeToMinutes(data.startTime);
     const slotEndMin = parseTimeToMinutes(data.endTime);
 
+    if (slotStartMin >= slotEndMin) {
+      return { success: false, error: "Invalid Time Range: Start time must be before end time." };
+    }
+
     // Conflict Check
     const conflictCheck = await checkScheduleConflict(
-      DOCTOR_ID,
+      doctorId,
       data.clinicId,
       slotDate,
       slotStartMin,
@@ -273,37 +481,21 @@ export async function createSlot(data: {
       return { success: false, error: conflictCheck.message };
     }
 
-    const mod = await db.scheduleModification.create({
+    await db.scheduleModification.create({
       data: {
         type: "Slot",
         clinicId: data.clinicId,
-        doctorId: DOCTOR_ID,
+        doctorId: doctorId,
         date: new Date(data.date),
         description: `[${data.startTime}|${data.endTime}] ${data.consultationType}${data.notes ? ` | Note: ${data.notes}` : ""}`,
-        status: "Active"
-      }
+        status: "Active",
+      },
     });
-
-    await db.auditLog.create({
-      data: {
-        action: "CREATE",
-        model: "Slot",
-        modelId: mod.id,
-        userId: DOCTOR_ID,
-        clinicId: data.clinicId,
-        details: `Created ${data.consultationType} slot on ${data.date} from ${data.startTime} to ${data.endTime}. Note: ${data.notes || 'None'}`
-      }
-    });
-
-    try {
-      revalidatePath("/doctor/schedule");
-      revalidatePath(`/doctor/schedule/${data.clinicId}`);
-    } catch (e) {
-      console.warn("revalidatePath failed:", e);
-    }
-    return { success: true, data: mod };
-  } catch (error: any) {
-    return { success: false, error: error.message };
+    safeRevalidate(["/doctor/schedule", `/doctor/schedule/${data.clinicId}`]);
+    return { success: true };
+  } catch (err: any) {
+    console.error("[createSlot]", err.message);
+    return { success: false, error: err.message };
   }
 }
 
@@ -313,24 +505,22 @@ export async function cancelSlot(data: {
   reason?: string;
 }) {
   try {
-    const mod = await db.scheduleModification.create({
+    const doctorId = await getAuthenticatedDoctorId();
+    await db.scheduleModification.create({
       data: {
         type: "Cancel Slot",
         clinicId: data.clinicId,
-        doctorId: DOCTOR_ID,
+        doctorId: doctorId,
         date: new Date(data.date),
-        description: data.reason ? `Cancel Slot override | Note: ${data.reason}` : `Cancel Slot override`,
-        status: "Active"
-      }
+        description: `[${data.date}|${data.date}] Cancel Slot override${data.reason ? ` | Note: ${data.reason}` : ""}`,
+        status: "Active",
+      },
     });
-    try {
-      revalidatePath("/doctor/schedule");
-    } catch (e) {
-      console.warn("revalidatePath failed:", e);
-    }
-    return { success: true, data: mod };
-  } catch (error: any) {
-    return { success: false, error: error.message };
+    safeRevalidate(["/doctor/schedule", `/doctor/schedule/${data.clinicId}`]);
+    return { success: true };
+  } catch (err: any) {
+    console.error("[cancelSlot]", err.message);
+    return { success: false, error: err.message };
   }
 }
 
@@ -340,33 +530,32 @@ export async function applyHoliday(data: {
   reason?: string;
 }) {
   try {
+    const doctorId = await getAuthenticatedDoctorId();
     const doctorClinics = await db.doctorClinic.findMany({
-      where: { userId: DOCTOR_ID }
+      where: { userId: doctorId },
     });
+    if (doctorClinics.length === 0)
+      return { success: false, error: "No clinics found." };
 
-    const creations = doctorClinics.map(dc => {
-      return db.scheduleModification.create({
-        data: {
-          type: "Holiday",
-          clinicId: dc.clinicId,
-          doctorId: DOCTOR_ID,
-          date: new Date(data.startDate),
-          description: `[${data.startDate}|${data.endDate}] Holiday override | Note: ${data.reason || 'Global Holiday'}`,
-          status: "Active"
-        }
-      });
-    });
-
-    await Promise.all(creations);
-
-    try {
-      revalidatePath("/doctor/schedule");
-    } catch (e) {
-      console.warn("revalidatePath failed:", e);
-    }
+    await Promise.all(
+      doctorClinics.map((dc) =>
+        db.scheduleModification.create({
+          data: {
+            type: "Holiday",
+            clinicId: dc.clinicId,
+            doctorId: doctorId,
+            date: new Date(data.startDate),
+            description: `[${data.startDate}|${data.endDate}] Holiday | Note: ${data.reason || "Global Holiday"}`,
+            status: "Active",
+          },
+        })
+      )
+    );
+    safeRevalidate(["/doctor/schedule"]);
     return { success: true };
-  } catch (error: any) {
-    return { success: false, error: error.message };
+  } catch (err: any) {
+    console.error("[applyHoliday]", err.message);
+    return { success: false, error: err.message };
   }
 }
 
@@ -377,24 +566,22 @@ export async function applyLeave(data: {
   reason?: string;
 }) {
   try {
-    const mod = await db.scheduleModification.create({
+    const doctorId = await getAuthenticatedDoctorId();
+    await db.scheduleModification.create({
       data: {
         type: "Leave",
         clinicId: data.clinicId,
-        doctorId: DOCTOR_ID,
+        doctorId: doctorId,
         date: new Date(data.startDate),
-        description: `[${data.startDate}|${data.endDate}] Leave override | Note: ${data.reason || ''}`,
-        status: "Active"
-      }
+        description: `[${data.startDate}|${data.endDate}] Leave${data.reason ? ` | Note: ${data.reason}` : ""}`,
+        status: "Active",
+      },
     });
-    try {
-      revalidatePath("/doctor/schedule");
-    } catch (e) {
-      console.warn("revalidatePath failed:", e);
-    }
-    return { success: true, data: mod };
-  } catch (error: any) {
-    return { success: false, error: error.message };
+    safeRevalidate(["/doctor/schedule", `/doctor/schedule/${data.clinicId}`]);
+    return { success: true };
+  } catch (err: any) {
+    console.error("[applyLeave]", err.message);
+    return { success: false, error: err.message };
   }
 }
 
@@ -407,8 +594,9 @@ export async function rescheduleSlot(data: {
   reason?: string;
 }) {
   try {
+    const doctorId = await getAuthenticatedDoctorId();
     const targetClinicMapping = await db.doctorClinic.findUnique({
-      where: { userId_clinicId: { userId: DOCTOR_ID, clinicId: data.targetClinicId } },
+      where: { userId_clinicId: { userId: doctorId, clinicId: data.targetClinicId } },
       include: { clinic: true },
     });
 
@@ -417,7 +605,7 @@ export async function rescheduleSlot(data: {
       const shiftTimes = parseTimesFromShift(targetClinicMapping.shift);
       if (shiftTimes) {
         const conflictCheck = await checkScheduleConflict(
-          DOCTOR_ID,
+          doctorId,
           data.targetClinicId,
           repDate,
           shiftTimes.startMinutes,
@@ -433,13 +621,12 @@ export async function rescheduleSlot(data: {
       data: {
         type: "Reschedule",
         clinicId: data.sourceClinicId,
-        doctorId: DOCTOR_ID,
+        doctorId: doctorId,
         date: new Date(data.originalDate),
         replacementClinicId: data.targetClinicId,
-        description: `Moved to Target Clinic | Note: ${data.reason || ''}`,
-        status: "Active"
+        description: `[${data.originalDate}|${data.originalDate}] Reschedule | Note: ${data.reason || ""}`,
+        status: "Active",
       },
-      include: { replacementClinic: true }
     });
 
     let repTimeStr = "09:00|17:00";
@@ -454,26 +641,23 @@ export async function rescheduleSlot(data: {
       }
     }
 
-    const targetMod = await db.scheduleModification.create({
+    await db.scheduleModification.create({
       data: {
         type: "Replacement Schedule",
         clinicId: data.targetClinicId,
-        doctorId: DOCTOR_ID,
+        doctorId: doctorId,
         date: new Date(data.newStartDate),
         originalModificationId: sourceMod.id,
-        description: `[${repTimeStr}] Replacement | Note: ${data.reason || ''}`,
-        status: "Active"
-      }
+        description: `[${repTimeStr}] Replacement | Note: ${data.reason || ""}`,
+        status: "Active",
+      },
     });
 
-    try {
-      revalidatePath("/doctor/schedule");
-    } catch (e) {
-      console.warn("revalidatePath failed:", e);
-    }
-    return { success: true, sourceData: sourceMod, targetData: targetMod };
-  } catch (error: any) {
-    return { success: false, error: error.message };
+    safeRevalidate(["/doctor/schedule"]);
+    return { success: true };
+  } catch (err: any) {
+    console.error("[rescheduleSlot]", err.message);
+    return { success: false, error: err.message };
   }
 }
 
@@ -481,28 +665,21 @@ export async function rollbackOverride(id: string) {
   try {
     const mod = await db.scheduleModification.findUnique({
       where: { id },
-      include: { rescheduleChildren: true }
+      include: { rescheduleChildren: true },
     });
+    if (!mod) return { success: false, error: "Override not found." };
 
-    if (!mod) return { success: false, error: "Not found" };
-
-    if (mod.rescheduleChildren && mod.rescheduleChildren.length > 0) {
+    if (mod.rescheduleChildren.length > 0) {
       await db.scheduleModification.deleteMany({
-        where: { originalModificationId: id }
+        where: { originalModificationId: id },
       });
     }
+    await db.scheduleModification.delete({ where: { id } });
 
-    await db.scheduleModification.delete({
-      where: { id }
-    });
-
-    try {
-      revalidatePath("/doctor/schedule");
-    } catch (e) {
-      console.warn("revalidatePath failed:", e);
-    }
+    safeRevalidate(["/doctor/schedule", `/doctor/schedule/${mod.clinicId}`]);
     return { success: true };
-  } catch (error: any) {
-    return { success: false, error: error.message };
+  } catch (err: any) {
+    console.error("[rollbackOverride]", err.message);
+    return { success: false, error: err.message };
   }
 }
