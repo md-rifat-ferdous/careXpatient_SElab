@@ -48,11 +48,12 @@ export default function PatientAppointmentsPage() {
           ...d,
           user: {
             ...d.user,
-            gender: d.user.fullName.includes('Sarah') || d.user.fullName.includes('Anika') || d.user.fullName.includes('Maria') ? 'Female' : 'Male',
-            district: d.id === '1' || d.id === '3' || d.id === '5' ? 'Dhaka' : 'Chattogram'
-          }
+            gender: (d.user.fullName.includes('Sarah') || d.user.fullName.includes('Anika') || d.user.fullName.includes('Maria') ? 'Female' : 'Male') as 'Male' | 'Female',
+            district: d.id === '1' || d.id === '3' || d.id === '5' ? 'Dhaka' : 'Chattogram',
+          },
         }));
         setAllDoctors(enrichedDocs);
+
         setSpecialties(specsData.map((s: any) => s.name));
       } catch (err) {
         console.error('Initialization error:', err);

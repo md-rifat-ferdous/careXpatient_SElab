@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { useAuthStore } from '@/store/authStore';
+import { useAuthStore } from '@/store/auth.store';
 import { useCartStore } from '@/store/cartStore';
 
 const navItems = [
@@ -16,11 +16,11 @@ const navItems = [
 export function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
-  const { user, logout } = useAuthStore();
+  const { user, clearAuth } = useAuthStore();
   const clearCart = useCartStore((state) => state.clearCart);
 
   const handleSignOut = () => {
-    logout();
+    clearAuth();
     clearCart();
     router.push('/');
   };
@@ -43,7 +43,7 @@ export function Sidebar() {
         <div className="px-6 mb-6">
           <div className="flex items-center gap-3 p-3 bg-primary/5 rounded-2xl">
             <div className="w-9 h-9 bg-primary rounded-full flex items-center justify-center text-white font-bold text-sm shrink-0">
-              {user.fullName.charAt(0).toUpperCase()}
+              {user.fullName?.charAt(0).toUpperCase() ?? '?'}
             </div>
             <div className="overflow-hidden">
               <p className="text-sm font-bold text-on-surface truncate">{user.fullName}</p>
