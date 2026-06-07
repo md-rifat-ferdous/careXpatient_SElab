@@ -1,8 +1,9 @@
 "use client";
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import Sidebar from './Sidebar';
+import { useAuthStore } from '@/store/auth.store';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -10,6 +11,15 @@ interface DashboardLayoutProps {
 
 const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   const pathname = usePathname();
+  const { user, token, isAuthenticated } = useAuthStore();
+
+  useEffect(() => {
+    if (isAuthenticated && user && token) {
+      document.cookie = `userId=${user.id}; path=/; max-age=604800; SameSite=Lax`;
+      document.cookie = `token=${token}; path=/; max-age=604800; SameSite=Lax`;
+    }
+  }, [isAuthenticated, user, token]);
+
   // Pages that manage their own scroll/height (no inner padding)
   const fullHeightPages = ['/dashboard/patient/lab-tests'];
   const isFullHeight = fullHeightPages.some(p => pathname.startsWith(p));

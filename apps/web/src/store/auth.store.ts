@@ -38,8 +38,20 @@ export const useAuthStore = create<AuthState>()(
       user: null,
       token: null,
       isAuthenticated: false,
-      setAuth: (user, token) => set({ user, token, isAuthenticated: true }),
-      clearAuth: () => set({ user: null, token: null, isAuthenticated: false }),
+      setAuth: (user, token) => {
+        if (typeof window !== 'undefined') {
+          document.cookie = `userId=${user.id}; path=/; max-age=604800; SameSite=Lax`;
+          document.cookie = `token=${token}; path=/; max-age=604800; SameSite=Lax`;
+        }
+        set({ user, token, isAuthenticated: true });
+      },
+      clearAuth: () => {
+        if (typeof window !== 'undefined') {
+          document.cookie = 'userId=; path=/; max-age=0; SameSite=Lax';
+          document.cookie = 'token=; path=/; max-age=0; SameSite=Lax';
+        }
+        set({ user: null, token: null, isAuthenticated: false });
+      },
     }),
     { name: 'carex-auth' }
   )

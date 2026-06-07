@@ -23,8 +23,8 @@ type Props = {
 };
 
 export function ScheduleClient({ initialClinics, initialModifications }: Props) {
-  const [clinics, setClinics] = useState(initialClinics);
-  const [modifications, setModifications] = useState(initialModifications);
+  const clinics = initialClinics;
+  const modifications = initialModifications;
   const [weekStart, setWeekStart] = useState(() => startOfWeek(new Date(), { weekStartsOn: 0 }));
   const [activeTab, setActiveTab] = useState<Tab>('weekly');
   const [isPending, startTransition] = useTransition();
