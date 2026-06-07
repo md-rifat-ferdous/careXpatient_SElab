@@ -5,7 +5,10 @@ import * as prescriptionService from '../services/prescription.service';
 export const getDoctors = async (req: Request, res: Response) => {
   try {
     const doctors = await prescriptionService.findAllDoctors();
-    res.json({ success: true, data: doctors });
+    const serializedData = JSON.parse(JSON.stringify(doctors, (key, value) =>
+      typeof value === 'bigint' ? value.toString() : value
+    ));
+    res.json({ success: true, data: serializedData });
   } catch (error) {
     console.error('Error fetching doctors:', error);
     res.status(500).json({ success: false, message: 'Internal server error' });
