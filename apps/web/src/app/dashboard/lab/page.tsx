@@ -1,72 +1,114 @@
 "use client";
 
 import React from 'react';
-import { useAuthStore } from '@/store/auth.store';
-import { useRouter } from 'next/navigation';
+import { 
+  Typography, 
+  Card, 
+  Badge, 
+  Button, 
+  DataTable,
+  cn 
+} from '@carexpatient/ui';
+import { 
+  Microscope, 
+  ClipboardCheck, 
+  Clock, 
+  AlertCircle,
+  FileUp,
+  FlaskConical
+} from 'lucide-react';
+import { ColumnDef } from "@tanstack/react-table";
 
-/* TODO: Implement role-specific Lab dashboard features:
- * - Lab Orders (incoming orders, accept/reject, status update)
- * - Sample Collection (mark sample collected, collection slots)
- * - Processing Queue (tests in process, assign technician)
- * - Results Upload (upload PDF result, notify patient/doctor)
- * - Reports & Analytics (monthly reports, revenue, test count)
- * - Lab Profile (update lab info, services offered, pricing)
- * - DGHS Compliance (license renewal, audit logs)
- */
+interface LabOrder {
+  id: string;
+  patientName: string;
+  testType: string;
+  priority: 'Routine' | 'Urgent' | 'Stat';
+  status: 'Pending' | 'Sample Collected' | 'Processing' | 'Completed';
+  receivedAt: string;
+}
+
+const orders: LabOrder[] = [
+  { id: 'ORD-552', patientName: 'Rahim Ali', testType: 'Full Blood Count', priority: 'Urgent', status: 'Processing', receivedAt: '09:30 AM' },
+  { id: 'ORD-553', patientName: 'Nusrat Jahan', testType: 'Glucose Fasting', priority: 'Routine', status: 'Pending', receivedAt: '10:15 AM' },
+  { id: 'ORD-554', patientName: 'Karim Ahmed', testType: 'Lipid Profile', priority: 'Stat', status: 'Sample Collected', receivedAt: '10:45 AM' },
+];
 
 export default function LabDashboard() {
-  const { user, clearAuth } = useAuthStore();
-  const router = useRouter();
-
-  const features = [
-    { icon: '📋', title: 'Lab Orders', desc: 'Manage incoming test orders', color: 'bg-emerald-50 border-emerald-100' },
-    { icon: '🧪', title: 'Processing Queue', desc: 'Tests under processing', color: 'bg-teal-50 border-teal-100' },
-    { icon: '📤', title: 'Upload Results', desc: 'Submit test results', color: 'bg-sky-50 border-sky-100' },
-    { icon: '📊', title: 'Reports', desc: 'Analytics & revenue', color: 'bg-violet-50 border-violet-100' },
-    { icon: '🏢', title: 'Lab Profile', desc: 'Update lab information', color: 'bg-amber-50 border-amber-100' },
-    { icon: '⚙️', title: 'Settings', desc: 'Account & preferences', color: 'bg-slate-50 border-slate-100' },
+  const columns: ColumnDef<LabOrder>[] = [
+    { accessorKey: "id", header: "Order ID" },
+    { accessorKey: "patientName", header: "Patient" },
+    { accessorKey: "testType", header: "Test Type" },
+    { 
+      accessorKey: "priority", 
+      header: "Priority",
+      cell: ({ row }) => (
+        <Badge variant={row.original.priority === 'Stat' ? 'primary' : 'outline'} className={cn(
+          row.original.priority === 'Urgent' && "border-amber-500 text-amber-600 bg-amber-50",
+          row.original.priority === 'Stat' && "bg-rose-600 text-white border-none"
+        )}>
+          {row.original.priority}
+        </Badge>
+      )
+    },
+    { 
+      accessorKey: "status", 
+      header: "Status",
+      cell: ({ row }) => (
+        <div className="flex items-center gap-2">
+          <div className={cn(
+            "w-2 h-2 rounded-full",
+            row.original.status === 'Processing' ? 'bg-primary animate-pulse' : 'bg-text-muted'
+          )} />
+          <Typography variant="small" className="text-xs font-bold">{row.original.status}</Typography>
+        </div>
+      )
+    },
+    {
+      id: "actions",
+      header: "",
+      cell: ({ row }) => (
+        <Button size="sm" className="h-9 px-4 gap-2 rounded-xl text-xs font-bold">
+          <FileUp className="w-3 h-3" /> Upload Results
+        </Button>
+      )
+    }
   ];
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="bg-white border-b border-border px-6 py-4 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl gradient-teal flex items-center justify-center">
-            <span className="text-white font-bold text-xs">cXp</span>
-          </div>
-          <span className="font-bold text-foreground">care<span className="text-primary">X</span>patient</span>
+    <div className="max-w-7xl mx-auto space-y-8 pb-12">
+      <div className="flex justify-between items-center">
+        <div>
+          <Typography variant="h1">Lab Operations</Typography>
+          <Typography variant="body" className="text-text-muted mt-1">Diagnostic Portal · Central Lab #04</Typography>
         </div>
-        <button onClick={() => { clearAuth(); router.push('/login'); }}
-          className="text-sm text-subtle-gray hover:text-error transition-colors border border-border rounded-lg px-3 py-1.5">
-          Sign out
-        </button>
-      </header>
+        <Button variant="outline" className="rounded-xl h-12 px-6 gap-2">
+          <FlaskConical className="w-4 h-4" /> Inventory Management
+        </Button>
+      </div>
 
-      <main className="max-w-2xl mx-auto px-6 py-10">
-        <div className="bg-gradient-to-r from-emerald-500 to-teal-600 rounded-2xl p-6 mb-8 text-white">
-          <p className="text-white/70 text-sm mb-1">Lab Portal 🏥</p>
-          <h1 className="text-2xl font-bold">{user?.fullName || 'Lab Admin'}</h1>
-          <p className="text-white/80 text-sm mt-1">Accuracy and trust, every report.</p>
-        </div>
+      <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <Card className="bg-primary/5 border-primary/10">
+          <Typography variant="small" className="font-black text-primary uppercase tracking-widest text-[9px] mb-2">Active Orders</Typography>
+          <Typography variant="h2" className="text-3xl text-primary-dark">24</Typography>
+        </Card>
+        <Card>
+          <Typography variant="small" className="font-black text-text-muted uppercase tracking-widest text-[9px] mb-2">Pending Collection</Typography>
+          <Typography variant="h2" className="text-3xl">08</Typography>
+        </Card>
+        <Card className="bg-rose-50 border-rose-100">
+          <Typography variant="small" className="font-black text-rose-600 uppercase tracking-widest text-[9px] mb-2">Critical Stats</Typography>
+          <Typography variant="h2" className="text-3xl text-rose-700">02</Typography>
+        </Card>
+      </section>
 
-        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6 flex items-start gap-3">
-          <span className="text-amber-500 text-lg">🚧</span>
-          <div>
-            <p className="font-semibold text-amber-900 text-sm">Dashboard Under Development</p>
-            <p className="text-amber-700 text-xs mt-0.5">Lab features are coming soon!</p>
-          </div>
+      <Card className="p-8">
+        <div className="flex items-center gap-2 mb-6">
+          <Microscope className="w-5 h-5 text-primary" />
+          <Typography variant="h3">Order Queue</Typography>
         </div>
-
-        <div className="grid grid-cols-2 gap-3">
-          {features.map((f) => (
-            <button key={f.title} className={`${f.color} border rounded-xl p-4 text-left transition-all hover:shadow-md`}>
-              <div className="text-2xl mb-2">{f.icon}</div>
-              <p className="font-semibold text-foreground text-sm">{f.title}</p>
-              <p className="text-xs text-subtle-gray mt-0.5">{f.desc}</p>
-            </button>
-          ))}
-        </div>
-      </main>
+        <DataTable columns={columns} data={orders} />
+      </Card>
     </div>
   );
 }

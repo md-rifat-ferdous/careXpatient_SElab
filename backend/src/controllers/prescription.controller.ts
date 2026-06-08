@@ -5,10 +5,7 @@ import * as prescriptionService from '../services/prescription.service';
 export const getDoctors = async (req: Request, res: Response) => {
   try {
     const doctors = await prescriptionService.findAllDoctors();
-    const serializedData = JSON.parse(JSON.stringify(doctors, (key, value) =>
-      typeof value === 'bigint' ? value.toString() : value
-    ));
-    res.json({ success: true, data: serializedData });
+    res.json({ success: true, data: doctors });
   } catch (error) {
     console.error('Error fetching doctors:', error);
     res.status(500).json({ success: false, message: 'Internal server error' });
@@ -69,14 +66,10 @@ export const getPrescriptions = async (req: Request, res: Response) => {
       status: p.consultation.appointment.status === 'Completed' ? 'Completed' : (p.consultation.appointment.status === 'Pending' ? 'Issued' : 'Verified')
     }));
 
-    // Handle BigInt serialization explicitly
-    const serializedData = JSON.parse(JSON.stringify(formattedPrescriptions, (key, value) =>
-      typeof value === 'bigint' ? value.toString() : value
-    ));
 
     res.json({
       success: true,
-      data: serializedData,
+      data: formattedPrescriptions,
       pagination: {
         total: result.total,
         page: result.page,
@@ -129,7 +122,7 @@ export const getPrescriptionDetail = async (req: Request, res: Response) => {
       patient: {
         name: prescription.consultation.appointment.patient.user.fullName,
         age: calculateAge(prescription.consultation.appointment.patient.dateOfBirth),
-        gender: 'Not Specified',
+        gender: prescription.consultation.appointment.patient.gender || 'Not Specified',
         bloodGroup: prescription.consultation.appointment.patient.bloodGroup || 'N/A',
         phone: prescription.consultation.appointment.patient.user.phone,
         avatarUrl: prescription.consultation.appointment.patient.user.profilePhotoUrl
@@ -142,14 +135,10 @@ export const getPrescriptionDetail = async (req: Request, res: Response) => {
       }
     };
 
-    // Handle BigInt serialization explicitly
-    const serializedData = JSON.parse(JSON.stringify(formattedDetail, (key, value) =>
-      typeof value === 'bigint' ? value.toString() : value
-    ));
 
     res.json({
       success: true,
-      data: serializedData
+      data: formattedDetail
     });
   } catch (error: any) {
     console.error('Error fetching prescription detail:', error);
@@ -161,21 +150,17 @@ export const downloadPrescriptionPDF = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
 
-    const executablePath = process.env.PUPPETEER_EXECUTABLE_PATH || 'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe';
-
-    console.log(`Launching Puppeteer with browser path: ${executablePath}`);
-
     const browser = await puppeteer.launch({
       headless: true,
-      executablePath,
+      executablePath: 'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe',
       args: ['--no-sandbox', '--disable-setuid-sandbox']
     });
 
     const page = await browser.newPage();
     await page.emulateMediaType('screen');
 
-    // Navigate to the print page on the web app (port 3000)
-    await page.goto(`http://localhost:3000/dashboard/patient/prescription/${id}/print`, {
+    // Navigate to the print page on the web app (port 3001)
+    await page.goto(`http://localhost:3001/dashboard/patient/prescriptions/${id}/print`, {
       waitUntil: 'networkidle0',
       timeout: 30000
     });

@@ -11,6 +11,11 @@ import prescriptionRoutes from './routes/prescription.routes';
 // Load environment variables from .env file
 dotenv.config();
 
+// BigInt serialization fix
+(BigInt.prototype as any).toJSON = function() {
+  return this.toString();
+};
+
 const app = express();
 const PORT = process.env.PORT || 5000;
 

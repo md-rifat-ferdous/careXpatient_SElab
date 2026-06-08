@@ -3,7 +3,8 @@ import { View, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity } from 're
 import { Typography } from '../../components/ui/Typography';
 import { Card } from '../../components/ui/Card';
 import { useAuthStore } from '../../store/auth.store';
-import { LogOut, Calendar, Beaker, FileText, Settings } from 'lucide-react-native';
+import { LogOut, Calendar, Beaker, FileText, Settings, ArrowRight } from 'lucide-react-native';
+import { theme } from '../../lib/theme';
 
 export default function PatientDashboardScreen({ navigation }: any) {
   const { user, logout } = useAuthStore();
@@ -14,21 +15,21 @@ export default function PatientDashboardScreen({ navigation }: any) {
   };
 
   const features = [
-    { title: 'Book Appointment', icon: <Calendar color="#14B8A6" />, bg: '#F0FDFA' },
-    { title: 'Lab Orders', icon: <Beaker color="#0EA5E9" />, bg: '#F0F9FF' },
-    { title: 'Medical Records', icon: <FileText color="#8B5CF6" />, bg: '#F5F3FF' },
-    { title: 'Settings', icon: <Settings color="#64748B" />, bg: '#F8FAFC' },
+    { title: 'Book Appointment', icon: <Calendar color={theme.colors.primary} />, bg: theme.colors.primary + '10', href: 'Appointments' },
+    { title: 'Lab Orders', icon: <Beaker color={theme.colors.alertInfo} />, bg: theme.colors.alertInfo + '10' },
+    { title: 'Medical Records', icon: <FileText color={theme.colors.primary} />, bg: theme.colors.primary + '10', href: 'PrescriptionList' },
+    { title: 'Settings', icon: <Settings color={theme.colors.textMuted} />, bg: theme.colors.surfaceMuted },
   ];
 
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <View>
-          <Typography variant="small" color="#94A3B8">Welcome back 👋</Typography>
-          <Typography variant="h2">{user?.fullName || 'Patient'}</Typography>
+          <Typography variant="small" color={theme.colors.textMuted}>Welcome back 👋</Typography>
+          <Typography variant="h2">{user?.fullName || 'Rahim Ali'}</Typography>
         </View>
         <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
-          <LogOut size={20} color="#EF4444" />
+          <LogOut size={20} color={theme.colors.alertCritical} />
         </TouchableOpacity>
       </View>
 
@@ -41,7 +42,11 @@ export default function PatientDashboardScreen({ navigation }: any) {
         <Typography variant="h3" style={styles.sectionTitle}>Quick Actions</Typography>
         <View style={styles.grid}>
           {features.map((f) => (
-            <TouchableOpacity key={f.title} style={styles.gridItem}>
+            <TouchableOpacity 
+              key={f.title} 
+              style={styles.gridItem}
+              onPress={() => f.href && navigation.navigate(f.href)}
+            >
               <Card style={styles.actionCard}>
                 <View style={[styles.iconBox, { backgroundColor: f.bg }]}>{f.icon}</View>
                 <Typography variant="small" style={styles.actionLabel}>{f.title}</Typography>
@@ -51,8 +56,8 @@ export default function PatientDashboardScreen({ navigation }: any) {
         </View>
 
         <Card style={styles.devCard}>
-          <Typography variant="small" color="#B45309">🚧 Dashboard under construction</Typography>
-          <Typography variant="small" color="#D97706" style={{ marginTop: 4 }}>Full features coming soon to your careXpatient mobile app.</Typography>
+          <Typography variant="small" color={theme.colors.textMuted}>🚧 Dashboard under construction</Typography>
+          <Typography variant="small" color={theme.colors.textMuted} style={{ marginTop: 4 }}>Full features coming soon to your careXpatient mobile app.</Typography>
         </Card>
       </ScrollView>
     </SafeAreaView>
@@ -60,32 +65,32 @@ export default function PatientDashboardScreen({ navigation }: any) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F8FAFC' },
+  container: { flex: 1, backgroundColor: theme.colors.surfaceMuted },
   header: { 
     flexDirection: 'row', 
     justifyContent: 'space-between', 
     alignItems: 'center', 
     padding: 24, 
-    backgroundColor: 'white',
+    backgroundColor: theme.colors.surface,
     borderBottomWidth: 1,
-    borderBottomColor: '#E2E8F0',
+    borderBottomColor: theme.colors.borderSoft,
   },
-  logoutButton: { padding: 8, borderRadius: 12, backgroundColor: '#FEF2F2' },
+  logoutButton: { padding: 8, borderRadius: 12, backgroundColor: theme.colors.alertCritical + '10' },
   content: { padding: 24 },
   banner: { 
-    backgroundColor: '#14B8A6', 
+    backgroundColor: theme.colors.primary, 
     padding: 20, 
     marginBottom: 24, 
     borderWidth: 0,
-    shadowColor: '#14B8A6',
+    shadowColor: theme.colors.primary,
     shadowOpacity: 0.3,
     shadowRadius: 10,
   },
   sectionTitle: { marginBottom: 16 },
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
   gridItem: { width: '48%' },
-  actionCard: { alignItems: 'center', padding: 16 },
+  actionCard: { alignItems: 'center', padding: 16, ...theme.shadows.soft },
   iconBox: { width: 48, height: 48, borderRadius: 12, alignItems: 'center', justifyContent: 'center', marginBottom: 12 },
   actionLabel: { fontWeight: '600', textAlign: 'center' },
-  devCard: { marginTop: 24, backgroundColor: '#FFFBEB', borderColor: '#FDE68A' },
+  devCard: { marginTop: 24, backgroundColor: theme.colors.surfaceMuted, borderColor: theme.colors.borderSoft },
 });
