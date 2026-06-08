@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback } from 'react';
 const API = 'http://localhost:5000';
 
 const CATEGORIES = ['All', 'Blood', 'Urine', 'Imaging', 'Microbiology', 'Pathology', 'General'];
-const SAMPLE_TYPES = ['Blood', 'Urine', 'Stool', 'Swab', 'Tissue', 'Serum'];
+const SAMPLE_TYPES = ['Blood', 'Urine', 'Stool', 'Swab', 'Tissue', 'Serum', 'N/A'];
 const TAG_COLORS = [
   { label: 'Teal',   value: '#14B8A6' },
   { label: 'Blue',   value: '#3B82F6' },
@@ -32,11 +32,11 @@ function TestModal({ test, onClose, onSaved }) {
   };
 
   const fields = [
-    { key: 'name',         label: 'Test Name *',        type: 'text' },
-    { key: 'price',        label: 'Price (BDT) *',      type: 'number' },
-    { key: 'delivery_time', label: 'Turnaround Time',   type: 'text' },
-    { key: 'tag',          label: 'Tag Label',           type: 'text' },
-    { key: 'prerequisites', label: 'Prerequisites',     type: 'text' },
+    { key: 'name',          label: 'Test Name *',          type: 'text' },
+    { key: 'price',         label: 'Price (BDT) *',        type: 'number' },
+    { key: 'delivery_time', label: 'Report Delivery Time', type: 'text' },
+    { key: 'tag',           label: 'Tag Label',            type: 'text' },
+    { key: 'prerequisites', label: 'Prerequisites',        type: 'text' },
   ];
 
   return (
@@ -106,14 +106,92 @@ function TestModal({ test, onClose, onSaved }) {
   );
 }
 
+function TestDetailsModal({ test, onClose }) {
+  if (!test) return null;
+  return (
+    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4" onClick={onClose}>
+      <div className="bg-surface-white rounded-2xl shadow-2xl w-full max-w-md flex flex-col max-h-[90vh]" onClick={e => e.stopPropagation()}>
+        <div className="flex justify-between items-center px-6 py-4 border-b border-outline-variant">
+          <h3 className="font-bold text-lg text-on-surface">Test Details</h3>
+          <button onClick={onClose} className="text-on-surface-variant hover:text-on-surface">
+            <span className="material-symbols-outlined">close</span>
+          </button>
+        </div>
+        <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4 text-sm">
+          <div>
+            <span className="text-xs font-bold text-on-surface-variant block uppercase">Test Name</span>
+            <p className="font-bold text-base text-on-surface mt-0.5">{test.name}</p>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <span className="text-xs font-bold text-on-surface-variant block uppercase">Category</span>
+              <span className="inline-block text-xs font-semibold bg-primary-container/10 text-primary-container px-2.5 py-1 rounded-full mt-1">{test.category}</span>
+            </div>
+            <div>
+              <span className="text-xs font-bold text-on-surface-variant block uppercase">Sample Type</span>
+              <p className="font-medium text-on-surface mt-1">{test.sample_type || '—'}</p>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <span className="text-xs font-bold text-on-surface-variant block uppercase">Price</span>
+              <p className="font-bold text-on-surface mt-1">৳{parseFloat(test.price || 0).toFixed(0)}</p>
+            </div>
+            <div>
+              <span className="text-xs font-bold text-on-surface-variant block uppercase">Report Delivery Time</span>
+              <p className="font-medium text-on-surface mt-1 flex items-center gap-1">
+                <span className="material-symbols-outlined text-[16px]">schedule</span>
+                {test.delivery_time || '—'}
+              </p>
+            </div>
+          </div>
+          {test.tag && (
+            <div>
+              <span className="text-xs font-bold text-on-surface-variant block uppercase">Tag</span>
+              <span className="inline-block text-[10px] font-bold px-2.5 py-1 rounded-full text-white mt-1" style={{ backgroundColor: test.tag_color || '#14B8A6' }}>
+                {test.tag}
+              </span>
+            </div>
+          )}
+          {test.prerequisites && (
+            <div>
+              <span className="text-xs font-bold text-on-surface-variant block uppercase text-amber-700">Prerequisites / Instructions</span>
+              <p className="text-on-surface bg-amber-50/50 border border-amber-100 p-3 rounded-xl mt-1 text-xs leading-relaxed">{test.prerequisites}</p>
+            </div>
+          )}
+          {test.description && (
+            <div>
+              <span className="text-xs font-bold text-on-surface-variant block uppercase">Description</span>
+              <p className="text-on-surface-variant leading-relaxed mt-1 text-xs">{test.description}</p>
+            </div>
+          )}
+        </div>
+        <div className="px-6 py-4 border-t border-outline-variant flex justify-end">
+          <button onClick={onClose} className="px-5 py-2 rounded-xl bg-primary-container text-white text-sm font-bold hover:bg-primary transition-colors">Close</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function TestManagement() {
   const [tests, setTests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeCategory, setActiveCategory] = useState('All');
   const [search, setSearch] = useState('');
   const [editTest, setEditTest] = useState(null);
+  const [viewTest, setViewTest] = useState(null);
   const [showAdd, setShowAdd] = useState(false);
   const [deletingId, setDeletingId] = useState(null);
+  const [openMenuId, setOpenMenuId] = useState(null);
+  const [deactivatedIds, setDeactivatedIds] = useState([]);
+
+  // Close menus on click outside
+  useEffect(() => {
+    const handleCloseMenu = () => setOpenMenuId(null);
+    document.addEventListener('click', handleCloseMenu);
+    return () => document.removeEventListener('click', handleCloseMenu);
+  }, []);
 
   const fetchTests = useCallback(() => {
     setLoading(true);
@@ -137,15 +215,19 @@ export default function TestManagement() {
     fetchTests();
   };
 
-  const grouped = CATEGORIES.filter(c => c !== 'All').reduce((acc, cat) => {
-    const items = tests.filter(t => t.category === cat);
-    if (items.length > 0 || activeCategory === cat) acc[cat] = items;
-    return acc;
-  }, {});
+  const duplicateTest = (t) => {
+    setEditTest({
+      ...t,
+      id: undefined,
+      name: `${t.name} (Copy)`
+    });
+  };
 
-  if (activeCategory !== 'All') {
-    Object.keys(grouped).forEach(k => { if (k !== activeCategory) delete grouped[k]; });
-  }
+  const toggleActive = (id) => {
+    setDeactivatedIds(prev =>
+      prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
+    );
+  };
 
   return (
     <div className="p-8 max-w-7xl mx-auto">
@@ -153,11 +235,15 @@ export default function TestManagement() {
         <TestModal test={editTest} onClose={() => { setEditTest(null); setShowAdd(false); }} onSaved={fetchTests} />
       )}
 
+      {viewTest && (
+        <TestDetailsModal test={viewTest} onClose={() => setViewTest(null)} />
+      )}
+
       {/* Header */}
       <div className="flex justify-between items-end mb-8">
         <div>
           <h2 className="text-3xl font-extrabold text-on-surface tracking-tight">Test Management</h2>
-          <p className="text-on-surface-variant font-medium mt-1">Manage your diagnostic test catalog, pricing, and turnaround times</p>
+          <p className="text-on-surface-variant font-medium mt-1">Manage your diagnostic test catalog, pricing, and report delivery times</p>
         </div>
         <button onClick={() => setShowAdd(true)}
           className="flex items-center gap-2 px-5 py-2.5 bg-primary-container text-white rounded-2xl text-sm font-bold shadow-md hover:shadow-lg transition-all active:scale-95">
@@ -171,7 +257,7 @@ export default function TestManagement() {
         {[
           { icon: 'science',       bg: 'bg-teal-50',   color: 'text-teal-600',  label: 'Total Tests',       val: tests.length },
           { icon: 'category',      bg: 'bg-violet-50', color: 'text-violet-600', label: 'Categories',        val: [...new Set(tests.map(t => t.category))].length },
-          { icon: 'attach_money',  bg: 'bg-amber-50',  color: 'text-amber-600', label: 'Avg. Price (BDT)',   val: tests.length ? Math.round(tests.reduce((a, t) => a + parseFloat(t.price || 0), 0) / tests.length) : 0 },
+          { icon: 'attach_money',  bg: 'bg-amber-50',  color: 'text-amber-600', label: 'Avg. Price (BDT)',   val: tests.length ? '৳' + Math.round(tests.reduce((a, t) => a + parseFloat(t.price || 0), 0) / tests.length).toLocaleString() : '৳0' },
         ].map(s => (
           <div key={s.label} className="bg-surface-white p-5 rounded-2xl border border-outline-variant shadow-sm hover:shadow-md transition-shadow">
             <div className="flex justify-between items-start mb-3">
@@ -208,52 +294,108 @@ export default function TestManagement() {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-background-off-white text-[11px] uppercase tracking-wider text-on-surface-variant font-bold">
-                {['Test Name', 'Category', 'Sample Type', 'Price (BDT)', 'Turnaround', 'Tag', 'Actions'].map(h => (
+                {['Test Name', 'Category', 'Sample Type', 'Price (BDT)', 'Report Delivery Time', 'Tag', 'Actions'].map(h => (
                   <th key={h} className="px-6 py-4">{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody className="divide-y divide-outline-variant">
-              {tests.map(t => (
-                <tr key={t.id} className="hover:bg-primary-container/5 transition-colors group">
-                  <td className="px-6 py-4">
-                    <p className="font-bold text-sm text-on-surface">{t.name}</p>
-                    {t.description && <p className="text-xs text-on-surface-variant mt-0.5 truncate max-w-[200px]">{t.description}</p>}
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className="text-xs font-semibold bg-primary-container/10 text-primary-container px-2.5 py-1 rounded-full">{t.category || '—'}</span>
-                  </td>
-                  <td className="px-6 py-4 text-sm text-on-surface-variant">{t.sample_type || '—'}</td>
-                  <td className="px-6 py-4">
-                    <span className="font-bold text-on-surface">৳{parseFloat(t.price || 0).toFixed(0)}</span>
-                  </td>
-                  <td className="px-6 py-4 text-sm text-on-surface-variant">
-                    <div className="flex items-center gap-1.5">
-                      <span className="material-symbols-outlined text-[16px]">schedule</span>
-                      {t.delivery_time || '—'}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    {t.tag ? (
-                      <span className="text-[10px] font-bold px-2.5 py-1 rounded-full text-white" style={{ backgroundColor: t.tag_color || '#14B8A6' }}>
-                        {t.tag}
-                      </span>
-                    ) : <span className="text-on-surface-variant text-xs">—</span>}
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button onClick={() => setEditTest(t)}
-                        className="p-1.5 text-primary-container hover:bg-primary-container/10 rounded-lg transition-colors">
-                        <span className="material-symbols-outlined text-[20px]">edit</span>
-                      </button>
-                      <button onClick={() => deleteTest(t.id)} disabled={deletingId === t.id || !t.lab_id}
-                        className="p-1.5 text-error hover:bg-error-container/20 rounded-lg transition-colors disabled:opacity-30" title={!t.lab_id ? 'Global templates cannot be deleted' : 'Delete'}>
-                        <span className="material-symbols-outlined text-[20px]">delete</span>
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
+              {tests.map(t => {
+                const isDeactivated = deactivatedIds.includes(t.id);
+                return (
+                  <tr key={t.id} className={`hover:bg-primary-container/5 transition-colors group ${isDeactivated ? 'opacity-50' : ''}`}>
+                    <td className="px-6 py-4">
+                      <p className="font-bold text-sm text-on-surface flex items-center gap-2">
+                        {t.name}
+                        {isDeactivated && (
+                          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-outline-variant text-on-surface-variant">Inactive</span>
+                        )}
+                      </p>
+                      {t.description && <p className="text-xs text-on-surface-variant mt-0.5 truncate max-w-[200px]">{t.description}</p>}
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="text-xs font-semibold bg-primary-container/10 text-primary-container px-2.5 py-1 rounded-full">{t.category || '—'}</span>
+                    </td>
+                    <td className="px-6 py-4 text-sm text-on-surface-variant">{t.sample_type || '—'}</td>
+                    <td className="px-6 py-4">
+                      <span className="font-bold text-on-surface">৳{parseFloat(t.price || 0).toFixed(0)}</span>
+                    </td>
+                    <td className="px-6 py-4 text-sm text-on-surface-variant">
+                      <div className="flex items-center gap-1.5">
+                        <span className="material-symbols-outlined text-[16px]">schedule</span>
+                        {t.delivery_time || '—'}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      {t.tag ? (
+                        <span className="text-[10px] font-bold px-2.5 py-1 rounded-full text-white" style={{ backgroundColor: t.tag_color || '#14B8A6' }}>
+                          {t.tag}
+                        </span>
+                      ) : <span className="text-on-surface-variant text-xs">—</span>}
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-3">
+                        <button onClick={() => setViewTest(t)} className="text-xs font-bold text-primary-container hover:underline transition-all active:scale-95">
+                          View
+                        </button>
+                        <button onClick={() => setEditTest(t)} className="text-xs font-bold text-primary-container hover:underline transition-all active:scale-95">
+                          Edit
+                        </button>
+                        <div className="relative">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setOpenMenuId(openMenuId === t.id ? null : t.id);
+                            }}
+                            className="p-1 text-on-surface-variant hover:bg-outline-variant/30 rounded-lg transition-colors flex items-center"
+                          >
+                            <span className="material-symbols-outlined text-[20px]">more_vert</span>
+                          </button>
+                          {openMenuId === t.id && (
+                            <div className="absolute right-0 mt-2 w-48 bg-surface-white border border-outline-variant rounded-xl shadow-lg py-1 z-50">
+                              <button
+                                onClick={() => setViewTest(t)}
+                                className="w-full text-left px-4 py-2 text-xs font-semibold text-on-surface hover:bg-background-off-white flex items-center gap-2"
+                              >
+                                <span className="material-symbols-outlined text-sm">visibility</span> View Details
+                              </button>
+                              <button
+                                onClick={() => setEditTest(t)}
+                                className="w-full text-left px-4 py-2 text-xs font-semibold text-on-surface hover:bg-background-off-white flex items-center gap-2"
+                              >
+                                <span className="material-symbols-outlined text-sm">edit</span> Edit Test
+                              </button>
+                              <button
+                                onClick={() => duplicateTest(t)}
+                                className="w-full text-left px-4 py-2 text-xs font-semibold text-on-surface hover:bg-background-off-white flex items-center gap-2"
+                              >
+                                <span className="material-symbols-outlined text-sm">content_copy</span> Duplicate Test
+                              </button>
+                              <button
+                                onClick={() => toggleActive(t.id)}
+                                className="w-full text-left px-4 py-2 text-xs font-semibold text-on-surface hover:bg-background-off-white flex items-center gap-2"
+                              >
+                                <span className="material-symbols-outlined text-sm">
+                                  {isDeactivated ? 'play_arrow' : 'pause'}
+                                </span>
+                                {isDeactivated ? 'Activate' : 'Deactivate'}
+                              </button>
+                              <div className="border-t border-outline-variant my-1"></div>
+                              <button
+                                onClick={() => deleteTest(t.id)}
+                                disabled={deletingId === t.id || !t.lab_id}
+                                className="w-full text-left px-4 py-2 text-xs font-semibold text-error hover:bg-error-container/10 flex items-center gap-2 disabled:opacity-30"
+                              >
+                                <span className="material-symbols-outlined text-sm">delete</span> Delete Test
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
               {tests.length === 0 && (
                 <tr><td colSpan={7} className="px-6 py-14 text-center text-on-surface-variant">
                   <span className="material-symbols-outlined text-5xl block mb-3 opacity-25">science</span>

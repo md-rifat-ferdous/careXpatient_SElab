@@ -410,4 +410,3 @@ model Notification {
   @@index([userId])
   @@map("Notification")
 }
-}
