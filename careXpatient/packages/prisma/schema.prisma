@@ -1,0 +1,361 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  Patient
+  Doctor
+  Lab
+  Nurse
+  Admin
+}
+
+enum AppointmentType {
+  In_person @map("In-person")
+  Online
+}
+
+enum AppointmentStatus {
+  Pending
+  Confirmed
+  Completed
+  Cancelled
+  NoShow
+}
+
+enum PaymentGateway {
+  bKash
+  Nagad
+  SSLCommerz
+}
+
+enum OrderType {
+  Appointment
+  LabOrder
+}
+
+enum LabOrderStatus {
+  Requested
+  AcceptedByLab
+  SampleCollected
+  Processing
+  Reported
+  Cancelled
+}
+
+enum PaymentStatus {
+  Pending
+  Paid
+  Failed
+  Refunded
+}
+
+model User {
+  id              BigInt    @id @default(autoincrement())
+  phone           String    @unique @db.VarChar(15)
+  email           String?   @db.VarChar(255)
+  password        String?   @db.VarChar(255)
+  fullName        String?   @map("full_name") @db.VarChar(255)
+  role            UserRole
+  isVerified      Boolean   @default(false) @map("is_verified")
+  nidNumber       String?   @map("nid_number") @db.VarChar(20)
+  profilePhotoUrl String?   @map("profile_photo_url") @db.Text
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt       DateTime  @default(now()) @map("updated_at") @db.Timestamptz
+  deletedAt       DateTime? @map("deleted_at") @db.Timestamptz
+
+  patient Patient?
+  doctor  Doctor?
+  lab     Lab?
+
+  @@map("User")
+}
+
+model Patient {
+  id             BigInt    @id @default(autoincrement())
+  userId         BigInt    @unique @map("user_id")
+  dateOfBirth    DateTime? @map("date_of_birth") @db.Date
+  bloodGroup     String?   @map("blood_group") @db.VarChar(10)
+  address        String?   @db.Text
+  allergies      String?   @db.Text
+  medicalHistory String?   @map("medical_history") @db.Text
+  createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt      DateTime  @default(now()) @map("updated_at") @db.Timestamptz
+  deletedAt      DateTime? @map("deleted_at") @db.Timestamptz
+
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  appointments Appointment[]
+  labOrders    LabOrder[]
+
+  @@map("Patient")
+}
+
+model Doctor {
+  id              BigInt    @id @default(autoincrement())
+  userId          BigInt    @unique @map("user_id")
+  bmdcNumber      String?   @unique @map("bmdc_number") @db.VarChar(50)
+  qualification   String?   @db.Text
+  experienceYears Int?      @map("experience_years")
+  fee             Decimal?  @db.Decimal(10, 2)
+  about           String?   @db.Text
+  rating          Decimal?  @default(0) @db.Decimal(3, 2)
+  reviewCount     Int?      @default(0) @map("review_count")
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt       DateTime  @default(now()) @map("updated_at") @db.Timestamptz
+  deletedAt       DateTime? @map("deleted_at") @db.Timestamptz
+
+  user         User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  specialties  DoctorSpecialty[]
+  clinics      DoctorClinic[]
+  appointments Appointment[]
+  scheduleModifications ScheduleModification[] @relation("DoctorScheduleModifications")
+
+  @@map("Doctor")
+}
+
+model Specialty {
+  id   Int    @id @default(autoincrement())
+  name String @unique @db.VarChar(100)
+
+  doctors DoctorSpecialty[]
+
+  @@map("Specialty")
+}
+
+model DoctorSpecialty {
+  doctorId    BigInt @map("doctor_id")
+  specialtyId Int    @map("specialty_id")
+
+  doctor    Doctor    @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  specialty Specialty @relation(fields: [specialtyId], references: [id], onDelete: Cascade)
+
+  @@id([doctorId, specialtyId])
+  @@map("DoctorSpecialty")
+}
+
+model Clinic {
+  id        BigInt   @id @default(autoincrement())
+  name      String   @db.VarChar(255)
+  address   String?  @db.Text
+  phone     String?  @db.VarChar(15)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime @default(now()) @map("updated_at") @db.Timestamptz
+
+  doctors               DoctorClinic[]
+  appointments          Appointment[]
+  scheduleModifications ScheduleModification[] @relation("ClinicSchedules")
+  replacementSchedules  ScheduleModification[] @relation("ReplacementClinic")
+
+  @@map("Clinic")
+}
+
+model DoctorClinic {
+  doctorId BigInt  @map("doctor_id")
+  clinicId BigInt  @map("clinic_id")
+  shift    String? @db.VarChar(100)
+  status   String  @default("Active") @db.VarChar(50)
+
+  doctor Doctor @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  clinic Clinic @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+
+  @@id([doctorId, clinicId])
+  @@map("DoctorClinic")
+}
+
+model Appointment {
+  id                 BigInt            @id @default(autoincrement())
+  patientId          BigInt            @map("patient_id")
+  doctorId           BigInt            @map("doctor_id")
+  clinicId           BigInt?           @map("clinic_id")
+  type               AppointmentType
+  status             AppointmentStatus @default(Pending)
+  date               DateTime          @db.Date
+  timeSlot           DateTime          @map("time_slot") @db.Time
+  durationMinutes    Int?              @default(30) @map("duration_minutes")
+  reasonForVisit     String?           @map("reason_for_visit") @db.Text
+  cancellationReason String?           @map("cancellation_reason") @db.Text
+  cancelledBy        BigInt?           @map("cancelled_by")
+  createdAt          DateTime          @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt          DateTime          @default(now()) @map("updated_at") @db.Timestamptz
+
+  patient      Patient       @relation(fields: [patientId], references: [id])
+  doctor       Doctor        @relation(fields: [doctorId], references: [id])
+  clinic       Clinic?       @relation(fields: [clinicId], references: [id])
+  consultation Consultation?
+
+  @@index([date, doctorId])
+  @@index([patientId])
+  @@map("Appointment")
+}
+
+model Consultation {
+  id            BigInt    @id @default(autoincrement())
+  appointmentId BigInt    @unique @map("appointment_id")
+  startTime     DateTime? @map("start_time") @db.Timestamptz
+  endTime       DateTime? @map("end_time") @db.Timestamptz
+  notes         String?   @db.Text
+  videoRoomId   String?   @map("video_room_id") @db.VarChar(100)
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt     DateTime  @default(now()) @map("updated_at") @db.Timestamptz
+
+  appointment  Appointment   @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+  prescription Prescription?
+
+  @@map("Consultation")
+}
+
+model Prescription {
+  id               BigInt   @id @default(autoincrement())
+  consultationId   BigInt   @unique @map("consultation_id")
+  medicinesText    String?  @map("medicines_text") @db.Text
+  adviceText       String?  @map("advice_text") @db.Text
+  diagnosis        String?  @db.Text
+  fileUrl          String?  @map("file_url") @db.Text
+  digitalSignature String?  @map("digital_signature") @db.Text
+  issuedAt         DateTime @default(now()) @map("issued_at") @db.Timestamptz
+
+  consultation Consultation @relation(fields: [consultationId], references: [id], onDelete: Cascade)
+
+  @@map("Prescription")
+}
+
+model LabTest {
+  id            BigInt   @id @default(autoincrement())
+  name          String   @db.VarChar(255)
+  price         Decimal? @db.Decimal(10, 2)
+  sampleType    String?  @map("sample_type") @db.VarChar(100)
+  tag           String?  @db.VarChar(50)
+  tagColor      String?  @map("tag_color") @db.VarChar(50)
+  description   String?  @db.Text
+  prerequisites String?  @db.Text
+  deliveryTime  String?  @map("delivery_time") @db.VarChar(50)
+  category      String?  @default("All") @db.VarChar(50)
+  labId         BigInt?  @map("lab_id")
+
+  lab    Lab?           @relation(fields: [labId], references: [id])
+  orders LabOrderTest[]
+
+  @@map("LabTest")
+}
+
+model Lab {
+  id        BigInt   @id @default(autoincrement())
+  userId    BigInt   @unique @map("user_id")
+  name      String   @db.VarChar(255)
+  address   String?  @db.Text
+  phone     String?  @db.VarChar(15)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime @default(now()) @map("updated_at") @db.Timestamptz
+
+  user     User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  orders   LabOrder[]
+  labTests LabTest[]
+
+  @@map("Lab")
+}
+
+model LabOrder {
+  id                BigInt         @id @default(autoincrement())
+  patientId         BigInt         @map("patient_id")
+  labId             BigInt         @map("lab_id")
+  status            LabOrderStatus @default(Requested)
+  subtotal          Decimal?       @db.Decimal(10, 2)
+  vat               Decimal?       @db.Decimal(10, 2)
+  homeCollectionFee Decimal?       @map("home_collection_fee") @db.Decimal(10, 2)
+  totalAmount       Decimal?       @map("total_amount") @db.Decimal(10, 2)
+  homeCollection    Boolean?       @default(false) @map("home_collection")
+  collectionAddress String?        @map("collection_address") @db.Text
+  collectionSlot    DateTime?      @map("collection_slot") @db.Time
+  createdAt         DateTime       @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt         DateTime       @default(now()) @map("updated_at") @db.Timestamptz
+
+  patient    Patient        @relation(fields: [patientId], references: [id])
+  lab        Lab            @relation(fields: [labId], references: [id])
+  tests      LabOrderTest[]
+  labResults  LabResult[]
+  parameters  ReportParameter[]
+
+  @@index([patientId])
+  @@map("LabOrder")
+}
+
+model ReportParameter {
+  id             BigInt  @id @default(autoincrement())
+  labOrderId     BigInt  @map("lab_order_id")
+  parameterName  String  @map("parameter_name") @db.VarChar(255)
+  value          String  @db.VarChar(255)
+  unit           String? @db.VarChar(100)
+  referenceRange String? @map("reference_range") @db.VarChar(255)
+
+  labOrder LabOrder @relation(fields: [labOrderId], references: [id], onDelete: Cascade)
+
+  @@map("ReportParameter")
+}
+
+model LabOrderTest {
+  labOrderId BigInt @map("lab_order_id")
+  labTestId  BigInt @map("lab_test_id")
+
+  labOrder LabOrder @relation(fields: [labOrderId], references: [id], onDelete: Cascade)
+  labTest  LabTest  @relation(fields: [labTestId], references: [id], onDelete: Cascade)
+
+  @@id([labOrderId, labTestId])
+  @@map("LabOrderTest")
+}
+
+model LabResult {
+  id            BigInt   @id @default(autoincrement())
+  labOrderId    BigInt   @map("lab_order_id")
+  resultSummary String?  @map("result_summary") @db.Text
+  fileUrl       String?  @map("file_url") @db.Text
+  uploadedAt    DateTime @default(now()) @map("uploaded_at") @db.Timestamptz
+  uploadedBy    String?  @map("uploaded_by") @db.VarChar(100)
+
+  labOrder LabOrder @relation(fields: [labOrderId], references: [id], onDelete: Cascade)
+
+  @@map("LabResult")
+}
+
+model Payment {
+  id            BigInt         @id @default(autoincrement())
+  orderType     OrderType      @map("order_type")
+  orderId       BigInt         @map("order_id")
+  amount        Decimal        @db.Decimal(10, 2)
+  gateway       PaymentGateway?
+  transactionId String?        @map("transaction_id") @db.VarChar(100)
+  status        PaymentStatus? @default(Pending)
+  paidAt        DateTime?      @map("paid_at") @db.Timestamptz
+  refundReason  String?        @map("refund_reason") @db.Text
+
+  @@map("Payment")
+}
+
+model ScheduleModification {
+  id                     BigInt   @id @default(autoincrement())
+  clinicId               BigInt   @map("clinic_id")
+  replacementClinicId    BigInt?  @map("replacement_clinic_id")
+  doctorId               BigInt?  @map("doctor_id")
+  originalModificationId BigInt?  @map("original_modification_id")
+  type                   String   @db.VarChar(100)
+  description            String?  @db.Text
+  date                   DateTime @default(now())
+  status                 String   @default("Pending") @db.VarChar(50)
+  createdAt              DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt              DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  clinic               Clinic                  @relation("ClinicSchedules", fields: [clinicId], references: [id], onDelete: Cascade)
+  replacementClinic    Clinic?                 @relation("ReplacementClinic", fields: [replacementClinicId], references: [id])
+  doctor               Doctor?                 @relation("DoctorScheduleModifications", fields: [doctorId], references: [id])
+  originalModification ScheduleModification?  @relation("RescheduleChain", fields: [originalModificationId], references: [id])
+  rescheduleChildren   ScheduleModification[] @relation("RescheduleChain")
+
+  @@index([clinicId])
+  @@index([doctorId])
+  @@index([date])
+  @@map("ScheduleModification")
+}
