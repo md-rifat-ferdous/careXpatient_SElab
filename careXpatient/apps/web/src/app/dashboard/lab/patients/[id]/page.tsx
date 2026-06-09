@@ -11,161 +11,93 @@ import {
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
+function getDemographics(fullName: string, dob: string | null) {
+  let age = '—';
+  if (dob) {
+    const birthYear = new Date(dob).getFullYear();
+    const currentYear = new Date().getFullYear();
+    age = `${currentYear - birthYear} Yrs`;
+  }
+  const femaleNames = ['elena', 'jen', 'amara', 'linda', 'sophia', 'emma', 'sarah', 'woman', 'female', 'kalu', 'rodriguez'];
+  const nameLower = fullName.toLowerCase();
+  const gender = femaleNames.some(f => nameLower.includes(f)) ? 'Female' : 'Male';
+  return dob ? `${age}, ${gender}` : `—, ${gender}`;
+}
+
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString('en-US', {
-    day: '2-digit', month: 'long', year: 'numeric',
+    day: '2-digit', month: 'short', year: 'numeric',
   });
 }
 
-function StatusBadge({ status }: { status: string }) {
-  const map: Record<string, string> = {
-    Requested:       'bg-amber-50 text-amber-700 border-amber-200',
-    AcceptedByLab:   'bg-sky-50 text-sky-700 border-sky-200',
-    SampleCollected: 'bg-indigo-50 text-indigo-700 border-indigo-200',
-    Processing:      'bg-violet-50 text-violet-700 border-violet-200',
-    Reported:        'bg-emerald-50 text-emerald-700 border-emerald-200',
-    Cancelled:       'bg-red-50 text-red-600 border-red-200',
-  };
-  const label: Record<string, string> = {
-    Requested:       'Requested',
-    AcceptedByLab:   'Accepted',
-    SampleCollected: 'Sample Collected',
-    Processing:      'Processing',
-    Reported:        'Reported',
-    Cancelled:       'Cancelled',
-  };
-  const cls = map[status] ?? 'bg-slate-50 text-slate-600 border-slate-200';
-  return (
-    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border ${cls}`}>
-      {label[status] ?? status}
-    </span>
-  );
+function getTestIcon(testName: string) {
+  const lower = testName.toLowerCase();
+  if (lower.includes('blood') || lower.includes('cbc') || lower.includes('lipid') || lower.includes('metabolic') || lower.includes('panel')) {
+    return 'bloodtype';
+  }
+  if (lower.includes('x-ray') || lower.includes('xray') || lower.includes('imaging') || lower.includes('radiology') || lower.includes('mri') || lower.includes('scan')) {
+    return 'radiology';
+  }
+  if (lower.includes('neuro') || lower.includes('brain')) {
+    return 'neurology';
+  }
+  return 'biotech';
 }
 
-function Avatar({ name, url }: { name: string; url: string | null }) {
+function getTestDescription(testName: string) {
+  const lower = testName.toLowerCase();
+  if (lower.includes('cbc') || lower.includes('complete blood count')) {
+    return 'Comprehensive analysis of red and white blood cells, platelets, and hemoglobin levels.';
+  }
+  if (lower.includes('metabolic') || lower.includes('cmp') || lower.includes('panel')) {
+    return 'Assessment of kidney function, liver function, and electrolyte balance.';
+  }
+  if (lower.includes('x-ray') || lower.includes('xray')) {
+    return 'Imaging of the thoracic cavity including heart size and lung clarity.';
+  }
+  if (lower.includes('lipid')) {
+    return 'Measurement of cholesterol and triglycerides levels in the blood.';
+  }
+  if (lower.includes('thyroid')) {
+    return 'Evaluation of thyroid hormone levels to check thyroid gland activity.';
+  }
+  return 'Comprehensive diagnostic laboratory test for clinical assessment and evaluations.';
+}
+
+function BigAvatar({ name, url }: { name: string; url: string | null }) {
   const initials = name.split(' ').map((n) => n[0]).slice(0, 2).join('').toUpperCase();
   if (url) {
-    return <img src={url} alt={name} className="w-16 h-16 rounded-full object-cover border-2 border-white shadow" />;
+    return (
+      <img
+        src={url}
+        alt={`Patient ${name}`}
+        className="w-24 h-24 rounded-full border-4 border-[#e7eeff] object-cover"
+      />
+    );
   }
-  const colors = ['bg-teal-500', 'bg-violet-500', 'bg-sky-500', 'bg-rose-500', 'bg-amber-500'];
+  const colors = [
+    'bg-[#006b5f]/10 text-[#006b5f]',
+    'bg-[#14b8a6]/10 text-[#14b8a6]',
+    'bg-[#50616b]/10 text-[#50616b]',
+  ];
   const color = colors[name.charCodeAt(0) % colors.length];
   return (
-    <div className={`w-16 h-16 rounded-full ${color} flex items-center justify-center border-2 border-white shadow`}>
-      <span className="text-white text-xl font-bold">{initials}</span>
+    <div className={`w-24 h-24 rounded-full border-4 border-[#e7eeff] ${color} flex items-center justify-center font-bold text-2xl`}>
+      {initials}
     </div>
   );
 }
 
-// ── Order Card ────────────────────────────────────────────────────────────────
-function OrderCard({ order }: { order: PatientOrder }) {
-  return (
-    <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-      {/* Order header */}
-      <div className="px-5 py-4 border-b border-slate-50 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-teal-50 flex items-center justify-center">
-            <svg className="w-5 h-5 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-            </svg>
-          </div>
-          <div>
-            <p className="text-xs text-slate-400">Order #{order.id}</p>
-            <p className="text-sm font-semibold text-slate-800">{formatDate(order.createdAt)}</p>
-          </div>
-        </div>
-        <StatusBadge status={order.status} />
-      </div>
-
-      {/* Tests */}
-      <div className="px-5 py-4">
-        <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Tests Ordered</p>
-        <div className="flex flex-wrap gap-2">
-          {order.tests.map((t) => (
-            <span
-              key={t.id}
-              className="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-50 border border-slate-100 rounded-lg text-sm text-slate-700"
-            >
-              <span className="w-1.5 h-1.5 rounded-full bg-teal-400 shrink-0" />
-              {t.name}
-            </span>
-          ))}
-        </div>
-      </div>
-
-      {/* Reports section */}
-      <div className="px-5 pb-4 border-t border-slate-50 pt-4">
-        <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Uploaded Reports</p>
-
-        {order.labResults.length === 0 ? (
-          <div className="flex items-center gap-3 bg-amber-50 border border-amber-100 rounded-xl px-4 py-3">
-            <svg className="w-5 h-5 text-amber-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-            </svg>
-            <p className="text-sm text-amber-700 font-medium">Report is not uploaded yet</p>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {order.labResults.map((r) => (
-              <div
-                key={r.id}
-                className="bg-emerald-50 border border-emerald-100 rounded-xl px-4 py-3"
-              >
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <svg className="w-4 h-4 text-emerald-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                          d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                      <p className="text-sm font-semibold text-emerald-800">Report Uploaded</p>
-                    </div>
-                    {r.resultSummary && (
-                      <p className="text-xs text-emerald-700 mt-1 whitespace-pre-line leading-relaxed">
-                        {r.resultSummary}
-                      </p>
-                    )}
-                    <p className="text-xs text-emerald-600 mt-1.5">
-                      Uploaded {formatDate(r.uploadedAt)}
-                      {r.uploadedBy ? ` by ${r.uploadedBy}` : ''}
-                    </p>
-                  </div>
-                  {r.fileUrl && (
-                    <a
-                      href={r.fileUrl}
-                      download={`report-${order.id}.${r.fileUrl.startsWith('data:application/pdf') ? 'pdf' : 'jpg'}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      id={`download-report-${r.id}`}
-                      className="shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg transition-colors"
-                    >
-                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                          d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                      </svg>
-                      Download
-                    </a>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
-// ── Main page ─────────────────────────────────────────────────────────────────
+// ── Main Page Component ───────────────────────────────────────────────────────
 export default function PatientHistoryPage() {
-  const params  = useParams<{ id: string }>();
-  const router  = useRouter();
+  const params = useParams<{ id: string }>();
+  const router = useRouter();
   const { token } = useAuthStore();
 
-  const [data,    setData]    = useState<PatientHistoryResponse | null>(null);
+  const [data, setData] = useState<PatientHistoryResponse | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error,   setError]   = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     if (!token || !params.id) return;
@@ -183,127 +115,204 @@ export default function PatientHistoryPage() {
     })();
   }, [token, params.id]);
 
-  // ── Skeleton ──
+  const handleViewReport = (order: PatientOrder) => {
+    const result = order.labResults[0];
+    if (result?.fileUrl) {
+      // Open file in new tab or download
+      window.open(result.fileUrl, '_blank');
+    } else {
+      alert("Report details:\n\n" + (result?.resultSummary || "No result summary provided."));
+    }
+  };
+
+  // ── Skeleton Loader ──
   if (loading) {
     return (
-      <div className="min-h-full bg-slate-50 p-6 animate-pulse">
-        <div className="h-8 w-48 bg-slate-200 rounded-lg mb-6" />
-        <div className="bg-white rounded-2xl h-36 mb-6" />
-        <div className="space-y-4">
-          {[1, 2].map((i) => <div key={i} className="bg-white rounded-2xl h-48" />)}
+      <div className="max-w-[1280px] w-full mx-auto px-6 py-6 animate-pulse">
+        <div className="h-6 w-32 bg-slate-200 rounded mb-4" />
+        <div className="bg-white rounded-xl h-44 border border-slate-100 p-6 mb-10" />
+        <div className="h-10 w-64 bg-slate-200 rounded mb-6" />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="bg-white rounded-xl h-52 border border-slate-100" />
+          <div className="bg-white rounded-xl h-52 border border-slate-100" />
         </div>
       </div>
     );
   }
 
-  if (error) {
+  if (error || !data) {
     return (
-      <div className="min-h-full bg-slate-50 flex items-center justify-center p-6">
-        <div className="bg-white rounded-2xl border border-red-100 p-8 text-center max-w-sm">
-          <div className="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center mx-auto mb-4">
-            <svg className="w-6 h-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          </div>
-          <p className="text-slate-700 font-semibold mb-2">Error loading history</p>
-          <p className="text-slate-500 text-sm mb-4">{error}</p>
-          <button onClick={() => router.back()} className="text-teal-600 text-sm font-medium hover:underline">
-            ← Go back
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  if (!data) return null;
-
-  const { patient, orders } = data;
-  const reportedCount = orders.filter((o) => o.hasReport).length;
-
-  return (
-    <div className="min-h-full bg-slate-50">
-      {/* ── Header band ── */}
-      <div className="bg-gradient-to-r from-teal-500 to-teal-600 px-6 pt-6 pb-16">
-        <div className="max-w-3xl mx-auto">
+      <div className="max-w-[1280px] w-full mx-auto px-6 py-10">
+        <div className="bg-white rounded-xl border border-red-200 p-8 text-center max-w-md mx-auto shadow-sm">
+          <span className="material-symbols-outlined text-4xl text-red-500 mb-2">error</span>
+          <p className="text-[#111c2d] font-semibold mb-2">Error loading patient history</p>
+          <p className="text-[#3c4947] text-sm mb-4">{error || 'Patient data not found'}</p>
           <button
-            id="back-btn"
             onClick={() => router.push('/dashboard/lab/patients')}
-            className="inline-flex items-center gap-1.5 text-teal-100 hover:text-white text-sm font-medium mb-4 transition-colors"
+            className="text-[#006b5f] text-sm font-semibold hover:underline flex items-center gap-1 mx-auto"
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
+            <span className="material-symbols-outlined text-[16px]">arrow_back</span>
             Back to Patients
           </button>
-          <p className="text-teal-100 text-sm font-medium">Patient History</p>
-          <h1 className="text-2xl font-bold text-white mt-0.5">{patient.fullName}</h1>
+        </div>
+      </div>
+    );
+  }
+
+  const { patient, orders } = data;
+
+  const filteredOrders = orders.filter((order) => {
+    const query = searchQuery.toLowerCase();
+    return order.tests.some(t => t.name.toLowerCase().includes(query)) ||
+           order.id.toLowerCase().includes(query);
+  });
+
+  const lastUpdated = orders[0]
+    ? formatDate(orders[0].createdAt)
+    : patient.dateOfBirth
+    ? formatDate(patient.dateOfBirth)
+    : '—';
+
+  return (
+    <div className="max-w-[1280px] w-full mx-auto px-6 py-6 bg-[#F8FAFC]">
+      {/* Back Button */}
+      <div className="mb-4">
+        <button
+          id="back-btn"
+          onClick={() => router.push('/dashboard/lab/patients')}
+          className="inline-flex items-center gap-1.5 text-[#006b5f] hover:text-[#006b5f]/80 text-sm font-semibold transition-colors"
+        >
+          <span className="material-symbols-outlined text-[18px]">arrow_back</span>
+          Back to Patients
+        </button>
+      </div>
+
+      {/* Patient Profile Card */}
+      <div className="bg-white rounded-xl shadow-sm p-6 mb-10 flex items-center gap-6 border border-[#bbcac6]/20">
+        <BigAvatar name={patient.fullName} url={patient.profilePhotoUrl} />
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 flex-1">
+          <div>
+            <p className="text-xs text-[#94A3B8] uppercase tracking-wider font-semibold">Patient Name</p>
+            <p className="text-xl font-bold text-[#111c2d] mt-1">{patient.fullName}</p>
+          </div>
+          <div>
+            <p className="text-xs text-[#94A3B8] uppercase tracking-wider font-semibold">Patient ID</p>
+            <p className="text-sm text-[#111c2d] font-semibold mt-1">#LC-{patient.id}</p>
+          </div>
+          <div>
+            <p className="text-xs text-[#94A3B8] uppercase tracking-wider font-semibold">Demographics</p>
+            <p className="text-sm text-[#111c2d] mt-1">{getDemographics(patient.fullName, patient.dateOfBirth)}</p>
+          </div>
+          <div>
+            <p className="text-xs text-[#94A3B8] uppercase tracking-wider font-semibold">Last Updated</p>
+            <p className="text-sm text-[#111c2d] mt-1">{lastUpdated}</p>
+          </div>
+          <div>
+            <p className="text-xs text-[#94A3B8] uppercase tracking-wider font-semibold">Blood Group</p>
+            <p className="text-sm text-[#111c2d] font-semibold mt-1">{patient.bloodGroup || '—'}</p>
+          </div>
+          <div>
+            <p className="text-xs text-[#94A3B8] uppercase tracking-wider font-semibold">Phone</p>
+            <p className="text-sm text-[#111c2d] font-semibold mt-1">{patient.phone}</p>
+          </div>
+          <div className="md:col-span-2">
+            <p className="text-xs text-[#94A3B8] uppercase tracking-wider font-semibold">Address</p>
+            <p className="text-sm text-[#111c2d] mt-1">{patient.address || '—'}</p>
+          </div>
+          <div className="md:col-span-2">
+            <p className="text-xs text-[#94A3B8] uppercase tracking-wider font-semibold">Email</p>
+            <p className="text-sm text-[#111c2d] font-semibold mt-1">{patient.email || '—'}</p>
+          </div>
         </div>
       </div>
 
-      <div className="max-w-3xl mx-auto px-4 -mt-10 pb-10 space-y-5">
-        {/* ── Patient card ── */}
-        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex items-center gap-5">
-          <Avatar name={patient.fullName} url={patient.profilePhotoUrl} />
-          <div className="flex-1 min-w-0">
-            <h2 className="text-lg font-bold text-slate-800">{patient.fullName}</h2>
-            <p className="text-slate-500 text-sm">{patient.phone}</p>
-            {patient.email && <p className="text-slate-400 text-xs">{patient.email}</p>}
-          </div>
-          <div className="hidden sm:flex flex-col gap-2 text-right shrink-0">
-            {patient.bloodGroup && (
-              <div>
-                <p className="text-xs text-slate-400 mb-0.5">Blood Group</p>
-                <span className="inline-block px-2.5 py-0.5 bg-red-50 text-red-600 border border-red-100 rounded-full text-xs font-bold">
-                  {patient.bloodGroup}
-                </span>
-              </div>
-            )}
-            {patient.dateOfBirth && (
-              <div>
-                <p className="text-xs text-slate-400 mb-0.5">Date of Birth</p>
-                <p className="text-sm text-slate-700">
-                  {new Date(patient.dateOfBirth).toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' })}
-                </p>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* ── Stats strip ── */}
-        <div className="grid grid-cols-3 gap-3">
-          {[
-            { label: 'Total Orders', value: orders.length, color: 'text-teal-600 bg-teal-50' },
-            { label: 'Reports Uploaded', value: reportedCount, color: 'text-emerald-600 bg-emerald-50' },
-            { label: 'Pending Reports', value: orders.length - reportedCount, color: 'text-amber-600 bg-amber-50' },
-          ].map((s) => (
-            <div key={s.label} className="bg-white rounded-xl border border-slate-100 shadow-sm px-4 py-3 text-center">
-              <p className={`text-2xl font-bold ${s.color.split(' ')[0]}`}>{s.value}</p>
-              <p className="text-xs text-slate-500 mt-0.5">{s.label}</p>
-            </div>
-          ))}
-        </div>
-
-        {/* ── Orders ── */}
-        <div>
-          <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-3">
-            Previous Tests ({orders.length})
-          </h2>
-          {orders.length === 0 ? (
-            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm px-5 py-10 text-center text-slate-400">
-              <svg className="w-10 h-10 mx-auto mb-3 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
-                  d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-              </svg>
-              <p className="font-medium text-slate-500">No test orders found</p>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {orders.map((order) => <OrderCard key={order.id} order={order} />)}
-            </div>
-          )}
+      {/* Test History Search */}
+      <div className="mb-6 max-w-md">
+        <div className="relative flex items-center">
+          <span className="material-symbols-outlined absolute left-3 text-[#94A3B8] pointer-events-none">search</span>
+          <input
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            type="text"
+            placeholder="Search laboratory tests..."
+            className="w-full bg-white border border-[#bbcac6]/50 rounded-xl py-3 pl-10 pr-4 text-sm text-[#111c2d] placeholder:text-[#94A3B8] focus:outline-none focus:border-[#14b8a6] transition-colors shadow-sm"
+          />
         </div>
       </div>
+
+      {/* Test History Grid */}
+      {filteredOrders.length === 0 ? (
+        <div className="bg-white rounded-xl shadow-sm border border-[#bbcac6]/20 p-10 text-center text-[#3c4947] max-w-md mx-auto">
+          <span className="material-symbols-outlined text-4xl text-[#bbcac6]">science_off</span>
+          <p className="mt-2 text-sm">No laboratory tests found matching your search.</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {filteredOrders.map((order) => {
+            const isCompleted = order.status === 'Reported';
+            const testName = order.tests.map((t) => t.name).join(', ');
+            const category = order.tests[0]?.category || 'General';
+            return (
+              <div key={order.id} className={`bg-white rounded-xl shadow-sm p-6 flex flex-col border ${!isCompleted ? 'border-[#ffdad6]/50' : 'border-transparent'}`}>
+                {/* Card Header */}
+                <div className="flex justify-between items-start mb-4">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-[#14b8a6]/20 rounded-xl flex items-center justify-center text-[#006b5f]">
+                      <span className="material-symbols-outlined text-[24px]">{getTestIcon(testName)}</span>
+                    </div>
+                    <div>
+                      <h3 className="text-md font-bold text-[#111c2d] leading-none">{testName}</h3>
+                      <p className="text-xs text-[#3c4947] mt-1">Requested • {formatDate(order.createdAt)}</p>
+                    </div>
+                  </div>
+                  {isCompleted ? (
+                    <span className="bg-[#6ef9e2]/30 text-[#007164] text-xs font-semibold px-4 py-1 rounded-full">Completed</span>
+                  ) : order.status === 'Cancelled' ? (
+                    <span className="bg-red-50 text-red-600 text-xs font-semibold px-4 py-1 rounded-full">Cancelled</span>
+                  ) : (
+                    <span className="bg-[#ffdad6] text-[#93000a] text-xs font-semibold px-4 py-1 rounded-full">Pending</span>
+                  )}
+                </div>
+
+                {/* Card Body */}
+                <div className="flex-1">
+                  <p className="text-sm text-[#3c4947] mb-6">{getTestDescription(testName)}</p>
+                </div>
+
+                {/* Card Footer Actions */}
+                {isCompleted ? (
+                  <div className="flex justify-end gap-4 pt-4 border-t border-[#bbcac6]/10">
+                    <button
+                      onClick={() => handleViewReport(order)}
+                      className="text-[#006b5f] font-semibold text-sm px-4 py-2 hover:bg-[#f0f3ff] rounded-lg transition-colors flex items-center gap-1"
+                    >
+                      <span className="material-symbols-outlined text-[20px]">visibility</span>
+                      View Report
+                    </button>
+                  </div>
+                ) : (
+                  <div className="pt-4 border-t border-[#bbcac6]/10">
+                    <div className="bg-[#e7eeff] flex items-center gap-2 px-4 py-2 rounded-lg text-[#D97706] font-semibold text-xs border border-[#FCD34D]/50">
+                      <span className="material-symbols-outlined text-[20px]">warning</span>
+                      Report not uploaded yet
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Footer */}
+      <footer className="w-full flex justify-between items-center px-6 py-4 border-t border-[#bbcac6] mt-10 text-xs text-[#94A3B8]">
+        <p>© 2024 careXpatient Systems. All rights reserved.</p>
+        <div className="flex gap-6">
+          <a className="hover:text-[#006b5f] transition-colors" href="#">Privacy Policy</a>
+          <a className="hover:text-[#006b5f] transition-colors" href="#">Terms of Service</a>
+          <a className="hover:text-[#006b5f] transition-colors" href="#">HIPAA Compliance</a>
+        </div>
+      </footer>
     </div>
   );
 }

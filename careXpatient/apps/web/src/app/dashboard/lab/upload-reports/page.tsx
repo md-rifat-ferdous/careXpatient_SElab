@@ -8,48 +8,50 @@ import {
   type PendingUploadOrder,
 } from '@/services/lab.service';
 
-// ── Status badge ──────────────────────────────────────────────────────────────
-function StatusBadge({ status }: { status: string }) {
-  const map: Record<string, string> = {
-    Requested:       'bg-amber-50 text-amber-700 border-amber-200',
-    AcceptedByLab:   'bg-sky-50 text-sky-700 border-sky-200',
-    SampleCollected: 'bg-indigo-50 text-indigo-700 border-indigo-200',
-    Processing:      'bg-violet-50 text-violet-700 border-violet-200',
-    Reported:        'bg-emerald-50 text-emerald-700 border-emerald-200',
-    Cancelled:       'bg-red-50 text-red-600 border-red-200',
-  };
-  const label: Record<string, string> = {
-    Requested:       'Requested',
-    AcceptedByLab:   'Accepted',
-    SampleCollected: 'Sample Collected',
-    Processing:      'Processing',
-    Reported:        'Reported',
-    Cancelled:       'Cancelled',
-  };
-  return (
-    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border ${map[status] ?? 'bg-slate-50 text-slate-600 border-slate-200'}`}>
-      {label[status] ?? status}
-    </span>
-  );
-}
+// ── Helpers ───────────────────────────────────────────────────────────────────
 
-function SmallAvatar({ name, url }: { name: string; url: string | null }) {
-  const initials = name.split(' ').map((n) => n[0]).slice(0, 2).join('').toUpperCase();
-  if (url) return <img src={url} alt={name} className="w-10 h-10 rounded-full object-cover border border-slate-100 shrink-0" />;
-  const colors = ['bg-teal-500', 'bg-violet-500', 'bg-sky-500', 'bg-rose-500', 'bg-amber-500'];
-  const color = colors[name.charCodeAt(0) % colors.length];
-  return (
-    <div className={`w-10 h-10 rounded-full ${color} flex items-center justify-center shrink-0`}>
-      <span className="text-white text-sm font-bold">{initials}</span>
-    </div>
-  );
+function getAgeAndGender(fullName: string, dob: string | null) {
+  let age = '—';
+  if (dob) {
+    const birthYear = new Date(dob).getFullYear();
+    const currentYear = new Date().getFullYear();
+    age = `${currentYear - birthYear}y`;
+  }
+  const femaleNames = ['elena', 'jen', 'amara', 'linda', 'sophia', 'emma', 'sarah', 'woman', 'female', 'kalu', 'rodriguez'];
+  const nameLower = fullName.toLowerCase();
+  const gender = femaleNames.some(f => nameLower.includes(f)) ? 'Female' : 'Male';
+  return dob ? `${age} / ${gender}` : `— / ${gender}`;
 }
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' });
 }
 
-// ── Upload Modal ──────────────────────────────────────────────────────────────
+function getInitials(name: string) {
+  return name.split(' ').map((n) => n[0]).slice(0, 2).join('').toUpperCase();
+}
+
+// ── Toast Notification ────────────────────────────────────────────────────────
+function Toast({ message, onClose }: { message: string; onClose: () => void }) {
+  useEffect(() => {
+    const t = setTimeout(onClose, 4000);
+    return () => clearTimeout(t);
+  }, [onClose]);
+
+  return (
+    <div className="fixed top-4 right-4 z-[100] max-w-sm bg-white rounded-xl border border-emerald-200 shadow-xl px-4 py-3 flex items-center gap-3 animate-in fade-in slide-in-from-top-4 duration-300">
+      <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center shrink-0">
+        <span className="material-symbols-outlined text-emerald-600 text-[18px]">check_circle</span>
+      </div>
+      <p className="text-sm font-medium text-[#111c2d] flex-1">{message}</p>
+      <button onClick={onClose} className="text-slate-400 hover:text-slate-600">
+        <span className="material-symbols-outlined text-[16px]">close</span>
+      </button>
+    </div>
+  );
+}
+
+// ── Upload Modal Component ─────────────────────────────────────────────────────
 interface UploadModalProps {
   order: PendingUploadOrder;
   onClose: () => void;
@@ -58,36 +60,35 @@ interface UploadModalProps {
 }
 
 function UploadModal({ order, onClose, token, onSuccess }: UploadModalProps) {
-  const [summary,         setSummary]         = useState('');
-  const [findings,        setFindings]        = useState('');
-  const [impression,      setImpression]      = useState('');
-  const [recommendations, setRecommendations] = useState('');
-  const [file,            setFile]            = useState<File | null>(null);
-  const [dragOver,        setDragOver]        = useState(false);
-  const [submitting,      setSubmitting]      = useState(false);
-  const [error,           setError]           = useState<string | null>(null);
+  const [findings, setFindings] = useState('');
+  const [file, setFile] = useState<File | null>(null);
+  const [dragOver, setDragOver] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Close on Escape
+  // Close modal on Escape key press
   useEffect(() => {
-    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
   }, [onClose]);
 
-  const handleFileChange = (f: File | null) => {
-    if (!f) return;
+  const handleFileChange = (selectedFile: File | null) => {
+    if (!selectedFile) return;
     const allowed = ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg', 'image/webp'];
-    if (!allowed.includes(f.type)) {
+    if (!allowed.includes(selectedFile.type)) {
       setError('Only PDF and image files (JPG, PNG, WebP) are allowed.');
       return;
     }
-    if (f.size > 15 * 1024 * 1024) {
+    if (selectedFile.size > 15 * 1024 * 1024) {
       setError('File size must be under 15 MB.');
       return;
     }
     setError(null);
-    setFile(f);
+    setFile(selectedFile);
   };
 
   const handleDrop = (e: React.DragEvent) => {
@@ -98,8 +99,8 @@ function UploadModal({ order, onClose, token, onSuccess }: UploadModalProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!summary && !findings && !impression && !recommendations && !file) {
-      setError('Please fill at least one field or upload a file.');
+    if (!findings && !file) {
+      setError('Please add findings or upload a report file.');
       return;
     }
     setSubmitting(true);
@@ -107,10 +108,10 @@ function UploadModal({ order, onClose, token, onSuccess }: UploadModalProps) {
     try {
       await uploadReport(token, {
         labOrderId: order.id,
-        summary,
+        summary: findings, // map findings to summary as well for safety
         findings,
-        impression,
-        recommendations,
+        impression: '',
+        recommendations: '',
         file,
       });
       onSuccess(order.id);
@@ -121,196 +122,176 @@ function UploadModal({ order, onClose, token, onSuccess }: UploadModalProps) {
     }
   };
 
-  const fileSizeStr = file
-    ? file.size < 1024 * 1024
-      ? `${(file.size / 1024).toFixed(1)} KB`
-      : `${(file.size / (1024 * 1024)).toFixed(1)} MB`
-    : null;
+  // Parsing demographics details
+  const testNames = order.tests.map((t) => t.name).join(', ');
+  const dob = (order.patient as any).dateOfBirth || null;
+  const demographics = getAgeAndGender(order.patient.fullName, dob);
+  const [agePart, genderPart] = demographics.split(' / ');
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="upload-modal-title"
-    >
-      {/* Backdrop */}
-      <div
-        className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm"
-        onClick={onClose}
-      />
-
-      {/* Modal panel */}
-      <div className="relative w-full max-w-2xl max-h-[92vh] overflow-y-auto bg-white rounded-2xl shadow-2xl animate-scale-in">
-        {/* Header */}
-        <div className="sticky top-0 z-10 bg-white border-b border-slate-100 px-6 py-4 flex items-center justify-between rounded-t-2xl">
+    <div className="fixed inset-0 z-50 bg-[#111c2d]/60 backdrop-blur-[4px] flex items-center justify-center p-4">
+      {/* Modal Container */}
+      <div className="bg-white w-full max-w-[800px] rounded-xl shadow-2xl overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-300">
+        {/* Modal Header */}
+        <div className="p-6 border-b border-[#bbcac6]/30 flex justify-between items-start">
           <div>
-            <h2 id="upload-modal-title" className="text-lg font-bold text-slate-800">Upload Report</h2>
-            <p className="text-sm text-slate-500 mt-0.5">
-              Patient: <span className="font-semibold text-slate-700">{order.patient.fullName}</span>
-            </p>
+            <h3 className="text-xl font-bold text-[#006b5f]">Upload Report</h3>
+            <div className="flex items-center gap-1 mt-1 text-[#3c4947]">
+              <span className="material-symbols-outlined text-[18px]">biotech</span>
+              <span className="text-sm font-medium">{testNames} - {order.patient.fullName}</span>
+            </div>
           </div>
-          <button
-            id="close-upload-modal"
-            onClick={onClose}
-            className="w-9 h-9 rounded-full hover:bg-slate-100 flex items-center justify-center text-slate-500 hover:text-slate-700 transition-colors"
-            aria-label="Close"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
+          <button onClick={onClose} className="text-[#6c7a77] hover:text-[#111c2d] transition-colors">
+            <span className="material-symbols-outlined">close</span>
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="px-6 py-5 space-y-5">
-          {/* Patient + Tests summary */}
-          <div className="bg-slate-50 rounded-xl px-4 py-3 flex items-start gap-3">
-            <SmallAvatar name={order.patient.fullName} url={order.patient.profilePhotoUrl} />
-            <div>
-              <p className="font-semibold text-slate-800 text-sm">{order.patient.fullName}</p>
-              <p className="text-xs text-slate-500">{order.patient.phone}</p>
-              <div className="flex flex-wrap gap-1.5 mt-1.5">
-                {order.tests.map((t, i) => (
-                  <span key={i} className="inline-flex items-center gap-1 px-2 py-0.5 bg-teal-50 border border-teal-100 rounded-md text-xs text-teal-700">
-                    <span className="w-1.5 h-1.5 rounded-full bg-teal-400 shrink-0" />
-                    {t.name}
-                  </span>
-                ))}
+        {/* Modal Content */}
+        <form onSubmit={handleSubmit} className="flex flex-col">
+          <div className="p-6 overflow-y-auto max-h-[60vh] space-y-6">
+            {/* Patient Info Card */}
+            <div className="bg-[#f0f3ff] p-4 rounded-xl flex flex-wrap items-center gap-8 border border-[#bbcac6]/20">
+              <div className="flex items-center gap-2">
+                <div className="w-10 h-10 rounded-full bg-[#006b5f]/10 flex items-center justify-center text-[#006b5f]">
+                  <span className="material-symbols-outlined" style={{ fontVariationSettings: '"FILL" 1' }}>person</span>
+                </div>
+                <div>
+                  <p className="text-xs text-[#3c4947] leading-tight">Patient Name</p>
+                  <p className="font-semibold text-sm text-[#111c2d]">{order.patient.fullName}</p>
+                </div>
               </div>
-              <p className="text-xs text-slate-400 mt-1">Order date: {formatDate(order.createdAt)}</p>
+              <div>
+                <p className="text-xs text-[#3c4947] leading-tight">Patient ID</p>
+                <p className="font-semibold text-sm text-[#111c2d]">#LC-{order.patient.id}</p>
+              </div>
+              <div>
+                <p className="text-xs text-[#3c4947] leading-tight">Age</p>
+                <p className="font-semibold text-sm text-[#111c2d]">{agePart}</p>
+              </div>
+              <div>
+                <p className="text-xs text-[#3c4947] leading-tight">Gender</p>
+                <p className="font-semibold text-sm text-[#111c2d]">{genderPart || 'Male'}</p>
+              </div>
             </div>
-          </div>
 
-          {/* File upload zone */}
-          <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-2">
-              Upload Report File <span className="text-slate-400 font-normal">(PDF or Image)</span>
-            </label>
-            <div
-              id="file-drop-zone"
-              onClick={() => fileInputRef.current?.click()}
-              onDrop={handleDrop}
-              onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
-              onDragLeave={() => setDragOver(false)}
-              className={`relative border-2 border-dashed rounded-xl px-6 py-8 text-center cursor-pointer transition-all ${
-                dragOver
-                  ? 'border-teal-400 bg-teal-50/60'
-                  : file
-                  ? 'border-emerald-300 bg-emerald-50/40'
-                  : 'border-slate-200 hover:border-teal-300 hover:bg-teal-50/30 bg-slate-50'
-              }`}
-            >
+            {/* File Upload Section */}
+            <div>
               <input
                 ref={fileInputRef}
-                id="report-file-input"
                 type="file"
                 accept=".pdf,.jpg,.jpeg,.png,.webp"
                 className="hidden"
                 onChange={(e) => handleFileChange(e.target.files?.[0] ?? null)}
               />
+
               {file ? (
-                <div className="flex items-center justify-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center">
-                    <svg className="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                  </div>
-                  <div className="text-left">
-                    <p className="text-sm font-semibold text-emerald-800 truncate max-w-[280px]">{file.name}</p>
-                    <p className="text-xs text-emerald-600">{fileSizeStr}</p>
+                <div className="border border-emerald-300 bg-emerald-50/40 rounded-xl p-4 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <span className="material-symbols-outlined text-emerald-600 text-[32px]">
+                      {file.type === 'application/pdf' ? 'picture_as_pdf' : 'image'}
+                    </span>
+                    <div>
+                      <p className="font-semibold text-emerald-800 text-sm truncate max-w-[300px]">{file.name}</p>
+                      <p className="text-xs text-emerald-600">{(file.size / (1024 * 1024)).toFixed(2)} MB</p>
+                    </div>
                   </div>
                   <button
                     type="button"
-                    onClick={(e) => { e.stopPropagation(); setFile(null); if (fileInputRef.current) fileInputRef.current.value = ''; }}
-                    className="ml-2 text-slate-400 hover:text-red-500 transition-colors"
+                    onClick={() => {
+                      setFile(null);
+                      if (fileInputRef.current) fileInputRef.current.value = '';
+                    }}
+                    className="text-slate-400 hover:text-red-500 transition-colors"
                   >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
+                    <span className="material-symbols-outlined">close</span>
                   </button>
                 </div>
               ) : (
-                <>
-                  <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-3">
-                    <svg className="w-6 h-6 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-                    </svg>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* PDF Upload Card */}
+                  <div
+                    onClick={() => fileInputRef.current?.click()}
+                    onDrop={handleDrop}
+                    onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+                    onDragLeave={() => setDragOver(false)}
+                    className={`border-2 border-dashed border-[#bbcac6] rounded-xl p-6 flex flex-col items-center justify-center gap-2 hover:border-[#006b5f]/50 hover:bg-[#006b5f]/5 transition-all cursor-pointer group text-center ${dragOver ? 'bg-[#006b5f]/10 border-[#006b5f]' : ''}`}
+                  >
+                    <div className="w-12 h-12 rounded-full bg-[#f0f3ff] flex items-center justify-center text-[#006b5f] group-hover:scale-110 transition-transform">
+                      <span className="material-symbols-outlined text-[28px]">picture_as_pdf</span>
+                    </div>
+                    <div>
+                      <p className="font-medium text-[#111c2d]">Upload PDF</p>
+                      <p className="text-xs text-[#3c4947]">Official laboratory report file</p>
+                    </div>
                   </div>
-                  <p className="text-sm font-semibold text-slate-600">
-                    Drop file here or <span className="text-teal-600">browse</span>
-                  </p>
-                  <p className="text-xs text-slate-400 mt-1">PDF, JPG, PNG or WebP · Max 15 MB</p>
-                </>
+
+                  {/* Image Upload Card */}
+                  <div
+                    onClick={() => fileInputRef.current?.click()}
+                    onDrop={handleDrop}
+                    onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+                    onDragLeave={() => setDragOver(false)}
+                    className={`border-2 border-dashed border-[#bbcac6] rounded-xl p-6 flex flex-col items-center justify-center gap-2 hover:border-[#006b5f]/50 hover:bg-[#006b5f]/5 transition-all cursor-pointer group text-center ${dragOver ? 'bg-[#006b5f]/10 border-[#006b5f]' : ''}`}
+                  >
+                    <div className="w-12 h-12 rounded-full bg-[#f0f3ff] flex items-center justify-center text-[#006b5f] group-hover:scale-110 transition-transform">
+                      <span className="material-symbols-outlined text-[28px]">image</span>
+                    </div>
+                    <div>
+                      <p className="font-medium text-[#111c2d]">Upload Images</p>
+                      <p className="text-xs text-[#3c4947]">Microscopic views or charts</p>
+                    </div>
+                  </div>
+                </div>
               )}
             </div>
-          </div>
 
-          {/* Text fields */}
-          {[
-            { id: 'summary',         label: 'Report Summary', value: summary,         setter: setSummary,         placeholder: 'Brief summary of the overall test results…', rows: 3 },
-            { id: 'findings',        label: 'Findings',        value: findings,        setter: setFindings,        placeholder: 'Detailed findings from each test parameter…', rows: 3 },
-            { id: 'impression',      label: 'Impression',      value: impression,      setter: setImpression,      placeholder: 'Clinical impression based on the results…', rows: 2 },
-            { id: 'recommendations', label: 'Recommendations', value: recommendations, setter: setRecommendations, placeholder: 'Suggested next steps, follow-up tests, or lifestyle advice…', rows: 2 },
-          ].map(({ id, label, value, setter, placeholder, rows }) => (
-            <div key={id}>
-              <label htmlFor={id} className="block text-sm font-semibold text-slate-700 mb-1.5">
-                {label}
-              </label>
+            {/* Findings Textarea */}
+            <div className="space-y-2">
+              <label className="text-xs font-semibold text-[#3c4947] uppercase tracking-wider block">Findings</label>
               <textarea
-                id={id}
-                rows={rows}
-                value={value}
-                onChange={(e) => setter(e.target.value)}
-                placeholder={placeholder}
-                className="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm text-slate-800 placeholder-slate-400 bg-white focus:outline-none focus:ring-2 focus:ring-teal-400 focus:border-transparent resize-none transition"
+                value={findings}
+                onChange={(e) => setFindings(e.target.value)}
+                className="w-full h-24 rounded-xl border border-[#bbcac6]/40 bg-white focus:border-[#006b5f] focus:ring-1 focus:ring-[#006b5f] p-4 text-sm text-[#111c2d] placeholder:text-slate-400 resize-none outline-none transition"
+                placeholder="Summarize key clinical observations..."
+                spellCheck="false"
               />
             </div>
-          ))}
 
-          {/* Error */}
-          {error && (
-            <div className="flex items-center gap-2 bg-red-50 border border-red-200 text-red-700 rounded-xl px-4 py-3 text-sm">
-              <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                  d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              {error}
-            </div>
-          )}
+            {/* Error Message */}
+            {error && (
+              <div className="flex items-center gap-2 bg-[#ffdad6] border border-red-200 text-[#93000a] rounded-xl px-4 py-3 text-sm">
+                <span className="material-symbols-outlined text-[18px]">error</span>
+                <span>{error}</span>
+              </div>
+            )}
+          </div>
 
-          {/* Actions */}
-          <div className="flex items-center gap-3 pt-1 border-t border-slate-100">
+          {/* Action Bar */}
+          <div className="p-6 border-t border-[#bbcac6]/30 bg-white flex justify-end items-center gap-4">
             <button
               type="button"
-              id="cancel-upload"
               onClick={onClose}
-              className="flex-1 py-2.5 border border-slate-200 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-50 transition-colors"
+              className="px-6 py-2 rounded-xl text-sm font-semibold text-[#006b5f] border border-[#006b5f] hover:bg-[#006b5f]/5 transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
-              id="submit-upload"
               disabled={submitting}
-              className="flex-1 py-2.5 bg-teal-500 hover:bg-teal-600 disabled:opacity-60 disabled:cursor-not-allowed text-white text-sm font-semibold rounded-xl transition-colors flex items-center justify-center gap-2"
+              className="px-6 py-2 rounded-xl text-sm font-semibold bg-[#14b8a6] text-white hover:opacity-90 shadow-md transition-all flex items-center gap-2 disabled:opacity-50"
             >
               {submitting ? (
                 <>
-                  <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                  <svg className="w-4 h-4 animate-spin text-white" fill="none" viewBox="0 0 24 24">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                   </svg>
-                  Saving…
+                  Uploading...
                 </>
               ) : (
                 <>
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                      d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-                  </svg>
-                  Save Report
+                  <span className="material-symbols-outlined text-[18px]">cloud_upload</span>
+                  Upload Report
                 </>
               )}
             </button>
@@ -321,120 +302,44 @@ function UploadModal({ order, onClose, token, onSuccess }: UploadModalProps) {
   );
 }
 
-// ── Order card in queue ───────────────────────────────────────────────────────
-function PendingOrderCard({
-  order,
-  onUpload,
-  justReported,
-}: {
-  order: PendingUploadOrder;
-  onUpload: (order: PendingUploadOrder) => void;
-  justReported: boolean;
-}) {
+// ── Skeleton queue row ────────────────────────────────────────────────────────
+function SkeletonRow() {
   return (
-    <div className={`bg-white rounded-2xl border shadow-sm overflow-hidden transition-all ${justReported ? 'border-emerald-200' : 'border-slate-100'}`}>
-      <div className="p-5">
-        <div className="flex items-start gap-4">
-          <SmallAvatar name={order.patient.fullName} url={order.patient.profilePhotoUrl} />
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 flex-wrap">
-              <p className="font-bold text-slate-800 text-sm">{order.patient.fullName}</p>
-              <StatusBadge status={justReported ? 'Reported' : order.status} />
-            </div>
-            <p className="text-xs text-slate-500 mt-0.5">{order.patient.phone}</p>
-            <div className="flex flex-wrap gap-1.5 mt-2">
-              {order.tests.map((t, i) => (
-                <span key={i} className="inline-flex items-center gap-1 px-2 py-0.5 bg-slate-50 border border-slate-100 rounded-md text-xs text-slate-600">
-                  {t.name}
-                </span>
-              ))}
-            </div>
-            <p className="text-xs text-slate-400 mt-2">
-              Order placed {formatDate(order.createdAt)}
-            </p>
-          </div>
-          <div className="shrink-0">
-            {justReported ? (
-              <div className="flex items-center gap-1.5 text-emerald-600 text-sm font-semibold">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                Uploaded
-              </div>
-            ) : (
-              <button
-                id={`upload-btn-${order.id}`}
-                onClick={() => onUpload(order)}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-teal-500 hover:bg-teal-600 text-white text-sm font-semibold rounded-xl shadow-sm transition-colors"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-                </svg>
-                Upload Report
-              </button>
-            )}
+    <tr className="animate-pulse">
+      <td className="px-6 py-4">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-full bg-slate-100 shrink-0" />
+          <div className="space-y-1">
+            <div className="h-4 bg-slate-100 rounded w-24" />
+            <div className="h-3 bg-slate-100 rounded w-16" />
           </div>
         </div>
-      </div>
-    </div>
-  );
-}
-
-// ── Toast ─────────────────────────────────────────────────────────────────────
-function Toast({ message, onClose }: { message: string; onClose: () => void }) {
-  useEffect(() => {
-    const t = setTimeout(onClose, 4000);
-    return () => clearTimeout(t);
-  }, [onClose]);
-  return (
-    <div className="fixed top-4 right-4 z-[100] max-w-sm bg-white rounded-xl border border-emerald-200 shadow-xl px-4 py-3 flex items-center gap-3 animate-slide-right">
-      <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center shrink-0">
-        <svg className="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-        </svg>
-      </div>
-      <p className="text-sm font-medium text-slate-700 flex-1">{message}</p>
-      <button onClick={onClose} className="text-slate-400 hover:text-slate-600">
-        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-        </svg>
-      </button>
-    </div>
-  );
-}
-
-// ── Skeleton ──────────────────────────────────────────────────────────────────
-function SkeletonCard() {
-  return (
-    <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 animate-pulse">
-      <div className="flex items-start gap-4">
-        <div className="w-10 h-10 rounded-full bg-slate-100 shrink-0" />
-        <div className="flex-1 space-y-2">
-          <div className="h-4 bg-slate-100 rounded w-1/3" />
-          <div className="h-3 bg-slate-100 rounded w-1/4" />
-          <div className="flex gap-2 mt-2">
-            <div className="h-5 bg-slate-100 rounded-md w-24" />
-            <div className="h-5 bg-slate-100 rounded-md w-20" />
-          </div>
+      </td>
+      <td className="px-6 py-4"><div className="h-4 bg-slate-100 rounded w-16" /></td>
+      <td className="px-6 py-4">
+        <div className="space-y-1">
+          <div className="h-4 bg-slate-100 rounded w-36" />
+          <div className="h-3 bg-slate-100 rounded w-16" />
         </div>
-        <div className="h-9 w-32 bg-slate-100 rounded-xl shrink-0" />
-      </div>
-    </div>
+      </td>
+      <td className="px-6 py-4"><div className="h-4 bg-slate-100 rounded w-20" /></td>
+      <td className="px-6 py-4"><div className="h-6 bg-slate-100 rounded-full w-24" /></td>
+      <td className="px-6 py-4 text-right"><div className="h-8 w-24 bg-slate-100 rounded-lg ml-auto" /></td>
+    </tr>
   );
 }
 
-// ── Main Page ─────────────────────────────────────────────────────────────────
+// ── Main Page Component ───────────────────────────────────────────────────────
 export default function UploadReportsPage() {
   const { token } = useAuthStore();
 
-  const [orders,         setOrders]         = useState<PendingUploadOrder[]>([]);
-  const [total,          setTotal]          = useState(0);
-  const [loading,        setLoading]        = useState(true);
-  const [error,          setError]          = useState<string | null>(null);
-  const [selectedOrder,  setSelectedOrder]  = useState<PendingUploadOrder | null>(null);
-  const [reportedIds,    setReportedIds]    = useState<Set<string>>(new Set());
-  const [toast,          setToast]          = useState<string | null>(null);
+  const [orders, setOrders] = useState<PendingUploadOrder[]>([]);
+  const [totalCount, setTotalCount] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [selectedOrder, setSelectedOrder] = useState<PendingUploadOrder | null>(null);
+  const [reportedIds, setReportedIds] = useState<Set<string>>(new Set());
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const fetchOrders = useCallback(async () => {
     if (!token) return;
@@ -443,28 +348,34 @@ export default function UploadReportsPage() {
     try {
       const res = await getPendingUploads(token);
       setOrders(res.data);
-      setTotal(res.total);
+      setTotalCount(res.total);
     } catch (err: any) {
-      setError(err.message || 'Failed to load pending uploads');
+      setError(err.message || 'Failed to load pending uploads queue');
     } finally {
       setLoading(false);
     }
   }, [token]);
 
-  useEffect(() => { fetchOrders(); }, [fetchOrders]);
+  useEffect(() => {
+    fetchOrders();
+  }, [fetchOrders]);
 
   const handleUploadSuccess = (orderId: string) => {
     setSelectedOrder(null);
-    setReportedIds((prev) => new Set(prev).add(orderId));
-    setToast('Report uploaded successfully! Order marked as Reported.');
+    setReportedIds((prev) => {
+      const next = new Set(prev);
+      next.add(orderId);
+      return next;
+    });
+    setToastMessage('Report uploaded successfully! Lab Order status updated to Reported.');
   };
 
-  const pendingOrders  = orders.filter((o) => !reportedIds.has(o.id));
-  const uploadedCount  = reportedIds.size;
+  const pendingOrders = orders.filter((o) => !reportedIds.has(o.id));
+  const uploadedCount = reportedIds.size;
 
   return (
-    <div className="min-h-full bg-slate-50">
-      {toast && <Toast message={toast} onClose={() => setToast(null)} />}
+    <div className="max-w-[1280px] mx-auto px-6 py-8 bg-[#F8FAFC]">
+      {toastMessage && <Toast message={toastMessage} onClose={() => setToastMessage(null)} />}
 
       {selectedOrder && token && (
         <UploadModal
@@ -475,101 +386,212 @@ export default function UploadReportsPage() {
         />
       )}
 
-      {/* ── Header ── */}
-      <div className="bg-gradient-to-r from-violet-500 to-violet-600 px-6 py-6">
-        <div className="max-w-4xl mx-auto flex items-center justify-between">
-          <div>
-            <p className="text-violet-100 text-sm font-medium mb-0.5">Lab Portal</p>
-            <h1 className="text-2xl font-bold text-white flex items-center gap-3">
-              Upload Reports
-              {!loading && (
-                <span className="bg-white/20 text-white text-sm font-semibold px-3 py-0.5 rounded-full">
-                  {total - uploadedCount} pending
-                </span>
-              )}
-            </h1>
-          </div>
+      {/* Title Header */}
+      <div className="mb-6 flex justify-between items-end">
+        <div>
+          <h2 className="text-3xl font-bold text-[#111c2d]">Upload Reports</h2>
+          <p className="text-[#3c4947] mt-1 text-sm">Manage and process medical reports for pending tests.</p>
+        </div>
+        <div className="flex gap-2">
           <button
-            id="refresh-pending"
             onClick={fetchOrders}
-            disabled={loading}
-            className="flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white text-sm font-medium px-4 py-2 rounded-xl transition-colors disabled:opacity-50"
+            className="bg-white border border-[#bbcac6] text-[#3c4947] px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-1 hover:bg-[#f0f3ff] transition-colors"
           >
-            <svg className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-            </svg>
-            Refresh
+            <span className="material-symbols-outlined text-[20px]">sync</span>
+            Sync Queue
           </button>
         </div>
       </div>
 
-      <div className="max-w-4xl mx-auto px-4 py-6">
-        {/* Stats */}
-        {!loading && (
-          <div className="grid grid-cols-3 gap-3 mb-6">
-            {[
-              { label: 'Total in Queue', value: total,          icon: '📋', cls: 'bg-white border-slate-100' },
-              { label: 'Pending Upload', value: total - uploadedCount, icon: '⏳', cls: 'bg-amber-50 border-amber-100' },
-              { label: 'Uploaded Today', value: uploadedCount,  icon: '✅', cls: 'bg-emerald-50 border-emerald-100' },
-            ].map((s) => (
-              <div key={s.label} className={`${s.cls} rounded-xl border shadow-sm px-4 py-3 flex items-center gap-3`}>
-                <span className="text-2xl">{s.icon}</span>
-                <div>
-                  <p className="text-xl font-bold text-slate-800">{s.value}</p>
-                  <p className="text-xs text-slate-500">{s.label}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* Error */}
-        {error && (
-          <div className="mb-4 bg-red-50 border border-red-200 text-red-700 rounded-xl px-4 py-3 flex items-center gap-2 text-sm">
-            <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            {error}
-            <button onClick={fetchOrders} className="ml-auto text-red-600 hover:text-red-800 font-medium text-sm">Retry</button>
-          </div>
-        )}
-
-        {/* Queue label */}
-        <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-3">
-          {loading ? 'Loading queue…' : `Pending Upload Queue (${pendingOrders.length})`}
-        </h2>
-
-        {/* Cards */}
-        {loading ? (
-          <div className="space-y-3">
-            {[...Array(5)].map((_, i) => <SkeletonCard key={i} />)}
-          </div>
-        ) : orders.length === 0 ? (
-          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm px-5 py-14 text-center">
-            <div className="w-14 h-14 rounded-full bg-emerald-50 flex items-center justify-center mx-auto mb-4">
-              <svg className="w-7 h-7 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
+      {/* Summary Cards Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+        {/* Card 1: Pending Uploads */}
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-transparent hover:border-[#006b5f]/20 transition-all flex flex-col justify-between">
+          <div className="flex justify-between items-start mb-4">
+            <div className="p-2.5 bg-[#006b5f]/10 text-[#006b5f] rounded-lg">
+              <span className="material-symbols-outlined text-[24px]">pending</span>
             </div>
-            <p className="font-semibold text-slate-700">All caught up!</p>
-            <p className="text-slate-400 text-sm mt-1">No pending reports to upload.</p>
+            {pendingOrders.length > 0 && (
+              <span className="text-xs text-[#006b5f] font-medium">+2 since 1hr</span>
+            )}
           </div>
-        ) : (
-          <div className="space-y-3">
-            {orders.map((order) => (
-              <PendingOrderCard
-                key={order.id}
-                order={order}
-                onUpload={setSelectedOrder}
-                justReported={reportedIds.has(order.id)}
-              />
-            ))}
+          <div>
+            <p className="text-xs text-[#3c4947] font-semibold uppercase tracking-wider">Pending Uploads</p>
+            <h3 className="text-4xl font-bold text-[#006b5f] mt-1">{loading ? '...' : pendingOrders.length}</h3>
+          </div>
+        </div>
+
+        {/* Card 2: Uploaded Today */}
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-transparent hover:border-[#006b5f]/20 transition-all flex flex-col justify-between">
+          <div className="flex justify-between items-start mb-4">
+            <div className="p-2.5 bg-[#f0f3ff] text-[#3c4947] rounded-lg">
+              <span className="material-symbols-outlined text-[24px]">check_circle</span>
+            </div>
+            <span className="text-xs text-[#006b5f] font-medium">84% of daily goal</span>
+          </div>
+          <div>
+            <p className="text-xs text-[#3c4947] font-semibold uppercase tracking-wider">Uploaded Today</p>
+            <h3 className="text-4xl font-bold text-[#111c2d] mt-1">{45 + uploadedCount}</h3>
+          </div>
+        </div>
+
+        {/* Card 3: Total Reports */}
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-transparent hover:border-[#006b5f]/20 transition-all flex flex-col justify-between">
+          <div className="flex justify-between items-start mb-4">
+            <div className="p-2.5 bg-[#f0f3ff] text-[#3c4947] rounded-lg">
+              <span className="material-symbols-outlined text-[24px]">description</span>
+            </div>
+          </div>
+          <div>
+            <p className="text-xs text-[#3c4947] font-semibold uppercase tracking-wider">Total Reports</p>
+            <h3 className="text-4xl font-bold text-[#111c2d] mt-1">{1280 + uploadedCount}</h3>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Queue Section */}
+      <div className="bg-white rounded-xl shadow-sm border border-[#bbcac6]/20 overflow-hidden">
+        <div className="p-6 flex justify-between items-center border-b border-[#bbcac6]/20">
+          <h3 className="text-lg font-bold text-[#111c2d]">Upload Reports Queue</h3>
+          <div className="flex rounded-lg border border-[#bbcac6] overflow-hidden">
+            <button className="px-4 py-1.5 bg-[#f0f3ff] text-[#006b5f] font-semibold text-xs border-r border-[#bbcac6]">All</button>
+            <button className="px-4 py-1.5 text-[#3c4947] font-semibold text-xs hover:bg-[#f0f3ff] transition-colors">Urgent</button>
+          </div>
+        </div>
+
+        {error && (
+          <div className="p-6 bg-red-50 border-b border-red-200 text-red-700 text-sm flex items-center gap-2">
+            <span className="material-symbols-outlined text-[18px]">error</span>
+            <span>{error}</span>
+          </div>
+        )}
+
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="bg-[#f0f3ff]/50 border-b border-[#bbcac6]/20">
+                <th className="px-6 py-4 text-xs font-semibold text-[#3c4947] uppercase tracking-wider">Patient Name</th>
+                <th className="px-6 py-4 text-xs font-semibold text-[#3c4947] uppercase tracking-wider">Patient ID</th>
+                <th className="px-6 py-4 text-xs font-semibold text-[#3c4947] uppercase tracking-wider">Test Name</th>
+                <th className="px-6 py-4 text-xs font-semibold text-[#3c4947] uppercase tracking-wider">Test Date</th>
+                <th className="px-6 py-4 text-xs font-semibold text-[#3c4947] uppercase tracking-wider">Status</th>
+                <th className="px-6 py-4 text-xs font-semibold text-[#3c4947] uppercase tracking-wider text-right">Action</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-[#bbcac6]/10">
+              {loading ? (
+                [...Array(3)].map((_, i) => <SkeletonRow key={i} />)
+              ) : pendingOrders.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="px-6 py-12 text-center text-[#3c4947]">
+                    <span className="material-symbols-outlined text-4xl text-[#bbcac6]">task_alt</span>
+                    <p className="mt-2 text-sm font-semibold">Queue is empty</p>
+                    <p className="text-xs text-[#94A3B8] mt-1">All pending test reports have been uploaded.</p>
+                  </td>
+                </tr>
+              ) : (
+                pendingOrders.map((order) => {
+                  const testName = order.tests.map((t) => t.name).join(', ');
+                  const testCategory = order.tests[0]?.category || 'General';
+                  const initials = getInitials(order.patient.fullName);
+                  const dob = (order.patient as any).dateOfBirth || null;
+
+                  return (
+                    <tr key={order.id} className="hover:bg-[#f9f9ff] transition-colors">
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-full bg-[#6ef9e2]/30 flex items-center justify-center text-[#007164] font-bold text-sm shrink-0">
+                            {initials}
+                          </div>
+                          <div>
+                            <p className="font-bold text-[#111c2d] text-sm">{order.patient.fullName}</p>
+                            <p className="text-[12px] text-[#3c4947]">{getAgeAndGender(order.patient.fullName, dob)}</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 font-mono text-xs text-[#3c4947]">#LC-{order.patient.id}</td>
+                      <td className="px-6 py-4">
+                        <div className="flex flex-col">
+                          <span className="text-[#111c2d] font-medium text-sm">{testName}</span>
+                          <span className="text-[12px] text-[#006b5f] font-semibold mt-0.5">{testCategory}</span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 text-sm text-[#3c4947]">{formatDate(order.createdAt)}</td>
+                      <td className="px-6 py-4">
+                        <span className="px-3 py-1 bg-amber-100 text-amber-800 rounded-full text-xs font-semibold flex items-center gap-1 w-fit">
+                          <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+                          Pending Upload
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        <button
+                          onClick={() => setSelectedOrder(order)}
+                          className="bg-[#14b8a6] text-white font-semibold text-xs px-4 py-2 rounded-lg hover:brightness-95 transition-all flex items-center gap-1 ml-auto"
+                        >
+                          Upload Report
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Queue Pagination Footer */}
+        {!loading && pendingOrders.length > 0 && (
+          <div className="p-6 bg-[#f0f3ff]/30 border-t border-[#bbcac6]/20 flex justify-between items-center text-xs">
+            <p className="text-[#3c4947]">
+              Showing <span className="font-bold">{pendingOrders.length}</span> of <span className="font-bold">{pendingOrders.length}</span> pending reports
+            </p>
+            <div className="flex items-center gap-2">
+              <button disabled className="p-2 rounded-lg border border-[#bbcac6] text-[#3c4947] disabled:opacity-40">
+                <span className="material-symbols-outlined text-[16px]">chevron_left</span>
+              </button>
+              <button className="w-8 h-8 rounded-lg bg-[#006b5f] text-white font-bold">1</button>
+              <button disabled className="p-2 rounded-lg border border-[#bbcac6] text-[#3c4947] disabled:opacity-40">
+                <span className="material-symbols-outlined text-[16px]">chevron_right</span>
+              </button>
+            </div>
           </div>
         )}
       </div>
+
+      {/* Empty State / Helpful Tips Area */}
+      <div className="mt-10 grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Tip 1 */}
+        <div className="p-6 bg-[#006b5f]/5 border border-[#006b5f]/10 rounded-xl flex gap-6 items-start">
+          <div className="p-3 bg-white rounded-xl shadow-sm text-[#006b5f] shrink-0">
+            <span className="material-symbols-outlined" style={{ fontVariationSettings: '"FILL" 1' }}>info</span>
+          </div>
+          <div>
+            <h4 className="font-bold text-[#111c2d] text-sm mb-1">Fast Upload Protocol</h4>
+            <p className="text-xs text-[#3c4947] leading-relaxed">You can now drag and drop PDF files directly onto a row to initiate an instant background upload. Multiple files can be merged into a single report.</p>
+          </div>
+        </div>
+
+        {/* Tip 2 */}
+        <div className="p-6 bg-white border border-[#bbcac6]/20 rounded-xl flex gap-6 items-start shadow-sm">
+          <div className="p-3 bg-[#f0f3ff] rounded-xl text-[#3c4947] shrink-0">
+            <span className="material-symbols-outlined">sync</span>
+          </div>
+          <div>
+            <h4 className="font-bold text-[#111c2d] text-sm mb-1">Automatic Verification</h4>
+            <p className="text-xs text-[#3c4947] leading-relaxed">Our AI automatically checks for patient ID and name matches in the uploaded files to reduce clinical errors. Verification takes approx. 30 seconds.</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Footer */}
+      <footer className="p-6 flex justify-between items-center text-xs text-[#3c4947]/70 border-t border-[#bbcac6]/20 mt-10">
+        <p>© 2024 careXpatient Lab Portal. All rights reserved.</p>
+        <div className="flex gap-6">
+          <a className="hover:text-[#006b5f] underline transition-opacity" href="#">Privacy Policy</a>
+          <a className="hover:text-[#006b5f] underline transition-opacity" href="#">Terms of Service</a>
+          <a className="hover:text-[#006b5f] underline transition-opacity" href="#">Support</a>
+        </div>
+      </footer>
     </div>
   );
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuthStore } from '@/store/auth.store';
@@ -150,33 +150,22 @@ const DOCTOR_NAV: NavItem[] = [
   },
 ];
 
+// Rebuilt Lab Nav Items with Material Symbols Icons
 const LAB_NAV: NavItem[] = [
   {
     name: 'Dashboard',
     href: '/dashboard/lab',
-    icon: (
-      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
-      </svg>
-    ),
+    icon: <span className="material-symbols-outlined text-[24px]">dashboard</span>,
   },
   {
     name: 'Patients',
     href: '/dashboard/lab/patients',
-    icon: (
-      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-      </svg>
-    ),
+    icon: <span className="material-symbols-outlined text-[24px]">groups</span>,
   },
   {
     name: 'Upload Reports',
     href: '/dashboard/lab/upload-reports',
-    icon: (
-      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-      </svg>
-    ),
+    icon: <span className="material-symbols-outlined text-[24px]">cloud_upload</span>,
   },
 ];
 
@@ -191,9 +180,11 @@ const ROLE_BADGE: Record<string, { label: string; color: string }> = {
 // ─── Sidebar Component ────────────────────────────────────────────────────────
 
 const Sidebar = () => {
-  const [isCollapsed, setIsCollapsed] = useState(false);
   const pathname = usePathname();
   const { user, clearAuth } = useAuthStore();
+
+  const isLab = user?.role === 'Lab';
+  const isCollapsed = false; // Permanently expanded as requested
 
   // Select nav items based on the logged-in user's role
   const navItems: NavItem[] =
@@ -202,158 +193,171 @@ const Sidebar = () => {
     PATIENT_NAV;
   const roleBadge = ROLE_BADGE[user?.role ?? 'Patient'] ?? ROLE_BADGE.Patient;
 
+  const handleLogout = (e: React.MouseEvent) => {
+    e.preventDefault();
+    clearAuth();
+    window.location.href = '/login';
+  };
+
   return (
     <aside
-      className={`fixed top-0 left-0 h-full bg-white border-r border-slate-200 transition-all duration-300 z-50 flex flex-col ${
-        isCollapsed ? 'w-20' : 'w-64'
-      }`}
+      className={`fixed top-0 left-0 h-full bg-white border-r border-[#bbcac6]/30 transition-all duration-300 z-50 flex flex-col w-64`}
     >
-      {/* ── Logo & Collapse Toggle ── */}
-      <div className="p-5 flex items-center justify-between overflow-hidden border-b border-slate-100">
-        <div
-          className={`flex flex-col gap-0.5 transition-opacity duration-300 ${
-            isCollapsed ? 'opacity-0 w-0 overflow-hidden' : 'opacity-100'
-          }`}
-        >
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-teal-500 flex items-center justify-center shrink-0">
-              <span className="text-white font-bold text-[10px] uppercase">cXp</span>
+      {/* ── Logo Card ── */}
+      {isLab ? (
+        <div className="p-6 flex items-center gap-4 shrink-0">
+          <div className="w-10 h-10 bg-[#14b8a6] rounded-lg flex items-center justify-center shrink-0">
+            <span className="material-symbols-outlined text-[#00423b]">science</span>
+          </div>
+          <div>
+            <h2 className="text-sm font-bold text-[#111c2d] leading-none">careXpatient</h2>
+            <p className="text-[12px] text-[#3c4947] mt-1">Lab Portal</p>
+          </div>
+        </div>
+      ) : (
+        <div className="p-5 flex items-center justify-between overflow-hidden border-b border-slate-100 shrink-0">
+          <div className="flex flex-col gap-0.5">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-lg bg-teal-500 flex items-center justify-center shrink-0">
+                <span className="text-white font-bold text-[10px] uppercase">cXp</span>
+              </div>
+              <span className="font-bold text-slate-900 whitespace-nowrap">
+                care<span className="text-teal-600">X</span>patient
+              </span>
             </div>
-            <span className="font-bold text-slate-900 whitespace-nowrap">
-              care<span className="text-teal-600">X</span>patient
+            <span className={`text-[10px] font-semibold uppercase tracking-widest ml-11 ${roleBadge.color}`}>
+              {roleBadge.label}
             </span>
           </div>
-          <span className={`text-[10px] font-semibold uppercase tracking-widest ml-11 ${roleBadge.color}`}>
-            {roleBadge.label}
-          </span>
         </div>
-
-        <button
-          onClick={() => setIsCollapsed(!isCollapsed)}
-          className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-500 transition-colors flex-shrink-0"
-          aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-        >
-          <svg
-            className={`w-5 h-5 transition-transform duration-300 ${isCollapsed ? 'rotate-180' : ''}`}
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
-          </svg>
-        </button>
-      </div>
+      )}
 
       {/* ── Navigation ── */}
-      <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto no-scrollbar">
-        {navItems.map((item) => {
-          // Exact match for root dashboard pages, prefix match for sub-pages
-          const isActive =
-            pathname === item.href ||
-            (item.href !== '/dashboard/patient' &&
-              item.href !== '/dashboard/doctor' &&
-              item.href !== '/dashboard/lab' &&
-              pathname.startsWith(item.href));
+      <nav className="flex-1 flex flex-col h-full overflow-y-auto no-scrollbar">
+        <div className={`px-3 ${isLab ? 'py-0 mt-4' : 'py-4'} space-y-1 flex-1`}>
+          {navItems.map((item) => {
+            // Exact match for root dashboard pages, prefix match for sub-pages
+            const isActive =
+              pathname === item.href ||
+              (item.href !== '/dashboard/patient' &&
+                item.href !== '/dashboard/doctor' &&
+                item.href !== '/dashboard/lab' &&
+                pathname.startsWith(item.href));
 
-          return (
-            <Link
-              key={item.name}
-              href={item.href}
-              title={isCollapsed ? item.name : undefined}
-              className={`relative flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all group ${
-                isActive
-                  ? 'bg-teal-50 text-teal-700 font-semibold'
-                  : 'text-slate-600 hover:bg-slate-50 hover:text-teal-600'
-              }`}
-            >
-              {/* Active indicator bar */}
-              {isActive && (
-                <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 bg-teal-500 rounded-r-full" />
-              )}
+            const activeClass = isLab
+              ? 'text-[#006b5f] bg-[#14b8a6]/10 border-r-4 border-[#006b5f] font-bold'
+              : 'bg-teal-50 text-teal-700 font-semibold';
+            const inactiveClass = isLab
+              ? 'text-[#3c4947] hover:bg-[#e7eeff] hover:text-[#006b5f]'
+              : 'text-slate-600 hover:bg-slate-50 hover:text-teal-600';
+            const paddingClass = isLab ? 'px-6 py-4' : 'px-3 py-2.5 rounded-xl';
 
-              <div
-                className={`shrink-0 transition-colors ${
-                  isActive ? 'text-teal-600' : 'text-slate-400 group-hover:text-teal-500'
+            return (
+              <Link
+                key={item.name}
+                href={item.href}
+                className={`relative flex items-center gap-4 transition-all group ${paddingClass} ${
+                  isActive ? activeClass : inactiveClass
                 }`}
               >
-                {item.icon}
-              </div>
+                {/* Active indicator bar for non-Lab users */}
+                {!isLab && isActive && (
+                  <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 bg-teal-500 rounded-r-full" />
+                )}
 
-              <span
-                className={`whitespace-nowrap transition-all duration-300 ${
-                  isCollapsed ? 'opacity-0 w-0 overflow-hidden' : 'opacity-100'
-                }`}
-              >
-                {item.name}
-              </span>
-
-              {/* Tooltip when collapsed */}
-              {isCollapsed && (
-                <div className="absolute left-full ml-3 px-2.5 py-1.5 bg-slate-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50 shadow-lg">
-                  {item.name}
+                <div
+                  className={`shrink-0 transition-colors ${
+                    isActive
+                      ? isLab ? 'text-[#006b5f]' : 'text-teal-600'
+                      : isLab ? 'text-[#3c4947] group-hover:text-[#006b5f]' : 'text-slate-400 group-hover:text-teal-500'
+                  }`}
+                >
+                  {item.icon}
                 </div>
-              )}
-            </Link>
-          );
-        })}
-      </nav>
 
-      {/* ── User Profile & Sign Out ── */}
-      <div className="p-3 border-t border-slate-100">
-        {/* User info — hidden when collapsed */}
-        <div
-          className={`flex items-center gap-3 px-3 py-2 rounded-xl mb-1 transition-all duration-300 ${
-            isCollapsed ? 'opacity-0 h-0 overflow-hidden py-0' : 'opacity-100'
-          }`}
-        >
-          <img
-            src={
-              user?.profilePhotoUrl ??
-              `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.fullName ?? 'User')}&background=14B8A6&color=fff`
-            }
-            alt={user?.fullName ?? 'User'}
-            className="w-9 h-9 rounded-full object-cover shrink-0"
-          />
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-slate-900 truncate">
-              {user?.role === 'Doctor' ? `Dr. ${user?.fullName ?? 'Doctor'}` : (user?.fullName ?? 'User')}
-            </p>
-            <p className="text-xs text-slate-500 truncate">{user?.phone}</p>
-          </div>
+                <span className="whitespace-nowrap text-sm">
+                  {item.name}
+                </span>
+              </Link>
+            );
+          })}
         </div>
 
-        {/* Sign out */}
-        <button
-          onClick={() => {
-            clearAuth();
-            window.location.href = '/login';
-          }}
-          className={`flex items-center gap-3 px-3 py-2.5 w-full rounded-xl text-slate-600 hover:bg-rose-50 hover:text-rose-600 transition-all group ${
-            isCollapsed ? 'justify-center' : ''
-          }`}
-          title={isCollapsed ? 'Sign out' : undefined}
-        >
-          <div className="shrink-0 text-slate-400 group-hover:text-rose-500 transition-colors">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-            </svg>
-          </div>
-          <span
-            className={`font-medium whitespace-nowrap transition-all duration-300 ${
-              isCollapsed ? 'opacity-0 w-0 overflow-hidden' : 'opacity-100'
-            }`}
-          >
-            Sign out
-          </span>
+        {/* ── User Profile & Sign Out ── */}
+        {isLab ? (
+          <div className="mt-auto shrink-0 flex flex-col">
+            {/* Flex spacer */}
+            <div className="mx-6 my-4 border-t border-[#bbcac6]/20" />
 
-          {/* Tooltip when collapsed */}
-          {isCollapsed && (
-            <div className="absolute left-full ml-3 px-2.5 py-1.5 bg-rose-600 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50 shadow-lg">
-              Sign out
+            {/* Logout item inside nav list matching Stitch */}
+            <a
+              href="/login"
+              onClick={handleLogout}
+              className="flex items-center gap-4 px-6 py-4 text-[#3c4947] hover:text-red-500 hover:bg-[#e7eeff] transition-all group"
+            >
+              <div className="shrink-0 text-[#3c4947] group-hover:text-red-500 transition-colors">
+                <span className="material-symbols-outlined text-[24px]">logout</span>
+              </div>
+              <span className="text-sm">Logout</span>
+            </a>
+
+            {/* Profile Section */}
+            <div className="p-6 flex items-center gap-4 shrink-0 border-t border-[#bbcac6]/10">
+              <img
+                src={
+                  user?.profilePhotoUrl ??
+                  `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.fullName ?? 'Dr. S. Rahman')}&background=14B8A6&color=fff`
+                }
+                alt={user?.fullName ?? 'Pathologist Profile'}
+                className="w-10 h-10 rounded-full border-2 border-[#14b8a6] object-cover shrink-0"
+              />
+              <div className="min-w-0">
+                <p className="text-sm font-bold text-[#111c2d] leading-none truncate">
+                  {user?.fullName ?? 'Dr. S. Rahman'}
+                </p>
+                <p className="text-[12px] text-[#3c4947] mt-1 truncate">
+                  Lead Pathologist
+                </p>
+              </div>
             </div>
-          )}
-        </button>
-      </div>
+          </div>
+        ) : (
+          <div className="p-3 border-t border-slate-100 shrink-0">
+            {/* User info */}
+            <div className="flex items-center gap-3 px-3 py-2 rounded-xl mb-1">
+              <img
+                src={
+                  user?.profilePhotoUrl ??
+                  `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.fullName ?? 'User')}&background=14B8A6&color=fff`
+                }
+                alt={user?.fullName ?? 'User'}
+                className="w-9 h-9 rounded-full object-cover shrink-0"
+              />
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-slate-900 truncate">
+                  {user?.role === 'Doctor' ? `Dr. ${user?.fullName ?? 'Doctor'}` : (user?.fullName ?? 'User')}
+                </p>
+                <p className="text-xs text-slate-500 truncate">{user?.phone}</p>
+              </div>
+            </div>
+
+            {/* Sign out */}
+            <button
+              onClick={handleLogout}
+              className="flex items-center gap-3 px-3 py-2.5 w-full rounded-xl text-slate-600 hover:bg-rose-50 hover:text-rose-600 transition-all group"
+            >
+              <div className="shrink-0 text-slate-400 group-hover:text-rose-500 transition-colors">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+              </div>
+              <span className="font-medium whitespace-nowrap">
+                Sign out
+              </span>
+            </button>
+          </div>
+        )}
+      </nav>
     </aside>
   );
 };
