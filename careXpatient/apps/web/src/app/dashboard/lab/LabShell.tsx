@@ -1,15 +1,15 @@
-"use client";
+'use client';
 
 import React, { useEffect } from 'react';
 import { usePathname } from 'next/navigation';
-import Sidebar from './Sidebar';
+import Sidebar from '@/components/layout/Sidebar';
 import { useAuthStore } from '@/store/auth.store';
 
-interface DashboardLayoutProps {
+interface LabShellProps {
   children: React.ReactNode;
 }
 
-const DashboardLayout = ({ children }: DashboardLayoutProps) => {
+const LabShell = ({ children }: LabShellProps) => {
   const pathname = usePathname();
   const { user, token, isAuthenticated } = useAuthStore();
 
@@ -20,17 +20,12 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
     }
   }, [isAuthenticated, user, token]);
 
-  // Pages that manage their own scroll/height (no inner padding)
-  const fullHeightPages = ['/dashboard/patient/lab-tests'];
-  const isFullHeight = fullHeightPages.some(p => pathname.startsWith(p));
-
   return (
-    <div className="flex min-h-screen bg-[#F8FAFC]">
+    <div className="flex bg-[#F8FAFC] min-h-0">
       <Sidebar />
-      <div className="flex-1 flex flex-col md:pl-64">
-        {/* Mobile Header */}
+      <div className="md:pl-64 w-full">
         <header className="md:hidden bg-white border-b border-slate-200 p-4 flex items-center justify-between shrink-0">
-           <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-lg bg-teal-500 flex items-center justify-center">
               <span className="text-white font-bold text-[10px]">cXp</span>
             </div>
@@ -38,7 +33,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
           </div>
         </header>
 
-        <main className={`${isFullHeight ? 'flex-1 overflow-y-auto' : 'p-4 md:p-8'}`}>
+        <main className="p-4 md:p-8">
           {children}
         </main>
       </div>
@@ -46,4 +41,4 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   );
 };
 
-export default DashboardLayout;
+export default LabShell;

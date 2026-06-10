@@ -368,6 +368,8 @@ export default function UploadReportsPage() {
       return next;
     });
     setToastMessage('Report uploaded successfully! Lab Order status updated to Reported.');
+    // Re-fetch from backend to sync state
+    fetchOrders();
   };
 
   const pendingOrders = orders.filter((o) => !reportedIds.has(o.id));

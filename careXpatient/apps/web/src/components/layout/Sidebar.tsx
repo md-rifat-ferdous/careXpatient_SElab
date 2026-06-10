@@ -150,24 +150,54 @@ const DOCTOR_NAV: NavItem[] = [
   },
 ];
 
-// Rebuilt Lab Nav Items with Material Symbols Icons
 const LAB_NAV: NavItem[] = [
   {
     name: 'Dashboard',
     href: '/dashboard/lab',
-    icon: <span className="material-symbols-outlined text-[24px]">dashboard</span>,
+    icon: <span className="material-symbols-outlined">dashboard</span>,
+  },
+  {
+    name: 'Test Queue',
+    href: '/dashboard/lab/test-queue',
+    icon: <span className="material-symbols-outlined">queue</span>,
+  },
+  {
+    name: 'Sample Collection',
+    href: '/dashboard/lab/sample-collection',
+    icon: <span className="material-symbols-outlined">biotech</span>,
   },
   {
     name: 'Patients',
     href: '/dashboard/lab/patients',
-    icon: <span className="material-symbols-outlined text-[24px]">groups</span>,
+    icon: <span className="material-symbols-outlined">groups</span>,
   },
   {
     name: 'Upload Reports',
     href: '/dashboard/lab/upload-reports',
-    icon: <span className="material-symbols-outlined text-[24px]">cloud_upload</span>,
+    icon: <span className="material-symbols-outlined">upload_file</span>,
+  },
+  {
+    name: 'Test Management',
+    href: '/dashboard/lab/test-management',
+    icon: <span className="material-symbols-outlined">settings_applications</span>,
+  },
+  {
+    name: 'Earnings',
+    href: '/dashboard/lab/earnings',
+    icon: <span className="material-symbols-outlined">payments</span>,
+  },
+  {
+    name: 'Settings',
+    href: '/dashboard/lab/settings',
+    icon: <span className="material-symbols-outlined">settings</span>,
+  },
+  {
+    name: 'Logout',
+    href: '/login',
+    icon: <span className="material-symbols-outlined">logout</span>,
   },
 ];
+
 
 // ─── Role badge config ─────────────────────────────────────────────────────────
 
@@ -184,7 +214,6 @@ const Sidebar = () => {
   const { user, clearAuth } = useAuthStore();
 
   const isLab = user?.role === 'Lab';
-  const isCollapsed = false; // Permanently expanded as requested
 
   // Select nav items based on the logged-in user's role
   const navItems: NavItem[] =
@@ -201,17 +230,17 @@ const Sidebar = () => {
 
   return (
     <aside
-      className={`fixed top-0 left-0 h-full bg-white border-r border-[#bbcac6]/30 transition-all duration-300 z-50 flex flex-col w-64`}
+      className={`fixed top-0 left-0 h-screen bg-white border-r border-[#bbcac6]/30 z-50 flex flex-col w-64 py-6 px-4`}
     >
-      {/* ── Logo Card ── */}
+      {/* ── Header ── */}
       {isLab ? (
-        <div className="p-6 flex items-center gap-4 shrink-0">
-          <div className="w-10 h-10 bg-[#14b8a6] rounded-lg flex items-center justify-center shrink-0">
-            <span className="material-symbols-outlined text-[#00423b]">science</span>
+        <div className="flex items-center gap-2 mb-10 shrink-0">
+          <div className="w-8 h-8 rounded-lg bg-[#14b8a6] flex items-center justify-center shrink-0">
+            <span className="material-symbols-outlined text-[#00423b]" style={{ fontSize: 20 }}>science</span>
           </div>
           <div>
-            <h2 className="text-sm font-bold text-[#111c2d] leading-none">careXpatient</h2>
-            <p className="text-[12px] text-[#3c4947] mt-1">Lab Portal</p>
+            <h1 className="text-xl font-semibold text-[#111c2d] tracking-tight leading-none">careXpatient</h1>
+            <p className="text-sm text-[#94A3B8] leading-none mt-1">Lab Portal</p>
           </div>
         </div>
       ) : (
@@ -232,132 +261,108 @@ const Sidebar = () => {
         </div>
       )}
 
-      {/* ── Navigation ── */}
-      <nav className="flex-1 flex flex-col h-full overflow-y-auto no-scrollbar">
-        <div className={`px-3 ${isLab ? 'py-0 mt-4' : 'py-4'} space-y-1 flex-1`}>
-          {navItems.map((item) => {
-            // Exact match for root dashboard pages, prefix match for sub-pages
-            const isActive =
-              pathname === item.href ||
-              (item.href !== '/dashboard/patient' &&
-                item.href !== '/dashboard/doctor' &&
-                item.href !== '/dashboard/lab' &&
-                pathname.startsWith(item.href));
+      {/* ── Navigation (main 7 items) ── */}
+      <nav className="flex-1 overflow-y-auto space-y-1">
+        {navItems.slice(0, 7).map((item) => {
+          const isActive =
+            pathname === item.href ||
+            (item.href !== '/dashboard/patient' &&
+              item.href !== '/dashboard/doctor' &&
+              item.href !== '/dashboard/lab' &&
+              pathname.startsWith(item.href));
 
-            const activeClass = isLab
-              ? 'text-[#006b5f] bg-[#14b8a6]/10 border-r-4 border-[#006b5f] font-bold'
-              : 'bg-teal-50 text-teal-700 font-semibold';
-            const inactiveClass = isLab
-              ? 'text-[#3c4947] hover:bg-[#e7eeff] hover:text-[#006b5f]'
-              : 'text-slate-600 hover:bg-slate-50 hover:text-teal-600';
-            const paddingClass = isLab ? 'px-6 py-4' : 'px-3 py-2.5 rounded-xl';
+          const activeClass = 'text-[#006b5f] bg-[#006b5f]/10 font-bold border-l-4 border-[#006b5f]';
+          const inactiveClass = 'text-[#3c4947] hover:text-[#006b5f] hover:bg-[#f0f3ff] border-l-4 border-transparent';
 
-            return (
-              <Link
-                key={item.name}
-                href={item.href}
-                className={`relative flex items-center gap-4 transition-all group ${paddingClass} ${
-                  isActive ? activeClass : inactiveClass
-                }`}
+          return (
+            <Link
+              key={item.name}
+              href={item.href}
+              className={`flex items-center gap-2 py-2 px-2 rounded-lg transition-all group ${isActive ? activeClass : inactiveClass}`}
+            >
+              <div className={`shrink-0 transition-colors ${isActive ? 'text-[#006b5f]' : 'text-[#3c4947] group-hover:text-[#006b5f]'}`}
+                style={isActive ? { fontVariationSettings: "'FILL' 1" } : undefined}
               >
-                {/* Active indicator bar for non-Lab users */}
-                {!isLab && isActive && (
-                  <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 bg-teal-500 rounded-r-full" />
-                )}
-
-                <div
-                  className={`shrink-0 transition-colors ${
-                    isActive
-                      ? isLab ? 'text-[#006b5f]' : 'text-teal-600'
-                      : isLab ? 'text-[#3c4947] group-hover:text-[#006b5f]' : 'text-slate-400 group-hover:text-teal-500'
-                  }`}
-                >
-                  {item.icon}
-                </div>
-
-                <span className="whitespace-nowrap text-sm">
-                  {item.name}
-                </span>
-              </Link>
-            );
-          })}
-        </div>
-
-        {/* ── User Profile & Sign Out ── */}
-        {isLab ? (
-          <div className="mt-auto shrink-0 flex flex-col">
-            {/* Flex spacer */}
-            <div className="mx-6 my-4 border-t border-[#bbcac6]/20" />
-
-            {/* Logout item inside nav list matching Stitch */}
-            <a
-              href="/login"
-              onClick={handleLogout}
-              className="flex items-center gap-4 px-6 py-4 text-[#3c4947] hover:text-red-500 hover:bg-[#e7eeff] transition-all group"
-            >
-              <div className="shrink-0 text-[#3c4947] group-hover:text-red-500 transition-colors">
-                <span className="material-symbols-outlined text-[24px]">logout</span>
+                {item.icon}
               </div>
-              <span className="text-sm">Logout</span>
-            </a>
-
-            {/* Profile Section */}
-            <div className="p-6 flex items-center gap-4 shrink-0 border-t border-[#bbcac6]/10">
-              <img
-                src={
-                  user?.profilePhotoUrl ??
-                  `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.fullName ?? 'Dr. S. Rahman')}&background=14B8A6&color=fff`
-                }
-                alt={user?.fullName ?? 'Pathologist Profile'}
-                className="w-10 h-10 rounded-full border-2 border-[#14b8a6] object-cover shrink-0"
-              />
-              <div className="min-w-0">
-                <p className="text-sm font-bold text-[#111c2d] leading-none truncate">
-                  {user?.fullName ?? 'Dr. S. Rahman'}
-                </p>
-                <p className="text-[12px] text-[#3c4947] mt-1 truncate">
-                  Lead Pathologist
-                </p>
-              </div>
-            </div>
-          </div>
-        ) : (
-          <div className="p-3 border-t border-slate-100 shrink-0">
-            {/* User info */}
-            <div className="flex items-center gap-3 px-3 py-2 rounded-xl mb-1">
-              <img
-                src={
-                  user?.profilePhotoUrl ??
-                  `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.fullName ?? 'User')}&background=14B8A6&color=fff`
-                }
-                alt={user?.fullName ?? 'User'}
-                className="w-9 h-9 rounded-full object-cover shrink-0"
-              />
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-slate-900 truncate">
-                  {user?.role === 'Doctor' ? `Dr. ${user?.fullName ?? 'Doctor'}` : (user?.fullName ?? 'User')}
-                </p>
-                <p className="text-xs text-slate-500 truncate">{user?.phone}</p>
-              </div>
-            </div>
-
-            {/* Sign out */}
-            <button
-              onClick={handleLogout}
-              className="flex items-center gap-3 px-3 py-2.5 w-full rounded-xl text-slate-600 hover:bg-rose-50 hover:text-rose-600 transition-all group"
-            >
-              <div className="shrink-0 text-slate-400 group-hover:text-rose-500 transition-colors">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                </svg>
-              </div>
-              <span className="font-medium whitespace-nowrap">
-                Sign out
-              </span>
-            </button>
-          </div>
-        )}
+              <span className="sidebar-text truncate text-sm">{item.name}</span>
+            </Link>
+          );
+        })}
       </nav>
+
+      {/* ── Footer: Settings, Logout, Profile ── */}
+      {isLab ? (
+        <div className="mt-auto pt-4 border-t border-[#bbcac6]/50 flex flex-col gap-1">
+          {/* Settings */}
+          <Link
+            href="/dashboard/lab/settings"
+            className={`flex items-center gap-2 py-2 px-2 rounded-lg transition-all group border-l-4 border-transparent text-[#3c4947] hover:text-[#006b5f] hover:bg-[#f0f3ff] ${pathname === '/dashboard/lab/settings' ? 'text-[#006b5f] bg-[#006b5f]/10 font-bold border-l-4 border-[#006b5f]' : ''}`}
+          >
+            <span className="material-symbols-outlined shrink-0 text-[#3c4947] group-hover:text-[#006b5f]">settings</span>
+            <span className="sidebar-text truncate text-sm">Settings</span>
+          </Link>
+
+          {/* Logout */}
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-2 py-2 px-2 rounded-lg transition-all group border-l-4 border-transparent text-[#3c4947] hover:text-[#ba1a1a] hover:bg-[#ffdad6]/20 w-full text-left"
+          >
+            <span className="material-symbols-outlined shrink-0">logout</span>
+            <span className="sidebar-text truncate text-sm">Logout</span>
+          </button>
+
+          {/* Profile */}
+          <div className="flex items-center gap-2 mt-4 px-2">
+            <img
+              src={
+                user?.profilePhotoUrl ??
+                `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.fullName ?? 'Dr. S. Rahman')}&background=14B8A6&color=fff`
+              }
+              alt={user?.fullName ?? 'Pathologist Profile'}
+              className="w-10 h-10 rounded-full object-cover shrink-0 border border-[#bbcac6]"
+            />
+            <div className="text-left min-w-0">
+              <p className="text-sm font-semibold text-[#111c2d] truncate">
+                {user?.fullName ?? 'Dr. S. Rahman'}
+              </p>
+              <p className="text-sm text-[#94A3B8] truncate">
+                Lead Pathologist
+              </p>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className="p-3 border-t border-slate-100 shrink-0">
+          <div className="flex items-center gap-3 px-3 py-2 rounded-xl mb-1">
+            <img
+              src={
+                user?.profilePhotoUrl ??
+                `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.fullName ?? 'User')}&background=14B8A6&color=fff`
+              }
+              alt={user?.fullName ?? 'User'}
+              className="w-9 h-9 rounded-full object-cover shrink-0"
+            />
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-slate-900 truncate">
+                {user?.role === 'Doctor' ? `Dr. ${user?.fullName ?? 'Doctor'}` : (user?.fullName ?? 'User')}
+              </p>
+              <p className="text-xs text-slate-500 truncate">{user?.phone}</p>
+            </div>
+          </div>
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-3 px-3 py-2.5 w-full rounded-xl text-slate-600 hover:bg-rose-50 hover:text-rose-600 transition-all group"
+          >
+            <div className="shrink-0 text-slate-400 group-hover:text-rose-500 transition-colors">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+              </svg>
+            </div>
+            <span className="font-medium whitespace-nowrap">Sign out</span>
+          </button>
+        </div>
+      )}
     </aside>
   );
 };

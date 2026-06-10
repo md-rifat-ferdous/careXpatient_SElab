@@ -115,15 +115,20 @@ export default function PatientHistoryPage() {
     })();
   }, [token, params.id]);
 
+  const [viewingReport, setViewingReport] = useState<PatientOrder | null>(null);
+
   const handleViewReport = (order: PatientOrder) => {
     const result = order.labResults[0];
     if (result?.fileUrl) {
-      // Open file in new tab or download
-      window.open(result.fileUrl, '_blank');
+      setViewingReport(order);
+    } else if (result?.resultSummary) {
+      alert("Report details:\n\n" + result.resultSummary);
     } else {
-      alert("Report details:\n\n" + (result?.resultSummary || "No result summary provided."));
+      alert("No report file or summary available.");
     }
   };
+
+  const handleCloseReport = () => setViewingReport(null);
 
   // ── Skeleton Loader ──
   if (loading) {
@@ -173,8 +178,67 @@ export default function PatientHistoryPage() {
     ? formatDate(patient.dateOfBirth)
     : '—';
 
+  const viewingResult = viewingReport?.labResults[0];
+  const isPdf = viewingResult?.fileUrl?.startsWith('data:application/pdf');
+
   return (
     <div className="max-w-[1280px] w-full mx-auto px-6 py-6 bg-[#F8FAFC]">
+      {/* Report Viewer Overlay */}
+      {viewingReport && viewingResult?.fileUrl && (
+        <div className="fixed inset-0 z-50 bg-[#111c2d]/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white w-full max-w-4xl max-h-[90vh] rounded-xl shadow-2xl overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-[#bbcac6]/20">
+              <div>
+                <h3 className="text-lg font-bold text-[#111c2d]">Report</h3>
+                <p className="text-sm text-[#3c4947]">
+                  {viewingReport.tests.map(t => t.name).join(', ')}
+                </p>
+              </div>
+              <button
+                onClick={handleCloseReport}
+                className="p-2 text-[#3c4947] hover:text-[#111c2d] hover:bg-[#f0f3ff] rounded-lg transition-colors"
+              >
+                <span className="material-symbols-outlined">close</span>
+              </button>
+            </div>
+            <div className="flex-1 overflow-auto p-6 bg-[#F8FAFC]">
+              {viewingResult.resultSummary && (
+                <div className="mb-6 p-4 bg-white rounded-xl border border-[#bbcac6]/20">
+                  <h4 className="text-xs font-semibold text-[#3c4947] uppercase tracking-wider mb-2">Clinical Summary</h4>
+                  <p className="text-sm text-[#111c2d] whitespace-pre-wrap">{viewingResult.resultSummary}</p>
+                </div>
+              )}
+              {isPdf ? (
+                <iframe
+                  src={viewingResult.fileUrl}
+                  className="w-full h-[70vh] rounded-xl border border-[#bbcac6]/20"
+                  title="Report PDF"
+                />
+              ) : (
+                <img
+                  src={viewingResult.fileUrl}
+                  alt="Report"
+                  className="max-w-full h-auto rounded-xl border border-[#bbcac6]/20 mx-auto"
+                />
+              )}
+            </div>
+            <div className="px-6 py-3 border-t border-[#bbcac6]/20 flex justify-between items-center bg-white">
+              <span className="text-xs text-[#94A3B8]">
+                Uploaded on {viewingResult.uploadedAt ? formatDate(viewingResult.uploadedAt) : '—'}
+              </span>
+              <a
+                href={viewingResult.fileUrl}
+                download={`report-${viewingReport.id}`}
+                className="text-[#006b5f] text-sm font-semibold flex items-center gap-1 hover:underline"
+              >
+                <span className="material-symbols-outlined text-[18px]">download</span>
+                Download
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Back Button */}
       <div className="mb-4">
         <button
@@ -249,7 +313,7 @@ export default function PatientHistoryPage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {filteredOrders.map((order) => {
-            const isCompleted = order.status === 'Reported';
+            const isCompleted = order.status === 'Reported' && order.labResults.length > 0;
             const testName = order.tests.map((t) => t.name).join(', ');
             const category = order.tests[0]?.category || 'General';
             return (

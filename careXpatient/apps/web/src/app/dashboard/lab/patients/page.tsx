@@ -37,7 +37,7 @@ function Avatar({ name, url }: { name: string; url: string | null }) {
       <img
         src={url}
         alt={name}
-        className="w-10 h-10 rounded-full object-cover border border-slate-100"
+        className="w-8 h-8 rounded-full object-cover border border-slate-100"
       />
     );
   }
@@ -48,7 +48,7 @@ function Avatar({ name, url }: { name: string; url: string | null }) {
   ];
   const color = colors[name.charCodeAt(0) % colors.length];
   return (
-    <div className={`w-10 h-10 rounded-full ${color} flex items-center justify-center shrink-0 font-bold text-sm`}>
+    <div className={`w-8 h-8 rounded-full ${color} flex items-center justify-center shrink-0 font-semibold text-xs`}>
       {initials}
     </div>
   );
@@ -58,21 +58,21 @@ function Avatar({ name, url }: { name: string; url: string | null }) {
 function SkeletonRow() {
   return (
     <tr className="animate-pulse">
-      <td className="px-6 py-4">
-        <div className="flex items-center gap-4">
-          <div className="w-10 h-10 bg-slate-100 rounded-full" />
+      <td className="px-4 py-3">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 bg-slate-100 rounded-full" />
           <div className="space-y-1">
-            <div className="h-4 bg-slate-100 rounded w-24" />
+            <div className="h-3.5 bg-slate-100 rounded w-24" />
             <div className="h-3 bg-slate-100 rounded w-16" />
           </div>
         </div>
       </td>
-      <td className="px-4 py-4"><div className="h-4 bg-slate-100 rounded w-16" /></td>
-      <td className="px-4 py-4"><div className="h-4 bg-slate-100 rounded w-8" /></td>
-      <td className="px-4 py-4"><div className="h-4 bg-slate-100 rounded w-20" /></td>
-      <td className="px-4 py-4"><div className="h-4 bg-slate-100 rounded w-32" /></td>
-      <td className="px-4 py-4"><div className="h-4 bg-slate-100 rounded w-8" /></td>
-      <td className="px-6 py-4 text-right"><div className="h-8 w-8 bg-slate-100 rounded-full ml-auto" /></td>
+      <td className="px-4 py-3"><div className="h-3.5 bg-slate-100 rounded w-16" /></td>
+      <td className="px-4 py-3"><div className="h-3.5 bg-slate-100 rounded w-8" /></td>
+      <td className="px-4 py-3"><div className="h-3.5 bg-slate-100 rounded w-20" /></td>
+      <td className="px-4 py-3"><div className="h-3.5 bg-slate-100 rounded w-28" /></td>
+      <td className="px-4 py-3"><div className="h-3.5 bg-slate-100 rounded w-8" /></td>
+      <td className="px-4 py-3 text-right"><div className="h-7 w-7 bg-slate-100 rounded-full ml-auto" /></td>
     </tr>
   );
 }
@@ -136,30 +136,28 @@ export default function LabPatientsPage() {
   };
 
   return (
-    <div className="max-w-[1280px] mx-auto p-6">
+    <div className="max-w-[1280px] mx-auto">
       {/* Page Header */}
-      <div className="flex justify-between items-end mb-10">
+      <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-3xl font-bold text-[#111c2d]">Patients</h1>
-          <p className="text-[#3c4947] mt-2 text-sm">Manage and monitor patient records and diagnostic history.</p>
+          <h1 className="text-2xl font-semibold text-[#111c2d]">Patients</h1>
+          <p className="text-sm text-[#3c4947] mt-1">Manage and monitor patient records and diagnostic history.</p>
         </div>
-        <div className="flex gap-4">
-          <form onSubmit={handleSearchSubmit} className="relative flex items-center w-64">
-            <span className="material-symbols-outlined absolute left-3 text-[#3c4947] pointer-events-none">search</span>
-            <input
-              value={searchInput}
-              onChange={(e) => setSearchInput(e.target.value)}
-              className="w-full bg-white border border-[#bbcac6]/30 rounded-xl py-2 pl-10 pr-4 text-sm text-[#111c2d] placeholder-[#3c4947]/50 focus:outline-none focus:ring-2 focus:ring-[#006b5f]/20"
-              placeholder="Search patients..."
-              type="text"
-            />
-          </form>
-        </div>
+        <form onSubmit={handleSearchSubmit} className="relative flex items-center w-64">
+          <span className="material-symbols-outlined absolute left-3 text-[#3c4947] pointer-events-none text-[20px]">search</span>
+          <input
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            className="w-full bg-white border border-[#bbcac6]/30 rounded-lg py-2 pl-9 pr-3 text-sm text-[#111c2d] placeholder-[#3c4947]/50 focus:outline-none focus:ring-2 focus:ring-[#006b5f]/20"
+            placeholder="Search patients..."
+            type="text"
+          />
+        </form>
       </div>
 
       {/* Error message */}
       {error && (
-        <div className="mb-6 bg-red-50 border border-red-200 text-red-700 rounded-xl px-4 py-3 text-sm flex items-center gap-2">
+        <div className="mb-4 bg-red-50 border border-red-200 text-red-700 rounded-lg px-4 py-3 text-sm flex items-center gap-2">
           <span className="material-symbols-outlined text-[20px]">error</span>
           <span>{error}</span>
         </div>
@@ -168,16 +166,16 @@ export default function LabPatientsPage() {
       {/* Patients Table Container */}
       <div className="bg-white rounded-xl shadow-sm border border-[#bbcac6]/30 overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
+          <table className="w-full text-left">
             <thead>
               <tr className="bg-[#f0f3ff] border-b border-[#bbcac6]/30">
-                <th className="px-6 py-4 font-semibold text-[#3c4947] text-[14px]">Patient Name</th>
-                <th className="px-4 py-4 font-semibold text-[#3c4947] text-[14px]">Age / Gender</th>
-                <th className="px-4 py-4 font-semibold text-[#3c4947] text-[14px]">Blood Group</th>
-                <th className="px-4 py-4 font-semibold text-[#3c4947] text-[14px]">Last Test Date</th>
-                <th className="px-4 py-4 font-semibold text-[#3c4947] text-[14px]">Last Test Name</th>
-                <th className="px-4 py-4 font-semibold text-[#3c4947] text-[14px]">Total Tests</th>
-                <th className="px-6 py-4 font-semibold text-[#3c4947] text-[14px] text-right">Details</th>
+                <th className="px-4 py-3 font-semibold text-[#3c4947] text-sm">Patient Name</th>
+                <th className="px-4 py-3 font-semibold text-[#3c4947] text-sm">Age / Gender</th>
+                <th className="px-4 py-3 font-semibold text-[#3c4947] text-sm">Blood Group</th>
+                <th className="px-4 py-3 font-semibold text-[#3c4947] text-sm">Last Test Date</th>
+                <th className="px-4 py-3 font-semibold text-[#3c4947] text-sm">Last Test Name</th>
+                <th className="px-4 py-3 font-semibold text-[#3c4947] text-sm">Total Tests</th>
+                <th className="px-4 py-3 font-semibold text-[#3c4947] text-sm text-right">Details</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#bbcac6]/20">
@@ -185,7 +183,7 @@ export default function LabPatientsPage() {
                 [...Array(LIMIT)].map((_, i) => <SkeletonRow key={i} />)
               ) : patients.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-6 py-12 text-center text-[#3c4947]">
+                  <td colSpan={7} className="px-4 py-10 text-center text-[#3c4947]">
                     <span className="material-symbols-outlined text-4xl text-[#bbcac6]">person_off</span>
                     <p className="mt-2 text-sm">No patients found matching the search criteria.</p>
                   </td>
@@ -194,44 +192,44 @@ export default function LabPatientsPage() {
                 patients.map((patient) => (
                   <tr
                     key={patient.id}
-                    className="hover:bg-white/50 transition-colors group cursor-pointer"
+                    className="hover:bg-[#f8faff] transition-colors cursor-pointer"
                     onClick={() => router.push(`/dashboard/lab/patients/${patient.id}`)}
                   >
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-4">
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-3">
                         <Avatar name={patient.fullName} url={patient.profilePhotoUrl} />
                         <div>
-                          <p className="font-semibold text-[#111c2d] text-sm group-hover:text-[#006b5f] transition-colors">
+                          <p className="font-semibold text-[#111c2d] text-sm">
                             {patient.fullName}
                           </p>
-                          <p className="text-[12px] text-[#94A3B8]">#LC-{patient.id}</p>
+                          <p className="text-xs text-[#94A3B8]">#LC-{patient.id}</p>
                         </div>
                       </div>
                     </td>
-                    <td className="px-4 py-4 text-[#111c2d] text-[14px]">
+                    <td className="px-4 py-3 text-[#111c2d] text-sm">
                       {getAgeAndGender(patient.fullName, patient.dateOfBirth)}
                     </td>
-                    <td className="px-4 py-4 text-[#111c2d] text-[14px]">
+                    <td className="px-4 py-3 text-[#111c2d] text-sm">
                       {patient.bloodGroup || '—'}
                     </td>
-                    <td className="px-4 py-4 text-[#111c2d] text-[14px]">
+                    <td className="px-4 py-3 text-[#111c2d] text-sm">
                       {formatDate(patient.lastOrderDate)}
                     </td>
-                    <td className="px-4 py-4 text-[#111c2d] text-[14px] max-w-[200px] truncate">
+                    <td className="px-4 py-3 text-[#111c2d] text-sm max-w-[180px] truncate">
                       {patient.lastOrderTests || '—'}
                     </td>
-                    <td className="px-4 py-4 text-[#111c2d] text-[14px]">
+                    <td className="px-4 py-3 text-[#111c2d] text-sm">
                       {patient.ordersCount}
                     </td>
-                    <td className="px-6 py-4 text-right">
+                    <td className="px-4 py-3 text-right">
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
                           router.push(`/dashboard/lab/patients/${patient.id}`);
                         }}
-                        className="p-2 text-[#006b5f] hover:bg-[#006b5f]/10 rounded-full transition-all active:scale-90"
+                        className="p-1.5 text-[#006b5f] hover:bg-[#006b5f]/10 rounded-full transition-all"
                       >
-                        <span className="material-symbols-outlined text-[20px]">chevron_right</span>
+                        <span className="material-symbols-outlined text-[18px]">chevron_right</span>
                       </button>
                     </td>
                   </tr>
@@ -243,26 +241,26 @@ export default function LabPatientsPage() {
 
         {/* Pagination */}
         {!loading && totalCount > 0 && (
-          <div className="px-6 py-4 bg-[#f0f3ff] border-t border-[#bbcac6]/30 flex items-center justify-between">
+          <div className="px-4 py-3 bg-[#f0f3ff] border-t border-[#bbcac6]/30 flex items-center justify-between">
             <p className="text-sm text-[#3c4947]">
-              Showing <span className="font-bold text-[#111c2d]">{Math.min((currentPage - 1) * LIMIT + 1, totalCount)}-{Math.min(currentPage * LIMIT, totalCount)}</span> of <span className="font-bold text-[#111c2d]">{totalCount}</span> patients
+              Showing <span className="font-semibold text-[#111c2d]">{Math.min((currentPage - 1) * LIMIT + 1, totalCount)}-{Math.min(currentPage * LIMIT, totalCount)}</span> of <span className="font-semibold text-[#111c2d]">{totalCount}</span> patients
             </p>
-            <div className="flex gap-2">
+            <div className="flex items-center gap-1">
               <button
                 onClick={() => goToPage(currentPage - 1)}
                 disabled={currentPage === 1}
-                className="w-10 h-10 flex items-center justify-center rounded-xl border border-[#bbcac6] hover:bg-white transition-colors disabled:opacity-50"
+                className="w-8 h-8 flex items-center justify-center rounded-lg border border-[#bbcac6] hover:bg-white transition-colors disabled:opacity-40"
               >
-                <span className="material-symbols-outlined text-[20px]">chevron_left</span>
+                <span className="material-symbols-outlined text-[18px]">chevron_left</span>
               </button>
               {pageNumbers().map((p, idx) =>
                 p === '...' ? (
-                  <span key={`dots-${idx}`} className="w-10 h-10 flex items-center justify-center text-[#94A3B8]">...</span>
+                  <span key={`dots-${idx}`} className="w-8 h-8 flex items-center justify-center text-[#94A3B8] text-sm">...</span>
                 ) : (
                   <button
                     key={p}
                     onClick={() => goToPage(p as number)}
-                    className={`w-10 h-10 flex items-center justify-center rounded-xl text-sm transition-colors ${
+                    className={`w-8 h-8 flex items-center justify-center rounded-lg text-sm transition-colors ${
                       currentPage === p
                         ? 'bg-[#006b5f] text-white font-semibold'
                         : 'border border-[#bbcac6] hover:bg-white text-[#111c2d]'
@@ -275,9 +273,9 @@ export default function LabPatientsPage() {
               <button
                 onClick={() => goToPage(currentPage + 1)}
                 disabled={currentPage === totalPages}
-                className="w-10 h-10 flex items-center justify-center rounded-xl border border-[#bbcac6] hover:bg-white transition-colors disabled:opacity-50"
+                className="w-8 h-8 flex items-center justify-center rounded-lg border border-[#bbcac6] hover:bg-white transition-colors disabled:opacity-40"
               >
-                <span className="material-symbols-outlined text-[20px]">chevron_right</span>
+                <span className="material-symbols-outlined text-[18px]">chevron_right</span>
               </button>
             </div>
           </div>
