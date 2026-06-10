@@ -282,6 +282,10 @@ export async function uploadReport(req: AuthRequest, res: Response) {
     let fileUrl: string | null = null;
     const file = (req as any).file as Express.Multer.File | undefined;
     if (file) {
+      const allowedImageTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+      if (file.mimetype !== 'application/pdf' && !allowedImageTypes.includes(file.mimetype)) {
+        return res.status(400).json({ error: 'Only image files are allowed.' });
+      }
       const base64 = file.buffer.toString('base64');
       fileUrl = `data:${file.mimetype};base64,${base64}`;
     }
