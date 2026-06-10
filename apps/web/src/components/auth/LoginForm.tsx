@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useState, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuthStore } from '@/store/auth.store';
 import { authApi } from '@/lib/api';
@@ -227,6 +227,7 @@ function OtpStep({
 // ===== MAIN LOGIN FORM =====
 function LoginFormContent({ role, onBack }: { role: Role; onBack: () => void }) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { setAuth } = useAuthStore();
   const cfg = ROLE_CONFIG[role];
 
@@ -257,14 +258,27 @@ function LoginFormContent({ role, onBack }: { role: Role; onBack: () => void }) 
       const res = await authApi.login({ phone: phone.trim(), password, role });
       if (res.success) {
         setAuth(res.data.user as any, res.data.token);
-        toast(`Welcome back! Redirecting to your dashboard...`, 'success');
-        // Role-based redirect
-        const redirectMap: Record<Role, string> = {
-          Patient: '/dashboard/patient',
-          Doctor: '/dashboard/doctor',
-          Lab: '/dashboard/lab',
-        };
-        setTimeout(() => router.push(redirectMap[role]), 1200);
+        toast(`Welcome back! Redirecting...`, 'success');
+        
+        const redirectTo = searchParams.get('redirectTo');
+        const bookDoctorId = searchParams.get('bookDoctorId');
+        
+        let targetPath = '';
+        if (redirectTo) {
+          targetPath = redirectTo;
+          if (bookDoctorId) {
+            targetPath += (targetPath.includes('?') ? '&' : '?') + `bookDoctorId=${bookDoctorId}`;
+          }
+        } else {
+          const redirectMap: Record<Role, string> = {
+            Patient: '/dashboard/patient',
+            Doctor: '/dashboard/doctor',
+            Lab: '/dashboard/lab',
+          };
+          targetPath = redirectMap[role];
+        }
+        
+        setTimeout(() => router.push(targetPath), 1200);
       }
     } catch (err: any) {
       toast(err.message || 'Login failed. Please check your credentials.', 'error');
@@ -285,7 +299,21 @@ function LoginFormContent({ role, onBack }: { role: Role; onBack: () => void }) 
 
   const handleOtpVerified = () => {
     toast('Phone verified! Logged in successfully.', 'success');
-    router.push(`/dashboard/${role.toLowerCase()}`);
+    
+    const redirectTo = searchParams.get('redirectTo');
+    const bookDoctorId = searchParams.get('bookDoctorId');
+    
+    let targetPath = '';
+    if (redirectTo) {
+      targetPath = redirectTo;
+      if (bookDoctorId) {
+        targetPath += (targetPath.includes('?') ? '&' : '?') + `bookDoctorId=${bookDoctorId}`;
+      }
+    } else {
+      targetPath = `/dashboard/${role.toLowerCase()}`;
+    }
+    
+    router.push(targetPath);
   };
 
   if (otpStep) {
@@ -397,8 +425,8 @@ function LoginFormContent({ role, onBack }: { role: Role; onBack: () => void }) 
   );
 }
 
-// ===== DEFAULT EXPORT =====
-export default function LoginForm() {
+// ===== DEFAULT EXPORT WITH SUSPENSE =====
+function LoginFormInner() {
   const [selectedRole, setSelectedRole] = useState<Role | null>(null);
 
   if (!selectedRole) {
@@ -410,5 +438,13 @@ export default function LoginForm() {
       role={selectedRole}
       onBack={() => setSelectedRole(null)}
     />
+  );
+}
+
+export default function LoginForm() {
+  return (
+    <Suspense fallback={<div className="p-8 text-center text-slate-400 font-semibold text-sm">Loading login...</div>}>
+      <LoginFormInner />
+    </Suspense>
   );
 }

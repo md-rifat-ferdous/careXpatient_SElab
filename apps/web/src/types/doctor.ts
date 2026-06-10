@@ -26,6 +26,14 @@ export interface Doctor {
       name: string;
     };
   }[];
+  clinics?: {
+    shift?: string;
+    clinic: {
+      id: number;
+      name: string;
+      address?: string;
+    };
+  }[];
 }
 
 export interface DoctorFilters {

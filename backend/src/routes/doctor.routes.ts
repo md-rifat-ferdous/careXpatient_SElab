@@ -73,6 +73,31 @@ router.get('/specialties', async (req, res) => {
   }
 });
 
+// GET /api/doctors/profile/:id — Fetch a single doctor profile by Doctor ID
+router.get('/profile/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const doctor = await prisma.doctor.findUnique({
+      where: { id: BigInt(id) },
+      include: {
+        user: { select: { fullName: true, profilePhotoUrl: true } },
+        specialties: { include: { specialty: true } },
+        clinics: { include: { clinic: true } }
+      }
+    });
+    if (!doctor) {
+      return res.status(404).json({ error: 'Doctor not found' });
+    }
+    const serialized = JSON.parse(JSON.stringify(doctor, (_, value) =>
+      typeof value === 'bigint' ? value.toString() : value
+    ));
+    res.json(serialized);
+  } catch (error) {
+    console.error('Error fetching doctor by id:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
 // ─── Doctor Portal — Appointment Management ───────────────────────────────────
 
 // GET /api/doctors/:userId/appointments — Fetch appointments for the logged-in doctor

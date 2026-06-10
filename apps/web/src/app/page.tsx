@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import ChatbotSearch from '@/components/chatbot/ChatbotSearch';
 
 export default function LandingPage() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -138,48 +139,10 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Quick Search Card */}
+      {/* AI Doctor Triage Chatbot Service */}
       <section className="relative z-20 -mt-16 px-6">
         <div className="container mx-auto">
-          <div className="max-w-5xl mx-auto bg-white rounded-[2rem] shadow-2xl shadow-primary/10 border border-primary/5 p-8 lg:p-10">
-            <div className="flex gap-8 mb-8 border-b border-foreground/5 pb-4">
-              <button 
-                onClick={() => setActiveTab('doctors')}
-                className={`text-lg font-bold pb-4 transition-all ${activeTab === 'doctors' ? 'text-primary border-b-2 border-primary' : 'text-subtle-gray hover:text-foreground'}`}
-              >
-                Find Doctors
-              </button>
-              <button 
-                onClick={() => setActiveTab('tests')}
-                className={`text-lg font-bold pb-4 transition-all ${activeTab === 'tests' ? 'text-primary border-b-2 border-primary' : 'text-subtle-gray hover:text-foreground'}`}
-              >
-                Book Lab Tests
-              </button>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
-              <div className="flex flex-col gap-2">
-                <label className="text-xs font-bold uppercase tracking-wider text-subtle-gray ml-1">Location</label>
-                <div className="relative">
-                  <input type="text" placeholder={activeTab === 'doctors' ? "Search city or area..." : "Your home address..."} className="w-full bg-background border border-foreground/5 rounded-2xl px-5 py-4 focus:ring-2 focus:ring-primary/20 outline-none transition-all font-medium" />
-                  <svg className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-subtle-gray" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-                </div>
-              </div>
-              <div className="flex flex-col gap-2 md:col-span-1 lg:col-span-2">
-                <label className="text-xs font-bold uppercase tracking-wider text-subtle-gray ml-1">Specialty / Condition</label>
-                <div className="relative">
-                  <input type="text" placeholder={activeTab === 'doctors' ? "eg. Cardiologist, Fever, Skin..." : "eg. Blood Test, MRI, COVID-19..."} className="w-full bg-background border border-foreground/5 rounded-2xl px-5 py-4 focus:ring-2 focus:ring-primary/20 outline-none transition-all font-medium" />
-                  <svg className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-subtle-gray" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                </div>
-              </div>
-              <div className="flex items-end">
-                <button className="w-full bg-primary text-white py-4 rounded-2xl font-bold text-lg hover:bg-primary/90 transition-all flex items-center justify-center gap-2 shadow-lg shadow-primary/20">
-                  <svg className="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-                  Search
-                </button>
-              </div>
-            </div>
-          </div>
+          <ChatbotSearch />
         </div>
       </section>
 
