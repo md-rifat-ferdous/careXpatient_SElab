@@ -16,6 +16,9 @@ interface Props {
   initialFilter?: string;
   onAccept: (id: string) => void;
   onDecline: (appointment: DoctorAppointment) => void;
+  onStartConsultation?: (appointment: DoctorAppointment) => void;
+  onComplete?: (appointment: DoctorAppointment) => void;
+  onReschedule?: (appointment: DoctorAppointment) => void;
 }
 
 const FILTERS: FilterTab[] = ['Today', 'Upcoming', 'Pending', 'Online', 'In-person'];
@@ -57,6 +60,8 @@ export default function DoctorAppointmentHub({
   initialFilter = 'Today',
   onAccept,
   onDecline,
+  onStartConsultation,
+  onComplete,
 }: Props) {
   const [activeFilter, setActiveFilter] = useState<FilterTab>(
     FILTERS.includes(initialFilter as FilterTab) ? (initialFilter as FilterTab) : 'Today'
@@ -79,7 +84,7 @@ export default function DoctorAppointmentHub({
 
   const scheduleList = appointments.filter((a) => {
     if (activeFilter === 'Today') return isToday(a.date) && a.status !== 'Cancelled';
-    if (activeFilter === 'Upcoming') return a.status === 'Confirmed';
+    if (activeFilter === 'Upcoming') return ['Confirmed', 'Waiting_for_call', 'In_consultation'].includes(a.status);
     if (activeFilter === 'Online') return a.type === 'Online' && a.status !== 'Cancelled';
     if (activeFilter === 'In-person') return a.type === 'In_person' && a.status !== 'Cancelled';
     return false;
@@ -187,9 +192,27 @@ export default function DoctorAppointmentHub({
                           {appt.type === 'Online' ? '📹 Video' : '🏥 In-person'} &bull; {appt.date} at {appt.timeSlot}
                         </p>
                       </div>
-                      <span className="text-xs font-medium bg-teal-50 text-teal-700 rounded-full px-3 py-1 flex-shrink-0">
-                        {appt.status}
-                      </span>
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        {(appt.status === 'Approved' || appt.status === 'Confirmed') && onStartConsultation && (
+                          <button
+                            onClick={() => onStartConsultation(appt)}
+                            className="px-3 py-1.5 text-xs font-semibold text-teal-700 bg-teal-50 border border-teal-200 rounded-lg hover:bg-teal-100 transition-colors"
+                          >
+                            Consult
+                          </button>
+                        )}
+                        {(appt.status === 'Confirmed' || appt.status === 'In_consultation') && onComplete && (
+                          <button
+                            onClick={() => onComplete(appt)}
+                            className="px-3 py-1.5 text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg hover:bg-emerald-100 transition-colors"
+                          >
+                            Complete
+                          </button>
+                        )}
+                        <span className="text-xs font-medium bg-teal-50 text-teal-700 rounded-full px-3 py-1 flex-shrink-0">
+                          {appt.status}
+                        </span>
+                      </div>
                     </div>
                   ))}
                 </div>

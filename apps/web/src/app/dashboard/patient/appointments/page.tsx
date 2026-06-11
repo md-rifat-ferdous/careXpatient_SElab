@@ -1,328 +1,273 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import DoctorCard from '../../../../components/appointments/DoctorCard';
-import BookingDrawer from '../../../../components/appointments/BookingDrawer';
-import FilterDrawer, { FilterState, defaultFilters } from '../../../../components/appointments/FilterDrawer';
-import DoctorProfileModal from '../../../../components/appointments/DoctorProfileModal';
-import { Doctor, DoctorFilters } from '../../../../types/doctor';
-import { getDoctors, getSpecialties } from '../../../../services/doctor.service';
-import { useAuthStore } from '../../../../store/auth.store';
+import { useAuthStore } from '@/store/auth.store';
+import { fetchPatientAppointments, cancelAppointment, PatientAppointment } from '@/services/doctor.service';
+import { getSocket, joinAppointmentRoom } from '@/lib/socket';
 
-type SortOption = 'Recommended' | 'Rating' | 'Fee (Low to High)' | 'Experience';
-const SORT_OPTIONS: SortOption[] = ['Recommended', 'Rating', 'Fee (Low to High)', 'Experience'];
+const STATUS_COLORS: Record<string, string> = {
+  Pending: 'bg-amber-100 text-amber-700',
+  Approved: 'bg-sky-100 text-sky-700',
+  Rejected: 'bg-rose-100 text-rose-700',
+  Rescheduled: 'bg-violet-100 text-violet-700',
+  Confirmed: 'bg-teal-100 text-teal-700',
+  Waiting_for_call: 'bg-blue-100 text-blue-700',
+  In_consultation: 'bg-purple-100 text-purple-700',
+  Completed: 'bg-emerald-100 text-emerald-700',
+  Cancelled: 'bg-rose-100 text-rose-700',
+  NoShow: 'bg-slate-100 text-slate-600',
+};
 
-export default function PatientAppointmentsPage() {
-  const { user } = useAuthStore();
-  const [allDoctors, setAllDoctors] = useState<Doctor[]>([]);
+function formatDate(dateStr: string) {
+  const normalized = dateStr.includes('T') ? dateStr.substring(0, 10) : dateStr;
+  const d = new Date(normalized + 'T00:00:00');
+  return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+}
+
+function formatTime(timeStr: string) {
+  const d = new Date(timeStr);
+  return d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+}
+
+export default function MyAppointmentsPage() {
+  const { user, token } = useAuthStore();
+  const router = useRouter();
+  const [appointments, setAppointments] = useState<PatientAppointment[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [specialties, setSpecialties] = useState<string[]>([]);
-  
-  const [searchQuery, setSearchQuery] = useState('');
-  const [specialtyFilter, setSpecialtyFilter] = useState('All');
-  const [districtFilter, setDistrictFilter] = useState('All');
-  const [availableToday, setAvailableToday] = useState(false);
-  const [sortBy, setSortBy] = useState<SortOption>('Recommended');
-  const [isSortOpen, setIsSortOpen] = useState(false);
+  const [filter, setFilter] = useState<'all' | 'upcoming' | 'past'>('upcoming');
 
-  const [selectedDoctor, setSelectedDoctor] = useState<Doctor | null>(null);
-  const [profileDoctor, setProfileDoctor] = useState<Doctor | null>(null);
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
-  const [activeFilters, setActiveFilters] = useState<FilterState>(defaultFilters);
+  // Socket
+  const socket = token ? getSocket(token) : null;
 
-  // Initial fetch: Get all doctors and specialties
   useEffect(() => {
-    const init = async () => {
-      setIsLoading(true);
-      try {
-        const [docsData, specsData] = await Promise.all([
-          getDoctors(),
-          getSpecialties()
-        ]);
-        
-        // Enrich data with mock fields for demo
-        const enrichedDocs = docsData.map((d: Doctor) => ({
-          ...d,
-          user: {
-            ...d.user,
-            gender: (d.user.fullName.includes('Sarah') || d.user.fullName.includes('Anika') || d.user.fullName.includes('Maria') ? 'Female' : 'Male') as 'Male' | 'Female',
-            district: d.id === '1' || d.id === '3' || d.id === '5' ? 'Dhaka' : 'Chattogram',
-          },
-        }));
-        setAllDoctors(enrichedDocs);
-
-        setSpecialties(specsData.map((s: any) => s.name));
-      } catch (err) {
-        console.error('Initialization error:', err);
-      } finally {
-        setIsLoading(false);
-      }
+    if (!socket) return;
+    const handler = (data: { appointmentId: string; status: string }) => {
+      setAppointments((prev) =>
+        prev.map((a) => (a.id === data.appointmentId ? { ...a, status: data.status as any } : a))
+      );
     };
-    init();
-  }, []);
+    socket.on('appointment:status', handler);
+    return () => { socket.off('appointment:status', handler); };
+  }, [socket]);
 
-  // Compute filtered and sorted doctors locally for maximum responsiveness and correctness
-  const filteredDoctors = useMemo(() => {
-    let results = [...allDoctors];
+  // Cancel state
+  const [cancelTarget, setCancelTarget] = useState<PatientAppointment | null>(null);
+  const [cancelReason, setCancelReason] = useState('');
+  const [isCancelling, setIsCancelling] = useState(false);
 
-    // 1. Search Query
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      results = results.filter(d => 
-        d.user.fullName.toLowerCase().includes(query) ||
-        d.specialties.some(s => s.specialty.name.toLowerCase().includes(query)) ||
-        d.qualification.toLowerCase().includes(query)
-      );
+  useEffect(() => {
+    if (!user) return;
+    setIsLoading(true);
+    fetchPatientAppointments(user.id)
+      .then(setAppointments)
+      .catch(console.error)
+      .finally(() => setIsLoading(false));
+  }, [user]);
+
+  const handleJoinVideoCall = (appointment: PatientAppointment) => {
+    if (token) {
+      joinAppointmentRoom(appointment.id, token);
     }
-
-    // 2. Specialty (Quick Filter or Drawer)
-    if (specialtyFilter !== 'All') {
-      console.log(`Filtering by dropdown specialty: ${specialtyFilter}`);
-      results = results.filter(d => 
-        d.specialties.some(s => s.specialty.name.trim() === specialtyFilter.trim())
-      );
-    } else if (activeFilters.specialties.length > 0) {
-      console.log(`Filtering by drawer specialties: ${activeFilters.specialties.join(', ')}`);
-      results = results.filter(d => 
-        d.specialties.some(s => activeFilters.specialties.some(as => as.trim() === s.specialty.name.trim()))
-      );
-    }
-
-    // 3. Experience
-    if (activeFilters.experienceMin > 0) {
-      results = results.filter(d => d.experienceYears >= activeFilters.experienceMin);
-    }
-
-    // 4. Fee Range
-    results = results.filter(d => {
-      const fee = parseFloat(d.fee);
-      return fee >= activeFilters.feeMin && fee <= activeFilters.feeMax;
-    });
-
-    // 5. Rating
-    if (activeFilters.ratingMin > 0) {
-      results = results.filter(d => parseFloat(d.rating) >= activeFilters.ratingMin);
-    }
-
-    // 6. Gender
-    if (activeFilters.gender !== 'Any') {
-      results = results.filter(d => d.user.gender === activeFilters.gender);
-    }
-
-    // 7. District
-    if (districtFilter !== 'All') {
-      results = results.filter(d => d.user.district === districtFilter);
-    }
-
-    // 8. Sorting
-    results.sort((a, b) => {
-      if (sortBy === 'Rating') return parseFloat(b.rating) - parseFloat(a.rating);
-      if (sortBy === 'Fee (Low to High)') return parseFloat(a.fee) - parseFloat(b.fee);
-      if (sortBy === 'Experience') return b.experienceYears - a.experienceYears;
-      return 0; // Recommended / Default
-    });
-
-    return results;
-  }, [allDoctors, searchQuery, specialtyFilter, districtFilter, activeFilters, sortBy]);
-
-  const handleBookNow = (doctor: Doctor) => {
-    setProfileDoctor(null);
-    setSelectedDoctor(doctor);
-    setIsDrawerOpen(true);
+    router.push(`/dashboard/patient/consultation/${appointment.id}`);
   };
 
-  const handleViewProfile = (doctor: Doctor) => {
-    setProfileDoctor(doctor);
+  const now = new Date();
+  const filtered = appointments.filter((a) => {
+    const d = new Date(a.date + 'T00:00:00');
+    if (filter === 'upcoming') return d >= now && a.status !== 'Cancelled' && a.status !== 'Completed';
+    if (filter === 'past') return d < now || a.status === 'Cancelled' || a.status === 'Completed';
+    return true;
+  });
+
+  const handleCancelAppointment = async () => {
+    if (!cancelTarget || !user) return;
+    setIsCancelling(true);
+    try {
+      await cancelAppointment(cancelTarget.id, user.id, cancelReason || undefined);
+      setAppointments((prev) =>
+        prev.map((a) =>
+          a.id === cancelTarget.id
+            ? { ...a, status: 'Cancelled' as const, cancellationReason: cancelReason || 'Cancelled by patient' }
+            : a
+        )
+      );
+      setCancelTarget(null);
+      setCancelReason('');
+    } catch (err: any) {
+      console.error('Failed to cancel:', err);
+    } finally {
+      setIsCancelling(false);
+    }
   };
 
   return (
     <div className="bg-slate-50 min-h-screen font-sans text-slate-800">
-      {/* Header Section */}
       <header className="bg-white border-b border-slate-100 px-8 py-5 sticky top-0 z-30">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex flex-col">
-            <nav className="flex items-center gap-2 text-[13px] text-slate-400 mb-1">
-              <Link href="/dashboard/patient" className="hover:text-teal-600 transition-colors">Appointments</Link>
-              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-              <span className="text-slate-800 font-bold">Find a Doctor</span>
-            </nav>
-            <h1 className="text-2xl font-black text-slate-800 tracking-tight">Find a Doctor</h1>
+            <h1 className="text-2xl font-black text-slate-800 tracking-tight">My Appointments</h1>
+            <p className="text-sm text-slate-400 font-bold mt-1">
+              {isLoading ? 'Loading...' : `${appointments.length} total appointments`}
+            </p>
           </div>
-          
-          <div className="flex items-center gap-6">
-             <button className="w-10 h-10 flex items-center justify-center rounded-full bg-slate-50 text-slate-400 hover:text-teal-600 hover:bg-teal-50 transition-all relative">
-               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-               <span className="absolute top-2 right-2.5 w-2 h-2 bg-teal-500 rounded-full ring-2 ring-white"></span>
-             </button>
-             <div className="flex items-center gap-3">
-                <img src={user?.profilePhotoUrl || 'https://i.pravatar.cc/150?u=p1'} className="w-10 h-10 rounded-full border-2 border-slate-100 object-cover" />
-                <div className="hidden sm:block text-left">
-                  <p className="text-sm font-black text-slate-800 leading-none">{user?.fullName || 'Md. Rafiqul'}</p>
-                  <p className="text-[11px] text-slate-400 font-bold mt-1 uppercase tracking-wider">Patient</p>
-                </div>
-             </div>
-          </div>
+          <Link
+            href="/dashboard/patient/appointments/book"
+            className="flex items-center gap-2 px-5 py-2.5 bg-teal-500 text-white rounded-xl font-bold text-sm shadow-lg shadow-teal-500/20 hover:bg-teal-600 transition-all"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Book New Appointment
+          </Link>
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-8 py-8 space-y-8">
-        
-        {/* Search Bar */}
-        <section className="bg-white rounded-2xl shadow-sm border border-slate-100 p-2">
-          <div className="relative">
-            <div className="absolute inset-y-0 left-5 flex items-center text-slate-300 pointer-events-none">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <main className="max-w-7xl mx-auto px-8 py-8 space-y-6">
+        {/* Filter tabs */}
+        <div className="flex gap-2">
+          {(['upcoming', 'past', 'all'] as const).map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setFilter(tab)}
+              className={`px-5 py-2 rounded-xl text-sm font-bold capitalize transition-all ${
+                filter === tab
+                  ? 'bg-teal-500 text-white shadow-md shadow-teal-100'
+                  : 'bg-white text-slate-500 border border-slate-200 hover:border-teal-300'
+              }`}
+            >
+              {tab === 'upcoming' ? 'Upcoming' : tab === 'past' ? 'Past' : 'All'}
+            </button>
+          ))}
+        </div>
+
+        {/* Appointment list */}
+        {isLoading ? (
+          <div className="space-y-4">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-28 bg-white rounded-2xl border border-slate-100 animate-pulse shadow-sm" />
+            ))}
+          </div>
+        ) : filtered.length === 0 ? (
+          <div className="py-20 bg-white rounded-3xl border border-slate-100 shadow-sm flex flex-col items-center justify-center text-center">
+            <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mb-4">
+              <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
             </div>
-            <input
-              type="text"
-              placeholder="Search by doctor name, specialty, or condition..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-14 pr-6 py-4 rounded-xl text-[15px] font-medium text-slate-700 placeholder:text-slate-300 outline-none focus:ring-2 focus:ring-teal-100 transition-all"
-            />
-          </div>
-        </section>
-
-        {/* Quick Filters */}
-        <section className="flex flex-wrap items-center gap-4 bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
-          <div className="flex items-center gap-2 bg-slate-50 px-4 py-2.5 rounded-xl border border-slate-100 min-w-[180px]">
-            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest shrink-0">Specialty</span>
-            <select 
-              value={specialtyFilter} 
-              onChange={(e) => setSpecialtyFilter(e.target.value)}
-              className="w-full bg-transparent border-none text-sm font-bold text-slate-700 outline-none cursor-pointer appearance-none"
-            >
-              <option value="All">All Specialties</option>
-              {specialties.map(s => <option key={s} value={s}>{s}</option>)}
-            </select>
-          </div>
-
-          <div className="flex items-center gap-2 bg-slate-50 px-4 py-2.5 rounded-xl border border-slate-100 min-w-[180px]">
-            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest shrink-0">District</span>
-            <select 
-              value={districtFilter} 
-              onChange={(e) => setDistrictFilter(e.target.value)}
-              className="w-full bg-transparent border-none text-sm font-bold text-slate-700 outline-none cursor-pointer appearance-none"
-            >
-              <option value="All">All Districts</option>
-              <option value="Dhaka">Dhaka</option>
-              <option value="Chattogram">Chattogram</option>
-              <option value="Sylhet">Sylhet</option>
-            </select>
-          </div>
-
-          <div className="flex items-center gap-4 bg-slate-50 px-4 py-2.5 rounded-xl border border-slate-100">
-            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Available Today</span>
-            <button 
-              onClick={() => setAvailableToday(!availableToday)}
-              className={`w-11 h-5.5 rounded-full relative transition-all duration-300 ${availableToday ? 'bg-teal-500' : 'bg-slate-200'}`}
-            >
-              <div className={`absolute top-0.5 w-4.5 h-4.5 bg-white rounded-full shadow-sm transition-all duration-300 ${availableToday ? 'left-6' : 'left-0.5'}`} />
-            </button>
-          </div>
-
-          <div className="ml-auto">
-            <button 
-              onClick={() => setIsFilterDrawerOpen(true)}
-              className="flex items-center gap-2 px-6 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-600 hover:border-teal-500 hover:text-teal-600 transition-all shadow-sm"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>
-              More Filters
-            </button>
-          </div>
-        </section>
-
-        {/* Results Header */}
-        <div className="flex items-end justify-between">
-          <div>
-            <h2 className="text-xl font-black text-slate-800">Top Specialists in Dhaka</h2>
-            <p className="text-sm text-slate-400 font-bold mt-1">
-              {isLoading ? 'Searching specialists...' : (
-                <>
-                  <span className="text-slate-500">{filteredDoctors.length} doctors available</span>
-                  <span className="mx-2">•</span>
-                  <span className="text-slate-400">Showing verified & highly rated</span>
-                </>
-              )}
+            <h3 className="text-xl font-black text-slate-800">No appointments found</h3>
+            <p className="text-slate-400 font-bold max-w-xs mt-1">
+              {filter === 'upcoming' ? 'You have no upcoming appointments. Book one now!' : 'No appointments match this filter.'}
             </p>
+            <Link href="/dashboard/patient/appointments/book" className="mt-6 px-6 py-3 bg-teal-500 text-white rounded-xl font-bold text-sm shadow-lg shadow-teal-500/20 hover:bg-teal-600 transition-all">
+              Book an Appointment
+            </Link>
           </div>
-          
-          <div className="flex items-center gap-3 relative">
-            <span className="text-sm text-slate-400 font-bold">Sort by:</span>
-            <button 
-              onClick={() => setIsSortOpen(!isSortOpen)}
-              className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-700 shadow-sm hover:border-teal-400 transition-all"
-            >
-              {sortBy}
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={`transition-transform duration-300 ${isSortOpen ? 'rotate-180' : ''}`}><polyline points="6 9 12 15 18 9"/></svg>
-            </button>
-            {isSortOpen && (
-              <div className="absolute right-0 top-full mt-2 w-52 bg-white border border-slate-100 rounded-2xl shadow-xl z-20 overflow-hidden animate-in fade-in slide-in-from-top-2">
-                {SORT_OPTIONS.map(opt => (
-                  <button 
-                    key={opt}
-                    onClick={() => { setSortBy(opt); setIsSortOpen(false); }}
-                    className={`w-full px-5 py-3 text-left text-[13px] font-bold transition-colors ${sortBy === opt ? 'bg-teal-50 text-teal-600' : 'text-slate-600 hover:bg-slate-50'}`}
+        ) : (
+          <div className="space-y-4">
+            {filtered.map((apt) => (
+              <div key={apt.id} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex items-center gap-5 hover:shadow-md transition-shadow">
+                <img
+                  src={apt.doctor.user.profilePhotoUrl || 'https://via.placeholder.com/150'}
+                  alt={apt.doctor.user.fullName}
+                  className="w-14 h-14 rounded-xl object-cover shrink-0"
+                />
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <p className="font-bold text-slate-800 truncate">{apt.doctor.user.fullName}</p>
+                    <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold ${STATUS_COLORS[apt.status] || 'bg-slate-100 text-slate-600'}`}>
+                      {apt.status}
+                    </span>
+                  </div>
+                  <p className="text-xs text-teal-600 font-semibold mb-1">
+                    {apt.doctor.specialties[0]?.specialty.name}
+                  </p>
+                  <div className="flex items-center gap-4 text-sm text-slate-500">
+                    <span className="flex items-center gap-1">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                      {formatDate(apt.date)}
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                      {formatTime(apt.timeSlot)}
+                    </span>
+                    <span className="flex items-center gap-1 text-xs font-semibold uppercase tracking-wide">
+                      {apt.type === 'Online' ? '🎥 Online' : '🏥 In-person'}
+                    </span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  {apt.status === 'Pending' && (
+                    <span className="text-xs text-amber-600 font-bold bg-amber-50 px-3 py-1.5 rounded-lg">
+                      Awaiting confirmation
+                    </span>
+                  )}
+                  {apt.type === 'Online' && (apt.status === 'Confirmed' || apt.status === 'Waiting_for_call' || apt.status === 'In_consultation') && (
+                    <button
+                      onClick={() => handleJoinVideoCall(apt)}
+                      className="text-xs font-semibold text-teal-600 bg-teal-50 border border-teal-200 px-3 py-1.5 rounded-lg hover:bg-teal-100 transition-colors"
+                    >
+                      {apt.status === 'In_consultation' ? 'Join Call' : 'Waiting Room'}
+                    </button>
+                  )}
+                  {(apt.status === 'Pending' || apt.status === 'Approved' || apt.status === 'Confirmed') && (
+                    <button
+                      onClick={() => setCancelTarget(apt)}
+                      className="text-xs font-semibold text-rose-600 bg-rose-50 border border-rose-200 px-3 py-1.5 rounded-lg hover:bg-rose-100 transition-colors"
+                    >
+                      Cancel
+                    </button>
+                  )}
+                  {apt.status === 'Rescheduled' && (
+                    <span className="text-xs text-violet-600 font-bold bg-violet-50 px-3 py-1.5 rounded-lg">
+                      Rescheduled
+                    </span>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Cancel Modal */}
+        {cancelTarget && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md border border-gray-100">
+              <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+                <h2 className="text-sm font-bold text-gray-900">Cancel Appointment</h2>
+                <button onClick={() => { setCancelTarget(null); setCancelReason(''); }} className="text-gray-400 hover:text-gray-600 text-lg leading-none">✕</button>
+              </div>
+              <div className="p-5 space-y-4">
+                <p className="text-sm text-gray-600">
+                  Cancel appointment with <strong>{cancelTarget.doctor.user.fullName}</strong> on {formatDate(cancelTarget.date)} at {formatTime(cancelTarget.timeSlot)}?
+                </p>
+                <div>
+                  <label className="block text-xs font-bold text-gray-600 mb-1.5">Reason (optional)</label>
+                  <textarea
+                    value={cancelReason}
+                    onChange={(e) => setCancelReason(e.target.value)}
+                    rows={2}
+                    className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500/30 focus:border-rose-500"
+                    placeholder="Tell us why..."
+                  />
+                </div>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => { setCancelTarget(null); setCancelReason(''); }}
+                    className="flex-1 py-2.5 border border-gray-200 text-gray-700 rounded-xl text-sm font-bold hover:bg-gray-50 transition-colors"
                   >
-                    {opt}
+                    Keep
                   </button>
-                ))}
+                  <button
+                    onClick={handleCancelAppointment}
+                    disabled={isCancelling}
+                    className="flex-1 py-2.5 bg-rose-600 text-white rounded-xl text-sm font-bold hover:bg-rose-700 transition-colors disabled:opacity-50"
+                  >
+                    {isCancelling ? 'Cancelling...' : 'Cancel Appointment'}
+                  </button>
+                </div>
               </div>
-            )}
-          </div>
-        </div>
-
-        {/* Doctor Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {isLoading ? (
-            Array(6).fill(0).map((_, i) => (
-              <div key={i} className="h-64 bg-white rounded-2xl border border-slate-100 animate-pulse shadow-sm" />
-            ))
-          ) : filteredDoctors.length > 0 ? (
-            filteredDoctors.map(doctor => (
-              <DoctorCard 
-                key={doctor.id} 
-                doctor={doctor} 
-                onBookNow={handleBookNow} 
-                onViewProfile={handleViewProfile} 
-              />
-            ))
-          ) : (
-            <div className="col-span-full py-20 bg-white rounded-3xl border border-slate-100 shadow-sm flex flex-col items-center justify-center text-center">
-              <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mb-4">
-                <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-              </div>
-              <h3 className="text-xl font-black text-slate-800">No doctors found</h3>
-              <p className="text-slate-400 font-bold max-w-xs mt-1">Try adjusting your filters or search terms.</p>
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </main>
-
-      {/* Drawers & Modals */}
-      <BookingDrawer 
-        isOpen={isDrawerOpen} 
-        onClose={() => setIsDrawerOpen(false)} 
-        doctor={selectedDoctor} 
-      />
-      
-      <FilterDrawer 
-        isOpen={isFilterDrawerOpen} 
-        onClose={() => setIsFilterDrawerOpen(false)} 
-        onApply={(f) => setActiveFilters(f)} 
-      />
-      
-      <DoctorProfileModal 
-        doctor={profileDoctor} 
-        onClose={() => setProfileDoctor(null)} 
-        onBookNow={handleBookNow} 
-      />
-      
-      {/* Click outside to close sort */}
-      {isSortOpen && <div className="fixed inset-0 z-10" onClick={() => setIsSortOpen(false)} />}
     </div>
   );
 }

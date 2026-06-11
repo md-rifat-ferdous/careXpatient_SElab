@@ -1,5 +1,7 @@
 import { Request, Response } from 'express';
 import prisma from '../config/prisma';
+import { generateChannelName, generateRtcToken } from '../services/agora.service';
+import { emitStatusChange } from '../services/socket.service';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -116,16 +118,17 @@ export const getDoctorStats = async (req: Request, res: Response) => {
       return res.status(404).json({ success: false, message: 'Doctor profile not found.' });
     }
 
-    const [pending, confirmed, completed, cancelled] = await Promise.all([
+    const [pending, confirmed, inConsultation, completed, cancelled] = await Promise.all([
       prisma.appointment.count({ where: { doctorId: doctor.id, status: 'Pending' } }),
       prisma.appointment.count({ where: { doctorId: doctor.id, status: 'Confirmed' } }),
+      prisma.appointment.count({ where: { doctorId: doctor.id, status: 'In_consultation' } }),
       prisma.appointment.count({ where: { doctorId: doctor.id, status: 'Completed' } }),
       prisma.appointment.count({ where: { doctorId: doctor.id, status: 'Cancelled' } }),
     ]);
 
     res.json({
       success: true,
-      data: { pending, confirmed, completed, cancelled },
+      data: { pending, confirmed, inConsultation, completed, cancelled },
     });
   } catch (error) {
     console.error('Error fetching doctor stats:', error);
@@ -136,6 +139,7 @@ export const getDoctorStats = async (req: Request, res: Response) => {
 /**
  * POST /api/appointments/:id/accept
  * Transitions an appointment from Pending → Confirmed.
+ * For Online appointments, auto-generates Agora channel and token.
  */
 export const acceptAppointment = async (req: Request, res: Response) => {
   try {
@@ -156,10 +160,22 @@ export const acceptAppointment = async (req: Request, res: Response) => {
       });
     }
 
+    const updateData: any = { status: 'Confirmed' };
+
+    if (appointment.type === 'Online') {
+      const channelName = generateChannelName(id);
+      const { token, expirationTime } = generateRtcToken(channelName, '0');
+      updateData.agoraChannelName = channelName;
+      updateData.agoraToken = token;
+      updateData.tokenExpirationTime = expirationTime;
+    }
+
     const updated = await prisma.appointment.update({
       where: { id: BigInt(id) },
-      data: { status: 'Confirmed' },
+      data: updateData,
     });
+
+    emitStatusChange(id, 'Confirmed');
 
     res.json({
       success: true,
@@ -174,7 +190,7 @@ export const acceptAppointment = async (req: Request, res: Response) => {
 
 /**
  * POST /api/appointments/:id/decline
- * Transitions an appointment to Cancelled and records the reason.
+ * Transitions an appointment to Rejected and records the reason.
  * Body: { reason: string, cancelledByUserId: string }
  */
 export const declineAppointment = async (req: Request, res: Response) => {
@@ -183,7 +199,7 @@ export const declineAppointment = async (req: Request, res: Response) => {
     const { reason, cancelledByUserId } = req.body;
 
     if (!reason || typeof reason !== 'string' || reason.trim() === '') {
-      return res.status(400).json({ success: false, message: 'A cancellation reason is required.' });
+      return res.status(400).json({ success: false, message: 'A rejection reason is required.' });
     }
 
     const appointment = await prisma.appointment.findUnique({
@@ -194,7 +210,7 @@ export const declineAppointment = async (req: Request, res: Response) => {
       return res.status(404).json({ success: false, message: 'Appointment not found.' });
     }
 
-    if (appointment.status === 'Cancelled' || appointment.status === 'Completed') {
+    if (appointment.status === 'Rejected' || appointment.status === 'Completed') {
       return res.status(400).json({
         success: false,
         message: `Cannot decline an appointment with status '${appointment.status}'.`,
@@ -204,15 +220,17 @@ export const declineAppointment = async (req: Request, res: Response) => {
     const updated = await prisma.appointment.update({
       where: { id: BigInt(id) },
       data: {
-        status: 'Cancelled',
+        status: 'Rejected',
         cancellationReason: reason.trim(),
         cancelledBy: cancelledByUserId ? BigInt(cancelledByUserId) : null,
       },
     });
 
+    emitStatusChange(id, 'Rejected');
+
     res.json({
       success: true,
-      message: 'Appointment declined.',
+      message: 'Appointment rejected.',
       data: serialize(updated),
     });
   } catch (error) {

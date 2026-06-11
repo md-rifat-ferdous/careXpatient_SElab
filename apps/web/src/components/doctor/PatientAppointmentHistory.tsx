@@ -26,6 +26,24 @@ const statusConfig: Record<
     bg: 'bg-amber-50',
     Icon: Circle,
   },
+  Approved: {
+    label: 'Approved',
+    color: 'text-sky-700',
+    bg: 'bg-sky-50',
+    Icon: CheckCircle2,
+  },
+  Rejected: {
+    label: 'Rejected',
+    color: 'text-rose-700',
+    bg: 'bg-rose-50',
+    Icon: XCircle,
+  },
+  Rescheduled: {
+    label: 'Rescheduled',
+    color: 'text-violet-700',
+    bg: 'bg-violet-50',
+    Icon: Circle,
+  },
   Confirmed: {
     label: 'Confirmed',
     color: 'text-teal-700',
@@ -49,6 +67,18 @@ const statusConfig: Record<
     color: 'text-slate-600',
     bg: 'bg-slate-50',
     Icon: AlertCircle,
+  },
+  Waiting_for_call: {
+    label: 'Waiting for Call',
+    color: 'text-orange-700',
+    bg: 'bg-orange-50',
+    Icon: Clock,
+  },
+  In_consultation: {
+    label: 'In Consultation',
+    color: 'text-blue-700',
+    bg: 'bg-blue-50',
+    Icon: Monitor,
   },
 };
 

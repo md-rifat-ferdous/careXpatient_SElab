@@ -22,7 +22,12 @@ enum AppointmentType {
 
 enum AppointmentStatus {
   Pending
+  Approved
+  Rejected
+  Rescheduled
   Confirmed
+  Waiting_for_call @map("Waiting_for_call")
+  In_consultation  @map("In_consultation")
   Completed
   Cancelled
   NoShow
@@ -180,13 +185,21 @@ model Appointment {
   reasonForVisit     String?           @map("reason_for_visit") @db.Text
   cancellationReason String?           @map("cancellation_reason") @db.Text
   cancelledBy        BigInt?           @map("cancelled_by")
-  createdAt          DateTime          @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt          DateTime          @default(now()) @map("updated_at") @db.Timestamptz
+  agoraChannelName     String?   @map("agora_channel_name") @db.VarChar(255)
+  agoraToken           String?   @map("agora_token") @db.Text
+  tokenExpirationTime  DateTime? @map("token_expiration_time") @db.Timestamptz
+  consultationStartedAt DateTime? @map("consultation_started_at") @db.Timestamptz
+  consultationEndedAt   DateTime? @map("consultation_ended_at") @db.Timestamptz
+  consultationDuration  Int?      @map("consultation_duration")
+  createdAt            DateTime          @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt            DateTime          @default(now()) @map("updated_at") @db.Timestamptz
 
   patient      Patient       @relation(fields: [patientId], references: [id])
   doctor       Doctor        @relation(fields: [doctorId], references: [id])
   clinic       Clinic?       @relation(fields: [clinicId], references: [id])
   consultation Consultation?
+  messages     ConsultationMessage[]
+  files        ConsultationFile[]
 
   @@index([date, doctorId])
   @@index([patientId])
@@ -203,8 +216,10 @@ model Consultation {
   createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz
   updatedAt     DateTime  @default(now()) @map("updated_at") @db.Timestamptz
 
-  appointment  Appointment   @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+  appointment  Appointment        @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
   prescription Prescription?
+  messages     ConsultationMessage[]
+  files        ConsultationFile[]
 
   @@map("Consultation")
 }
@@ -222,6 +237,40 @@ model Prescription {
   consultation Consultation @relation(fields: [consultationId], references: [id], onDelete: Cascade)
 
   @@map("Prescription")
+}
+
+model ConsultationMessage {
+  id             BigInt    @id @default(autoincrement())
+  consultationId BigInt?   @map("consultation_id")
+  senderId       BigInt    @map("sender_id")
+  senderRole     String    @map("sender_role") @db.VarChar(20)
+  message        String    @db.Text
+  createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  appointmentId  BigInt    @map("appointment_id")
+  appointment    Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+  consultation   Consultation? @relation(fields: [consultationId], references: [id], onDelete: SetNull)
+
+  @@index([appointmentId])
+  @@index([consultationId])
+  @@map("ConsultationMessage")
+}
+
+model ConsultationFile {
+  id             BigInt   @id @default(autoincrement())
+  consultationId BigInt   @map("consultation_id")
+  appointmentId  BigInt   @map("appointment_id")
+  fileName       String   @map("file_name") @db.VarChar(255)
+  fileType       String   @map("file_type") @db.VarChar(100)
+  fileUrl        String   @map("file_url") @db.Text
+  uploadedBy     BigInt   @map("uploaded_by")
+  uploadedByRole String   @map("uploaded_by_role") @db.VarChar(20)
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz
+  appointment    Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+  consultation   Consultation @relation(fields: [consultationId], references: [id], onDelete: Cascade)
+
+  @@index([appointmentId])
+  @@index([consultationId])
+  @@map("ConsultationFile")
 }
 
 model LabTest {

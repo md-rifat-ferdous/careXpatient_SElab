@@ -1,22 +1,25 @@
 'use client';
 
 import React, { useState, useEffect, useCallback, Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/auth.store';
 import DoctorAppointmentHub from '@/components/doctor/DoctorAppointmentHub';
 import DoctorCancellationModal from '@/components/doctor/DoctorCancellationModal';
+import DoctorConsultationModal from '@/components/doctor/DoctorConsultationModal';
+import { getSocket, joinAppointmentRoom } from '@/lib/socket';
 import {
   fetchDoctorAppointments,
   acceptAppointment,
   declineAppointment,
+  completeAppointment,
   DoctorAppointment,
 } from '@/services/doctor.service';
 
 function DoctorAppointmentsContent() {
   const { user, token } = useAuthStore();
   const searchParams = useSearchParams();
+  const router = useRouter();
 
-  // Honour ?filter= query param from dashboard quick links
   const initialFilter = (searchParams.get('filter') ?? 'Today') as string;
 
   const [appointments, setAppointments] = useState<DoctorAppointment[]>([]);
@@ -26,7 +29,29 @@ function DoctorAppointmentsContent() {
   // Decline modal state
   const [declineTarget, setDeclineTarget] = useState<DoctorAppointment | null>(null);
   const [isDeclineModalOpen, setIsDeclineModalOpen] = useState(false);
+
+  // Consultation modal state
+  const [consultTarget, setConsultTarget] = useState<DoctorAppointment | null>(null);
+  const [isConsultModalOpen, setIsConsultModalOpen] = useState(false);
+
   const [actionLoading, setActionLoading] = useState(false);
+
+  // ── Socket ─────────────────────────────────────────────────────────────────
+
+  const socket = token ? getSocket(token) : null;
+
+  useEffect(() => {
+    if (!socket) return;
+    const handler = (data: { appointmentId: string; status: string }) => {
+      setAppointments((prev) =>
+        prev.map((a) =>
+          a.id === data.appointmentId ? { ...a, status: data.status as any } : a
+        )
+      );
+    };
+    socket.on('appointment:status', handler);
+    return () => { socket.off('appointment:status', handler); };
+  }, [socket]);
 
   // ── Data Fetching ──────────────────────────────────────────────────────────
 
@@ -55,9 +80,8 @@ function DoctorAppointmentsContent() {
     try {
       setActionLoading(true);
       await acceptAppointment(appointmentId, token);
-      // Optimistically update local state
       setAppointments((prev) =>
-        prev.map((a) => (a.id === appointmentId ? { ...a, status: 'Confirmed' } : a))
+        prev.map((a) => (a.id === appointmentId ? { ...a, status: 'Approved' as const } : a))
       );
     } catch (err: any) {
       setError(err.message ?? 'Failed to accept appointment.');
@@ -78,11 +102,10 @@ function DoctorAppointmentsContent() {
     try {
       setActionLoading(true);
       await declineAppointment(declineTarget.id, reason, user.id, token);
-      // Optimistically update local state
       setAppointments((prev) =>
         prev.map((a) =>
           a.id === declineTarget.id
-            ? { ...a, status: 'Cancelled', cancellationReason: reason }
+            ? { ...a, status: 'Rejected' as const, cancellationReason: reason }
             : a
         )
       );
@@ -94,6 +117,51 @@ function DoctorAppointmentsContent() {
       setActionLoading(false);
     }
   };
+
+  // ── Start Consultation (text-based) ───────────────────────────────────────
+
+  const handleStartConsultation = (appointment: DoctorAppointment) => {
+    setConsultTarget(appointment);
+    setIsConsultModalOpen(true);
+  };
+
+  // ── Video Call ────────────────────────────────────────────────────────────
+
+  const handleVideoCall = (appointment: DoctorAppointment) => {
+    if (token) {
+      joinAppointmentRoom(appointment.id, token);
+    }
+    router.push(`/dashboard/doctor/consultation/${appointment.id}`);
+  };
+
+  // ── Complete Appointment ───────────────────────────────────────────────────
+
+  const handleComplete = async (appointment?: DoctorAppointment) => {
+    const target = appointment || consultTarget;
+    if (!target || !token) return;
+    try {
+      setActionLoading(true);
+      await completeAppointment(target.id, token);
+      setAppointments((prev) =>
+        prev.map((a) => (a.id === target.id ? { ...a, status: 'Completed' as const } : a))
+      );
+      setIsConsultModalOpen(false);
+      setConsultTarget(null);
+    } catch (err: any) {
+      setError(err.message ?? 'Failed to complete appointment.');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  // ── Filter appointments to include video call button ──────────────────────
+
+  const appointmentsWithVideo = appointments.map((a) => ({
+    ...a,
+    onVideoCall: a.type === 'Online' && (a.status === 'Confirmed' || a.status === 'Waiting_for_call' || a.status === 'In_consultation')
+      ? () => handleVideoCall(a)
+      : undefined,
+  }));
 
   return (
     <div className="max-w-5xl mx-auto py-6 animate-fade-in">
@@ -121,13 +189,38 @@ function DoctorAppointmentsContent() {
 
       {/* ── Appointment Hub ── */}
       <DoctorAppointmentHub
-        appointments={appointments}
+        appointments={appointmentsWithVideo}
         loading={loading}
         actionLoading={actionLoading}
         initialFilter={initialFilter}
         onAccept={handleAccept}
         onDecline={handleDeclineClick}
+        onStartConsultation={handleStartConsultation}
+        onComplete={handleComplete}
       />
+
+      {/* ── Video Call Button Area ── */}
+      {appointments.filter((a) => a.type === 'Online' && (a.status === 'Confirmed' || a.status === 'Waiting_for_call' || a.status === 'In_consultation')).length > 0 && (
+        <div className="mt-4 bg-teal-50 border border-teal-200 rounded-xl p-4">
+          <p className="text-sm font-semibold text-teal-800 mb-2">Active Video Consultations</p>
+          <div className="space-y-2">
+            {appointments.filter((a) => a.type === 'Online' && (a.status === 'Confirmed' || a.status === 'Waiting_for_call' || a.status === 'In_consultation')).map((a) => (
+              <div key={a.id} className="flex items-center justify-between bg-white rounded-lg px-4 py-2.5 border border-teal-100">
+                <div>
+                  <p className="text-sm font-semibold text-gray-900">{a.patientName}</p>
+                  <p className="text-xs text-gray-500">{a.date} at {a.timeSlot} &bull; {a.status.replace('_', ' ')}</p>
+                </div>
+                <button
+                  onClick={() => handleVideoCall(a)}
+                  className="px-4 py-1.5 bg-teal-600 text-white rounded-lg text-xs font-semibold hover:bg-teal-700 transition-colors"
+                >
+                  {a.status === 'In_consultation' ? 'Rejoin Call' : 'Video Call'}
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* ── Cancellation Modal ── */}
       <DoctorCancellationModal
@@ -136,6 +229,15 @@ function DoctorAppointmentsContent() {
         onClose={() => { setIsDeclineModalOpen(false); setDeclineTarget(null); }}
         onConfirm={handleDeclineConfirm}
         isLoading={actionLoading}
+      />
+
+      {/* ── Consultation Modal ── */}
+      <DoctorConsultationModal
+        isOpen={isConsultModalOpen}
+        appointment={consultTarget}
+        token={token || ''}
+        onClose={() => { setIsConsultModalOpen(false); setConsultTarget(null); }}
+        onComplete={() => handleComplete()}
       />
     </div>
   );

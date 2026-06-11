@@ -24,7 +24,7 @@ export default function PatientDashboard() {
   };
 
   const features = [
-    { icon: '📅', title: 'Book Appointment', desc: 'Find and book doctors near you', color: 'bg-teal-50 border-teal-100', soon: false, href: '/dashboard/patient/appointments' },
+    { icon: '📅', title: 'Book Appointment', desc: 'Find and book doctors near you', color: 'bg-teal-50 border-teal-100', soon: false, href: '/dashboard/patient/appointments/book' },
     { icon: '🧪', title: 'Lab Orders', desc: 'Order tests & view results', color: 'bg-sky-50 border-sky-100', soon: true },
     { icon: '📋', title: 'Medical Records', desc: 'Prescriptions and history', color: 'bg-violet-50 border-violet-100', soon: true },
     { icon: '💊', title: 'Medications', desc: 'Track your medications', color: 'bg-amber-50 border-amber-100', soon: true },

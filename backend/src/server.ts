@@ -1,5 +1,7 @@
 import express from 'express';
 import cors from 'cors';
+import http from 'http';
+import path from 'path';
 import dotenv from 'dotenv';
 import authRoutes from './routes/auth.routes';
 import doctorRoutes from './routes/doctor.routes';
@@ -9,6 +11,8 @@ import labTestRoutes from './routes/labTest.routes';
 import labOrderRoutes from './routes/labOrder.routes';
 import reportsRoutes from './routes/reports.routes';
 import prescriptionRoutes from './routes/prescription.routes';
+import consultationRoutes from './routes/consultation.routes';
+import { initSocketServer } from './services/socket.service';
 // Load environment variables from .env file
 dotenv.config();
 
@@ -19,6 +23,9 @@ const PORT = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
+// Static files for uploaded consultation files
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/doctors', doctorRoutes);
@@ -28,6 +35,7 @@ app.use('/api/lab-tests', labTestRoutes);
 app.use('/api/orders', labOrderRoutes);
 app.use('/api/reports', reportsRoutes);
 app.use('/api/prescriptions', prescriptionRoutes);
+app.use('/api/consultations', consultationRoutes);
 
 // Basic health check route
 app.get('/', (req, res) => {
@@ -38,8 +46,12 @@ app.get('/', (req, res) => {
   });
 });
 
+// Create HTTP server and attach Socket.IO
+const httpServer = http.createServer(app);
+initSocketServer(httpServer);
+
 // Start the server
-app.listen(PORT, () => {
+httpServer.listen(PORT, () => {
   console.log(`🚀 careXpatient Backend is starting...`);
   console.log(`📡 Listening on http://localhost:${PORT}`);
 });

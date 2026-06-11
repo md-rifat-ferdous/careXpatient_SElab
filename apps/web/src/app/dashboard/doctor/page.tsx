@@ -9,7 +9,7 @@ import { fetchDoctorStats, fetchDoctorAppointments, DoctorStats, DoctorAppointme
 export default function DoctorDashboardPage() {
   const { user, token } = useAuthStore();
 
-  const [stats, setStats] = useState<DoctorStats>({ pending: 0, confirmed: 0, completed: 0, cancelled: 0 });
+  const [stats, setStats] = useState<DoctorStats>({ pending: 0, confirmed: 0, inConsultation: 0, completed: 0, cancelled: 0 });
   const [nextAppointment, setNextAppointment] = useState<DoctorAppointment | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

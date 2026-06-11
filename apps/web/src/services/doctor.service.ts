@@ -1,4 +1,4 @@
-import { Doctor, DoctorFilters } from '../types/doctor';
+import { Doctor, DoctorFilters, TimeSlot } from '../types/doctor';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
@@ -27,6 +27,20 @@ export async function getSpecialties(): Promise<{ id: number; name: string }[]> 
   return response.json();
 }
 
+export interface SlotResponse {
+  success: boolean;
+  data: TimeSlot[];
+}
+
+export async function getDoctorSlots(doctorId: string, date: string): Promise<TimeSlot[]> {
+  const response = await fetch(`${API_URL}/doctors/${doctorId}/slots?date=${date}`, {
+    cache: 'no-store',
+  });
+  if (!response.ok) throw new Error('Failed to fetch available slots');
+  const json: SlotResponse = await response.json();
+  return json.data;
+}
+
 export async function bookAppointment(data: {
   doctorId: string;
   patientId: string;
@@ -46,9 +60,50 @@ export async function bookAppointment(data: {
   return response.json();
 }
 
+export interface PatientAppointment {
+  id: string;
+  patientId: string;
+  doctorId: string;
+  type: 'Online' | 'In_person';
+  status: AppointmentStatus;
+  date: string;
+  timeSlot: string;
+  durationMinutes: number;
+  cancellationReason: string | null;
+  agoraChannelName: string | null;
+  consultationStartedAt: string | null;
+  consultationEndedAt: string | null;
+  consultationDuration: number | null;
+  consultation: {
+    id: string;
+    startTime: string | null;
+    endTime: string | null;
+    notes: string | null;
+    prescription: {
+      id: string;
+      diagnosis: string | null;
+      medicinesText: string | null;
+      adviceText: string | null;
+    } | null;
+  } | null;
+  doctor: {
+    user: { fullName: string; profilePhotoUrl: string | null };
+    specialties: { specialty: { name: string } }[];
+  };
+}
+
+export async function fetchPatientAppointments(userId: string): Promise<PatientAppointment[]> {
+  const response = await fetch(`${API_URL}/appointments/patient/${userId}`, {
+    cache: 'no-store',
+  });
+  if (!response.ok) throw new Error('Failed to fetch appointments');
+  const json = await response.json();
+  return json.data as PatientAppointment[];
+}
+
 // ─── Doctor Portal Types ───────────────────────────────────────────────────────
 
-export type AppointmentStatus = 'Pending' | 'Confirmed' | 'Completed' | 'Cancelled' | 'NoShow';
+export type AppointmentStatus = 'Pending' | 'Approved' | 'Rejected' | 'Rescheduled' | 'Confirmed' | 'Waiting_for_call' | 'In_consultation' | 'Completed' | 'Cancelled' | 'NoShow';
 export type AppointmentType = 'In_person' | 'Online';
 
 export interface DoctorAppointment {
@@ -69,6 +124,7 @@ export interface DoctorAppointment {
 export interface DoctorStats {
   pending: number;
   confirmed: number;
+  inConsultation: number;
   completed: number;
   cancelled: number;
 }
@@ -132,7 +188,7 @@ export const acceptAppointment = async (
 };
 
 /**
- * Declines an appointment with a mandatory reason — transitions status to Cancelled.
+ * Declines an appointment with a mandatory reason — transitions status to Rejected.
  */
 export const declineAppointment = async (
   appointmentId: string,
@@ -148,6 +204,81 @@ export const declineAppointment = async (
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
     throw new Error((body as any).message ?? 'Failed to decline appointment.');
+  }
+};
+
+/**
+ * Completes a confirmed appointment — transitions status to Completed.
+ */
+export const completeAppointment = async (
+  appointmentId: string,
+  token: string
+): Promise<void> => {
+  const res = await fetch(`${API_URL}/appointments/${appointmentId}/complete`, {
+    method: 'POST',
+    headers: authHeaders(token),
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error((body as any).message ?? 'Failed to complete appointment.');
+  }
+};
+
+/**
+ * Starts a consultation for an approved/confirmed appointment.
+ */
+export const startConsultation = async (
+  appointmentId: string,
+  token: string
+): Promise<void> => {
+  const res = await fetch(`${API_URL}/appointments/${appointmentId}/start-consultation`, {
+    method: 'POST',
+    headers: authHeaders(token),
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error((body as any).message ?? 'Failed to start consultation.');
+  }
+};
+
+/**
+ * Creates a prescription for an appointment's consultation.
+ */
+export const createPrescription = async (
+  appointmentId: string,
+  data: { diagnosis?: string; medicinesText?: string; adviceText?: string; notes?: string },
+  token: string
+): Promise<void> => {
+  const res = await fetch(`${API_URL}/appointments/${appointmentId}/prescription`, {
+    method: 'POST',
+    headers: authHeaders(token),
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error((body as any).message ?? 'Failed to create prescription.');
+  }
+};
+
+/**
+ * Patient cancels their own appointment.
+ */
+export const cancelAppointment = async (
+  appointmentId: string,
+  patientUserId: string,
+  reason?: string,
+  token?: string
+): Promise<void> => {
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+  const res = await fetch(`${API_URL}/appointments/${appointmentId}/cancel`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({ patientUserId, reason }),
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error((body as any).message ?? 'Failed to cancel appointment.');
   }
 };
 

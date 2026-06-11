@@ -1,11 +1,11 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Doctor } from '../../types/doctor';
-import { bookAppointment } from '../../services/doctor.service';
+import Link from 'next/link';
+import { Doctor, TimeSlot } from '../../types/doctor';
+import { bookAppointment, getDoctorSlots } from '../../services/doctor.service';
 import { authApi } from '../../lib/api';
 import { useAuthStore } from '../../store/auth.store';
-import { slots } from '../../data/doctors';
 
 interface ChatbotBookingDrawerProps {
   isOpen: boolean;
@@ -23,7 +23,8 @@ function isDemoPhone(phone: string): boolean {
 }
 
 function formatDate(dateStr: string) {
-  const d = new Date(dateStr + 'T00:00:00');
+  const normalized = dateStr.includes('T') ? dateStr.substring(0, 10) : dateStr;
+  const d = new Date(normalized + 'T00:00:00');
   return `${DAYS[d.getDay()]}, ${MONTHS[d.getMonth()]} ${d.getDate()}`;
 }
 
@@ -37,6 +38,22 @@ export default function ChatbotBookingDrawer({ isOpen, onClose, doctor }: Chatbo
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  // Slots from API
+  const [apiSlots, setApiSlots] = useState<TimeSlot[]>([]);
+  const [isLoadingSlots, setIsLoadingSlots] = useState(false);
+
+  useEffect(() => {
+    if (selectedDate && doctor) {
+      setIsLoadingSlots(true);
+      getDoctorSlots(doctor.id, selectedDate)
+        .then(setApiSlots)
+        .catch(() => setApiSlots([]))
+        .finally(() => setIsLoadingSlots(false));
+    } else {
+      setApiSlots([]);
+    }
+  }, [selectedDate, doctor]);
 
   // OTP state
   const [step, setStep] = useState<DrawerStep>('form');
@@ -65,8 +82,6 @@ export default function ChatbotBookingDrawer({ isOpen, onClose, doctor }: Chatbo
     d.setDate(d.getDate() + offset);
     return d.toISOString().split('T')[0];
   });
-
-  const slotsForDate = selectedDate ? slots([true, true, false, true, true, false, true, true, true, false, true, true]) : [];
 
   const validate = () => {
     const e: Record<string, string> = {};
@@ -207,9 +222,9 @@ export default function ChatbotBookingDrawer({ isOpen, onClose, doctor }: Chatbo
                 <span className="text-2xl font-black text-teal-600">৳{doctor.fee}</span>
               </div>
             </div>
-            <button onClick={handleClose} className="w-full py-3.5 bg-teal-500 text-white rounded-xl font-bold text-sm hover:bg-teal-600 transition-colors shadow-lg shadow-teal-500/20">
-              Done
-            </button>
+            <Link href="/dashboard/patient/appointments" className="w-full py-3.5 bg-teal-500 text-white rounded-xl font-bold text-sm hover:bg-teal-600 transition-colors shadow-lg shadow-teal-500/20 text-center">
+              View My Appointments
+            </Link>
           </div>
         )}
 
@@ -305,18 +320,28 @@ export default function ChatbotBookingDrawer({ isOpen, onClose, doctor }: Chatbo
               {selectedDate && (
                 <div>
                   <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Select Time</label>
-                  <div className="grid grid-cols-4 gap-2">
-                    {slotsForDate.map((slot) => {
-                      const isSelected = selectedSlot === slot.time;
-                      return (
-                        <button key={slot.id} disabled={!slot.available}
-                          onClick={() => { setSelectedSlot(slot.time); setErrors((e) => ({ ...e, slot: '' })); }}
-                          className={`py-2 rounded-lg text-xs font-semibold border transition-all ${!slot.available ? 'bg-slate-50 text-slate-300 border-slate-100' : isSelected ? 'bg-teal-500 text-white border-teal-500' : 'bg-white border-slate-200 text-slate-600 hover:border-teal-300'}`}>
-                          {slot.time}
-                        </button>
-                      );
-                    })}
-                  </div>
+                  {isLoadingSlots ? (
+                    <div className="flex items-center justify-center py-8 text-sm text-slate-400 font-semibold">
+                      Loading available slots...
+                    </div>
+                  ) : apiSlots.length === 0 ? (
+                    <div className="flex items-center justify-center py-8 text-sm text-slate-400 font-semibold">
+                      No slots available for this date
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-4 gap-2">
+                      {apiSlots.map((slot) => {
+                        const isSelected = selectedSlot === slot.time;
+                        return (
+                          <button key={slot.id} disabled={!slot.available}
+                            onClick={() => { setSelectedSlot(slot.time); setErrors((e) => ({ ...e, slot: '' })); }}
+                            className={`py-2 rounded-lg text-xs font-semibold border transition-all ${!slot.available ? 'bg-slate-50 text-slate-300 border-slate-100 cursor-not-allowed' : isSelected ? 'bg-teal-500 text-white border-teal-500' : 'bg-white border-slate-200 text-slate-600 hover:border-teal-300'}`}>
+                            {slot.time}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
                   {errors.slot && <p className="text-red-500 text-xs mt-1">{errors.slot}</p>}
                 </div>
               )}

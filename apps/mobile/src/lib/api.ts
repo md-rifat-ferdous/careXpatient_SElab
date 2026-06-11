@@ -29,4 +29,68 @@ export const authApi = {
   },
 };
 
+export const appointmentApi = {
+  getPatientAppointments: async (userId: string, token: string) => {
+    const response = await api.get(`/appointments/patient/${userId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return response.data;
+  },
+  getDoctorAppointments: async (userId: string, token: string, status?: string) => {
+    const params = status ? { status } : {};
+    const response = await api.get(`/doctors/${userId}/appointments`, {
+      params,
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return response.data;
+  },
+};
+
+export const consultationApi = {
+  startConsultation: async (appointmentId: string, token: string) => {
+    const response = await api.post(`/consultations/${appointmentId}/start`, {}, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return response.data;
+  },
+  joinConsultation: async (appointmentId: string, token: string) => {
+    const response = await api.post(`/consultations/${appointmentId}/join`, {}, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return response.data;
+  },
+  endConsultation: async (appointmentId: string, token: string) => {
+    const response = await api.post(`/consultations/${appointmentId}/end`, {}, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return response.data;
+  },
+  sendChatMessage: async (appointmentId: string, message: string, token: string) => {
+    const response = await api.post(`/consultations/${appointmentId}/chat`, { message }, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return response.data;
+  },
+  getChatHistory: async (appointmentId: string, token: string) => {
+    const response = await api.get(`/consultations/${appointmentId}/chat`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return response.data;
+  },
+  uploadFile: async (appointmentId: string, file: any, token: string) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    const response = await api.post(`/consultations/${appointmentId}/upload`, formData, {
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' },
+    });
+    return response.data;
+  },
+  getFiles: async (appointmentId: string, token: string) => {
+    const response = await api.get(`/consultations/${appointmentId}/files`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return response.data;
+  },
+};
+
 export default api;

@@ -25,6 +25,21 @@ const STATUS_CONFIG: Record<AppointmentStatus, { dot: string; badge: string; lab
     badge: 'bg-amber-50 text-amber-700',
     label: 'Pending',
   },
+  Approved: {
+    dot: 'bg-sky-500',
+    badge: 'bg-sky-50 text-sky-700',
+    label: 'Approved',
+  },
+  Rejected: {
+    dot: 'bg-rose-500',
+    badge: 'bg-rose-50 text-rose-700',
+    label: 'Rejected',
+  },
+  Rescheduled: {
+    dot: 'bg-violet-500',
+    badge: 'bg-violet-50 text-violet-700',
+    label: 'Rescheduled',
+  },
   Cancelled: {
     dot: 'bg-rose-400',
     badge: 'bg-rose-50 text-rose-700',
@@ -34,6 +49,16 @@ const STATUS_CONFIG: Record<AppointmentStatus, { dot: string; badge: string; lab
     dot: 'bg-slate-400',
     badge: 'bg-slate-100 text-slate-600',
     label: 'No Show',
+  },
+  Waiting_for_call: {
+    dot: 'bg-orange-400',
+    badge: 'bg-orange-50 text-orange-700',
+    label: 'Waiting for Call',
+  },
+  In_consultation: {
+    dot: 'bg-blue-500',
+    badge: 'bg-blue-50 text-blue-700',
+    label: 'In Consultation',
   },
 };
 
