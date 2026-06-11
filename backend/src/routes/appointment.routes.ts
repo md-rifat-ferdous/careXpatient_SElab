@@ -7,15 +7,15 @@ import {
 
 const router = Router();
 
-function parseTimeSlot(time: string): string {
+function parseTimeSlot(date: string, time: string): Date {
   const match = time.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
-  if (!match) return time;
+  if (!match) return new Date(`${date}T${time}`);
   let hours = parseInt(match[1], 10);
   const minutes = match[2];
   const ampm = match[3].toUpperCase();
   if (ampm === 'PM' && hours !== 12) hours += 12;
   if (ampm === 'AM' && hours === 12) hours = 0;
-  return `${String(hours).padStart(2, '0')}:${minutes}:00`;
+  return new Date(`${date}T${String(hours).padStart(2, '0')}:${minutes}:00`);
 }
 
 // ─── Patient — Create Appointment ─────────────────────────────────────────────
@@ -44,7 +44,7 @@ router.post('/', async (req, res) => {
         type:      type === 'Online' ? 'Online' : 'In_person',
         status:    'Pending',
         date:      new Date(date),
-        timeSlot:  parseTimeSlot(timeSlot),
+        timeSlot:  parseTimeSlot(date, timeSlot),
       },
     });
 
