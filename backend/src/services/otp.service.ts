@@ -3,7 +3,7 @@ const OTP_EXPIRY_MS = 5 * 60 * 1000;
 
 const store = new Map<string, { otp: string; expiresAt: number }>();
 
-const DEMO_PHONE_PREFIXES = ['+8801700000000', '01700000000', '01711111111'];
+const DEMO_PHONE_PREFIXES = ['+8801700000000', '01700000001', '01711111111'];
 
 function isDemoPhone(phone: string): boolean {
   return DEMO_PHONE_PREFIXES.some(p => phone.startsWith(p));

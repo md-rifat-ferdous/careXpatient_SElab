@@ -15,6 +15,13 @@ interface ChatbotBookingDrawerProps {
 
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const STATIC_OTP = '1234';
+const DEMO_PHONE_PREFIXES = ['+8801700000000', '01700000001', '01711111111'];
+
+function isDemoPhone(phone: string): boolean {
+  return DEMO_PHONE_PREFIXES.some(p => phone.startsWith(p));
+}
+
 function formatDate(dateStr: string) {
   const d = new Date(dateStr + 'T00:00:00');
   return `${DAYS[d.getDay()]}, ${MONTHS[d.getMonth()]} ${d.getDate()}`;
@@ -73,6 +80,15 @@ export default function ChatbotBookingDrawer({ isOpen, onClose, doctor }: Chatbo
 
   const handleConfirmForm = async () => {
     if (!validate()) return;
+
+    if (isDemoPhone(phone)) {
+      setOtp(['', '', '', '']);
+      setOtpError('');
+      setStep('otp');
+      setTimeout(() => otpRefs[0].current?.focus(), 100);
+      return;
+    }
+
     setIsSendingOtp(true);
     try {
       await authApi.sendOtp(phone);
@@ -106,10 +122,30 @@ export default function ChatbotBookingDrawer({ isOpen, onClose, doctor }: Chatbo
     if (!doctor || !user) return;
     const entered = otp.join('');
     if (entered.length < 4) { setOtpError('Please enter the 4-digit OTP.'); return; }
-    setIsVerifying(true);
 
+    if (isDemoPhone(phone)) {
+      if (entered !== STATIC_OTP) {
+        setOtpError('Invalid OTP. Please try again. (Hint: 1234)');
+        setOtp(['', '', '', '']);
+        otpRefs[0].current?.focus();
+        return;
+      }
+    } else {
+      setIsVerifying(true);
+      try {
+        await authApi.verifyOtp(phone, entered);
+      } catch (err: any) {
+        setOtpError(err.message || 'Invalid OTP. Please try again.');
+        setOtp(['', '', '', '']);
+        otpRefs[0].current?.focus();
+        setIsVerifying(false);
+        return;
+      }
+      setIsVerifying(false);
+    }
+
+    setIsVerifying(true);
     try {
-      await authApi.verifyOtp(phone, entered);
       await bookAppointment({
         doctorId: doctor.id,
         patientId: user.id.toString(),
@@ -119,9 +155,7 @@ export default function ChatbotBookingDrawer({ isOpen, onClose, doctor }: Chatbo
       });
       setStep('success');
     } catch (err: any) {
-      setOtpError(err.message || 'Invalid OTP. Please try again.');
-      setOtp(['', '', '', '']);
-      otpRefs[0].current?.focus();
+      setOtpError(err.message || 'Failed to book appointment. Please try again.');
     } finally {
       setIsVerifying(false);
     }
