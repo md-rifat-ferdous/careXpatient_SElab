@@ -1,0 +1,314 @@
+---
+---
+
+<html lang="en"><head>
+<meta charset="utf-8" />
+<meta content="width=device-width, initial-scale=1.0" name="viewport" />
+<title>careXpatient Lab Portal Sidebar</title>
+<script src="/assets/03ba5d9f9e95fc3599acebcbe7e5fb9a.js" is:inline="" />
+<link href="/assets/a39f5c6fcbb87b419667ec984d2e579a.css" rel="stylesheet" />
+<link href="/assets/66f3f89ececa5d096d97289ad2297e88.css" rel="stylesheet" />
+<link href="/assets/a39f5c6fcbb87b419667ec984d2e579a.css" rel="stylesheet" />
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "subtle-gray": "#94A3B8",
+                      "on-primary": "#ffffff",
+                      "surface-bright": "#f9f9ff",
+                      "on-surface-variant": "#3c4947",
+                      "error": "#ba1a1a",
+                      "surface-container": "#e7eeff",
+                      "on-secondary": "#ffffff",
+                      "primary-container": "#14b8a6",
+                      "error-container": "#ffdad6",
+                      "background-off-white": "#F8FAFC",
+                      "secondary-fixed-dim": "#4ddcc6",
+                      "background": "#f9f9ff",
+                      "outline-variant": "#bbcac6",
+                      "on-secondary-fixed": "#00201b",
+                      "surface-white": "#FFFFFF",
+                      "on-error-container": "#93000a",
+                      "on-background": "#111c2d",
+                      "outline": "#6c7a77",
+                      "secondary-fixed": "#6ef9e2",
+                      "surface-dim": "#cfdaf2",
+                      "on-error": "#ffffff",
+                      "surface": "#f9f9ff",
+                      "tertiary-fixed-dim": "#b7c9d5",
+                      "on-surface": "#111c2d",
+                      "on-tertiary-fixed-variant": "#384953",
+                      "primary-fixed": "#71f8e4",
+                      "on-secondary-fixed-variant": "#005047",
+                      "on-tertiary": "#ffffff",
+                      "surface-tint": "#006b5f",
+                      "on-tertiary-fixed": "#0c1e26",
+                      "on-primary-container": "#00423b",
+                      "surface-container-high": "#dee8ff",
+                      "inverse-surface": "#263143",
+                      "surface-container-highest": "#d8e3fb",
+                      "on-primary-fixed-variant": "#005048",
+                      "primary-fixed-dim": "#4fdbc8",
+                      "tertiary-container": "#95a7b2",
+                      "surface-container-low": "#f0f3ff",
+                      "secondary-container": "#6ef9e2",
+                      "on-tertiary-container": "#2c3d46",
+                      "primary": "#006b5f",
+                      "secondary": "#006b5e",
+                      "surface-variant": "#d8e3fb",
+                      "on-secondary-container": "#007164",
+                      "tertiary-fixed": "#d3e5f1",
+                      "inverse-on-surface": "#ecf1ff",
+                      "inverse-primary": "#4fdbc8",
+                      "on-primary-fixed": "#00201c",
+                      "tertiary": "#50616b",
+                      "surface-container-lowest": "#ffffff"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "container-max": "1280px",
+                      "xs": "0.25rem",
+                      "xl": "2.5rem",
+                      "md": "1rem",
+                      "gutter": "1.5rem",
+                      "lg": "1.5rem",
+                      "sm": "0.5rem"
+              },
+              "fontFamily": {
+                      "caption": [
+                              "Inter"
+                      ],
+                      "h3": [
+                              "Inter"
+                      ],
+                      "body": [
+                              "Inter"
+                      ],
+                      "h1": [
+                              "Inter"
+                      ],
+                      "button": [
+                              "Inter"
+                      ],
+                      "h2": [
+                              "Inter"
+                      ]
+              },
+              "fontSize": {
+                      "caption": [
+                              "14px",
+                              {
+                                      "lineHeight": "1.5",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "h3": [
+                              "24px",
+                              {
+                                      "lineHeight": "1.4",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "body": [
+                              "16px",
+                              {
+                                      "lineHeight": "1.6",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "h1": [
+                              "48px",
+                              {
+                                      "lineHeight": "1.2",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "button": [
+                              "16px",
+                              {
+                                      "lineHeight": "1.0",
+                                      "fontWeight": "500"
+                              }
+                      ],
+                      "h2": [
+                              "32px",
+                              {
+                                      "lineHeight": "1.3",
+                                      "fontWeight": "600"
+                              }
+                      ]
+              }
+            }
+          }
+        }
+    </script>
+<style>
+        .sidebar {
+            transition: width 0.3s ease, transform 0.3s ease;
+            width: 16rem; /* 64 * 0.25rem */
+        }
+        .sidebar.collapsed {
+            width: 4.5rem;
+        }
+        .sidebar.collapsed .sidebar-text {
+            display: none;
+        }
+        .sidebar.collapsed .header-text {
+            display: none;
+        }
+        .sidebar.collapsed .footer-profile {
+            display: none;
+        }
+        .sidebar.collapsed .footer-avatar {
+            margin: 0 auto;
+        }
+        .sidebar.collapsed .footer-profile-container {
+            justify-content: center;
+            padding-left: 0;
+            padding-right: 0;
+        }
+        @media (max-width: 768px) {
+            .sidebar {
+                position: absolute;
+                transform: translateX(-100%);
+            }
+            .sidebar.mobile-open {
+                transform: translateX(0);
+            }
+        }
+    </style>
+</head>
+<body class="bg-background-off-white text-on-background font-body text-body h-screen flex overflow-hidden">
+<!-- Mobile Header Toggle (Visible only on mobile when sidebar is closed) -->
+<div class="md:hidden fixed top-0 left-0 p-md z-40">
+<button class="p-xs rounded-lg bg-surface-white shadow-sm text-on-surface-variant focus:outline-none" id="mobile-menu-btn">
+<span class="material-symbols-outlined">menu</span>
+</button>
+</div>
+<!-- SideNavBar Component -->
+<aside class="sidebar h-screen border-r border-outline-variant bg-surface-white dark:bg-inverse-surface shadow-sm dark:shadow-none flex flex-col py-lg px-md z-50 fixed md:relative" id="main-sidebar">
+<!-- Header -->
+<div class="flex items-center gap-sm mb-xl">
+<button class="p-xs rounded-lg hover:bg-surface-container-low dark:hover:bg-surface-variant/10 transition-colors duration-200 text-on-surface-variant dark:text-surface-variant focus:outline-none focus:ring-2 focus:ring-primary-container" id="sidebar-toggle">
+<span class="material-symbols-outlined">menu</span>
+</button>
+<div class="flex items-center gap-sm header-text">
+<div class="w-8 h-8 rounded-lg bg-primary-container text-on-primary flex items-center justify-center">
+<span class="material-symbols-outlined" style="font-size: 20px;">science</span>
+</div>
+<div>
+<h1 class="font-h3 text-h3 text-on-surface dark:text-secondary-fixed tracking-tight">careXpatient</h1>
+<p class="font-caption text-caption text-subtle-gray">Lab Portal</p>
+</div>
+</div>
+</div>
+<!-- Navigation Links -->
+<nav class="flex-1 overflow-y-auto space-y-xs">
+<!-- Active Tab: Dashboard -->
+<a class="flex items-center gap-sm py-sm px-sm rounded-lg text-primary-container dark:text-secondary-fixed font-bold border-l-4 border-primary-container dark:border-secondary-fixed bg-primary-container/10 group style_interactions" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">dashboard</span>
+<span class="sidebar-text truncate">Dashboard</span>
+</a>
+<a class="flex items-center gap-sm py-sm px-sm rounded-lg text-on-surface-variant dark:text-surface-variant hover:text-primary-container dark:hover:text-secondary-fixed hover:bg-surface-container-low dark:hover:bg-surface-variant/10 transition-colors duration-200 group style_interactions border-l-4 border-transparent" href="#">
+<span class="material-symbols-outlined">queue</span>
+<span class="sidebar-text truncate">Test Queue</span>
+</a>
+<a class="flex items-center gap-sm py-sm px-sm rounded-lg text-on-surface-variant dark:text-surface-variant hover:text-primary-container dark:hover:text-secondary-fixed hover:bg-surface-container-low dark:hover:bg-surface-variant/10 transition-colors duration-200 group style_interactions border-l-4 border-transparent" href="#">
+<span class="material-symbols-outlined">biotech</span>
+<span class="sidebar-text truncate">Sample Collection</span>
+</a>
+<a class="flex items-center gap-sm py-sm px-sm rounded-lg text-on-surface-variant dark:text-surface-variant hover:text-primary-container dark:hover:text-secondary-fixed hover:bg-surface-container-low dark:hover:bg-surface-variant/10 transition-colors duration-200 group style_interactions border-l-4 border-transparent" href="#">
+<span class="material-symbols-outlined">groups</span>
+<span class="sidebar-text truncate">Patients</span>
+</a>
+<a class="flex items-center gap-sm py-sm px-sm rounded-lg text-on-surface-variant dark:text-surface-variant hover:text-primary-container dark:hover:text-secondary-fixed hover:bg-surface-container-low dark:hover:bg-surface-variant/10 transition-colors duration-200 group style_interactions border-l-4 border-transparent" href="#">
+<span class="material-symbols-outlined">upload_file</span>
+<span class="sidebar-text truncate">Upload Reports</span>
+</a>
+<a class="flex items-center gap-sm py-sm px-sm rounded-lg text-on-surface-variant dark:text-surface-variant hover:text-primary-container dark:hover:text-secondary-fixed hover:bg-surface-container-low dark:hover:bg-surface-variant/10 transition-colors duration-200 group style_interactions border-l-4 border-transparent" href="#">
+<span class="material-symbols-outlined">settings_applications</span>
+<span class="sidebar-text truncate">Test Management</span>
+</a>
+<a class="flex items-center gap-sm py-sm px-sm rounded-lg text-on-surface-variant dark:text-surface-variant hover:text-primary-container dark:hover:text-secondary-fixed hover:bg-surface-container-low dark:hover:bg-surface-variant/10 transition-colors duration-200 group style_interactions border-l-4 border-transparent" href="#">
+<span class="material-symbols-outlined">payments</span>
+<span class="sidebar-text truncate">Earnings</span>
+</a>
+</nav>
+<!-- Footer -->
+<div class="mt-auto pt-md border-t border-outline-variant/50 flex flex-col gap-xs">
+<a class="flex items-center gap-sm py-sm px-sm rounded-lg text-on-surface-variant dark:text-surface-variant hover:text-primary-container dark:hover:text-secondary-fixed hover:bg-surface-container-low dark:hover:bg-surface-variant/10 transition-colors duration-200 group style_interactions border-l-4 border-transparent" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="sidebar-text truncate">Settings</span>
+</a>
+<button class="flex items-center gap-sm py-sm px-sm rounded-lg text-on-surface-variant dark:text-surface-variant hover:text-error hover:bg-error-container/20 transition-colors duration-200 group style_interactions border-l-4 border-transparent w-full focus:outline-none">
+<span class="material-symbols-outlined">logout</span>
+<span class="sidebar-text truncate">Logout</span>
+</button>
+<div class="flex items-center gap-sm mt-md px-sm footer-profile-container">
+<img alt="Staff Profile" class="w-10 h-10 rounded-full object-cover footer-avatar border border-outline-variant" data-alt="A professional headshot of a female medical laboratory staff member wearing a white lab coat, standing in a brightly lit modern clinic setting with a minimalist medical aesthetic. Soft natural light highlights a calm, confident expression." src="/assets/578ba36a0d95ca3e4ebef169c728e2b6.png" />
+<div class="footer-profile text-left">
+<p class="font-button text-button text-on-surface">Dr. S. Rahman</p>
+<p class="font-caption text-caption text-subtle-gray">Lead Pathologist</p>
+</div>
+</div>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 bg-background-off-white p-xl overflow-y-auto w-full md:w-auto md:ml-0 pt-20 md:pt-xl">
+<h2 class="font-h2 text-h2 text-on-surface mb-lg">Dashboard Overview</h2>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-md">
+<!-- Example Content Cards -->
+<div class="bg-surface-white rounded-xl shadow-sm p-lg border border-outline-variant/30 flex flex-col justify-between h-48 hover:shadow-md transition-shadow duration-300">
+<div class="flex justify-between items-start">
+<h3 class="font-h3 text-h3 text-on-surface">Pending Tests</h3>
+<span class="material-symbols-outlined text-primary-container">science</span>
+</div>
+<p class="font-h1 text-h1 text-primary-container">24</p>
+</div>
+<div class="bg-surface-white rounded-xl shadow-sm p-lg border border-outline-variant/30 flex flex-col justify-between h-48 hover:shadow-md transition-shadow duration-300">
+<div class="flex justify-between items-start">
+<h3 class="font-h3 text-h3 text-on-surface">Ready Reports</h3>
+<span class="material-symbols-outlined text-primary-container">check_circle</span>
+</div>
+<p class="font-h1 text-h1 text-primary-container">18</p>
+</div>
+<div class="bg-surface-white rounded-xl shadow-sm p-lg border border-outline-variant/30 flex flex-col justify-between h-48 hover:shadow-md transition-shadow duration-300 relative overflow-hidden group">
+<div class="absolute inset-0 bg-gradient-to-br from-primary-container/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+<div class="flex justify-between items-start relative z-10">
+<h3 class="font-h3 text-h3 text-on-surface">Daily Earnings</h3>
+<span class="material-symbols-outlined text-subtle-gray">monitoring</span>
+</div>
+<p class="font-h1 text-h1 text-on-surface relative z-10">$1,240</p>
+</div>
+</div>
+</main>
+<script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const sidebar = document.getElementById('main-sidebar');
+            const toggleBtn = document.getElementById('sidebar-toggle');
+            const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+            
+            toggleBtn.addEventListener('click', () => {
+                if (window.innerWidth <= 768) {
+                    sidebar.classList.remove('mobile-open');
+                } else {
+                    sidebar.classList.toggle('collapsed');
+                }
+            });
+
+            if (mobileMenuBtn) {
+                mobileMenuBtn.addEventListener('click', () => {
+                    sidebar.classList.add('mobile-open');
+                    sidebar.classList.remove('collapsed');
+                });
+            }
+        });
+    </script>
+</body></html>

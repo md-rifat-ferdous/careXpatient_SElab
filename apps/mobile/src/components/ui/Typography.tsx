@@ -1,6 +1,8 @@
 import React from 'react';
 import { Text, StyleSheet, TextStyle } from 'react-native';
 
+import { theme } from '../../lib/theme';
+
 interface TypographyProps {
   children: React.ReactNode;
   variant?: 'h1' | 'h2' | 'h3' | 'body' | 'small';
@@ -28,9 +30,9 @@ export const Typography = ({ children, variant = 'body', style, color }: Typogra
 };
 
 const styles = StyleSheet.create({
-  h1: { fontSize: 28, fontWeight: 'bold', color: '#0F172A' },
-  h2: { fontSize: 24, fontWeight: 'bold', color: '#0F172A' },
-  h3: { fontSize: 20, fontWeight: '600', color: '#0F172A' },
-  body: { fontSize: 16, color: '#64748B' },
-  small: { fontSize: 14, color: '#94A3B8' },
+  h1: { fontSize: 32, fontWeight: '900', color: theme.colors.text, letterSpacing: -1 },
+  h2: { fontSize: 24, fontWeight: '800', color: theme.colors.text, letterSpacing: -0.5 },
+  h3: { fontSize: 20, fontWeight: '700', color: theme.colors.text },
+  body: { fontSize: 16, color: theme.colors.textMuted, lineHeight: 24 },
+  small: { fontSize: 14, color: theme.colors.textMuted, fontWeight: '500' },
 });

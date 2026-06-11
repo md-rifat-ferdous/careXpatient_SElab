@@ -77,7 +77,7 @@ export const findPrescriptions = async (filters: {
     }
   }
 
-  // Issued Date Filter
+  // 4. Issued Date Filter (Robust range handling)
   if (startDate || endDate) {
     where.issuedAt = {};
     if (startDate) {
@@ -124,6 +124,7 @@ export const findPrescriptions = async (filters: {
     }
     where.OR = orConditions;
   }
+
 
   const [prescriptions, total] = await Promise.all([
     prisma.prescription.findMany({

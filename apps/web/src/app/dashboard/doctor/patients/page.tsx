@@ -1,117 +1,120 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect, useCallback, Suspense } from 'react';
-import { Search, Users } from 'lucide-react';
-import { useAuthStore } from '@/store/auth.store';
-import PatientListTable from '@/components/doctor/PatientListTable';
-import { fetchDoctorPatients, DoctorPatient } from '@/services/doctor.service';
+import React from 'react';
+import { 
+  Card, 
+  Typography, 
+  Badge, 
+  Button, 
+  Avatar,
+  DataTable,
+  cn 
+} from '@carexpatient/ui';
+import { 
+  FileText, 
+  Search, 
+  UserPlus, 
+  MoreHorizontal,
+  History,
+  MessageSquare
+} from 'lucide-react';
+import { ColumnDef } from "@tanstack/react-table";
 
-// ─── Inner Content (needs Suspense due to useSearchParams pattern avoidance) ───
-
-function MyPatientsContent() {
-  const { user, token } = useAuthStore();
-
-  const [patients, setPatients] = useState<DoctorPatient[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [search, setSearch] = useState('');
-
-  // ── Debounced Data Fetch ──────────────────────────────────────────────────────
-
-  const loadPatients = useCallback(async (searchQuery: string) => {
-    if (!user?.id || !token) return;
-    try {
-      setLoading(true);
-      setError(null);
-      const data = await fetchDoctorPatients(user.id, token, searchQuery);
-      setPatients(data);
-    } catch {
-      setError('Could not load patients. Is the backend running?');
-    } finally {
-      setLoading(false);
-    }
-  }, [user?.id, token]);
-
-  // Initial load
-  useEffect(() => {
-    loadPatients('');
-  }, [loadPatients]);
-
-  // Debounce search
-  useEffect(() => {
-    const timer = setTimeout(() => loadPatients(search), 300);
-    return () => clearTimeout(timer);
-  }, [search, loadPatients]);
-
-  return (
-    <div className="max-w-6xl mx-auto py-6 animate-fade-in space-y-6">
-
-      {/* ── Page Header ── */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-xl font-bold text-slate-900">My Patients</h1>
-          <p className="text-sm text-slate-500 mt-0.5">
-            All patients who have had appointments with you.
-          </p>
-        </div>
-        {!loading && !error && (
-          <div className="flex items-center gap-2 bg-teal-50 text-teal-700 px-4 py-2 rounded-xl text-sm font-semibold">
-            <Users size={16} />
-            {patients.length} {patients.length === 1 ? 'Patient' : 'Patients'}
-          </div>
-        )}
-      </div>
-
-      {/* ── Search Bar ── */}
-      <div className="relative max-w-md">
-        <Search
-          size={16}
-          className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"
-        />
-        <input
-          id="patient-search"
-          type="text"
-          placeholder="Search by name or phone..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="w-full pl-11 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-400/30 focus:border-teal-400 transition-all shadow-sm"
-        />
-      </div>
-
-      {/* ── Error Banner ── */}
-      {error && (
-        <div className="bg-rose-50 border border-rose-200 rounded-xl p-4 flex items-start gap-3">
-          <span className="text-rose-500 flex-shrink-0">⚠️</span>
-          <p className="text-rose-800 text-sm">{error}</p>
-          <button
-            onClick={() => setError(null)}
-            className="ml-auto text-rose-400 hover:text-rose-600 transition-colors"
-            aria-label="Dismiss"
-          >
-            ✕
-          </button>
-        </div>
-      )}
-
-      {/* ── Patient Table ── */}
-      <PatientListTable patients={patients} loading={loading} />
-    </div>
-  );
+interface PatientRecord {
+  id: string;
+  name: string;
+  lastVisit: string;
+  nextAppointment?: string;
+  conditions: string[];
+  status: 'Active' | 'Stable' | 'Critical';
+  avatar?: string;
 }
 
-// ─── Default Export (wrapped in Suspense) ─────────────────────────────────────
+const patients: PatientRecord[] = [
+  { id: '1', name: 'Rahim Ali', lastVisit: '12 May 2026', nextAppointment: 'Tomorrow', conditions: ['Hypertension', 'Type 2 Diabetes'], status: 'Stable' },
+  { id: '2', name: 'Nusrat Jahan', lastVisit: '14 May 2026', conditions: ['Common Cold'], status: 'Active', avatar: 'https://i.pravatar.cc/150?u=nusrat' },
+  { id: '3', name: 'Karim Ahmed', lastVisit: '01 May 2026', nextAppointment: '20 May', conditions: ['Post-Surgery Recovery'], status: 'Critical' },
+];
 
-export default function MyPatientsPage() {
-  return (
-    <Suspense
-      fallback={
-        <div className="max-w-6xl mx-auto py-6">
-          <h1 className="text-xl font-bold text-slate-900">My Patients</h1>
-          <p className="text-sm text-slate-400 mt-1">Loading...</p>
+export default function PatientDirectory() {
+  const columns: ColumnDef<PatientRecord>[] = [
+    {
+      accessorKey: "name",
+      header: "Patient Name",
+      cell: ({ row }) => (
+        <div className="flex items-center gap-3">
+          <Avatar src={row.original.avatar} fallback={row.original.name[0]} size="sm" />
+          <Typography variant="body" className="font-bold text-sm">{row.original.name}</Typography>
         </div>
-      }
-    >
-      <MyPatientsContent />
-    </Suspense>
+      ),
+    },
+    {
+      accessorKey: "lastVisit",
+      header: "Last Visit",
+    },
+    {
+      accessorKey: "conditions",
+      header: "Primary Conditions",
+      cell: ({ row }) => (
+        <div className="flex flex-wrap gap-1">
+          {row.original.conditions.map((c, i) => (
+            <Badge key={i} variant="outline" className="text-[9px] border-primary/10 text-primary bg-primary/5">
+              {c}
+            </Badge>
+          ))}
+        </div>
+      ),
+    },
+    {
+      accessorKey: "status",
+      header: "Clinical Status",
+      cell: ({ row }) => (
+        <Badge 
+          variant={row.original.status === 'Critical' ? 'primary' : 'outline'}
+          className={cn(
+            "text-[10px] font-black uppercase tracking-widest px-3 py-1",
+            row.original.status === 'Stable' && "bg-emerald-50 text-emerald-600 border-emerald-100",
+            row.original.status === 'Critical' && "bg-rose-500 text-white border-none shadow-md shadow-rose-500/20"
+          )}
+        >
+          {row.original.status}
+        </Badge>
+      ),
+    },
+    {
+      id: "actions",
+      header: "",
+      cell: ({ row }) => (
+        <div className="flex justify-end gap-2">
+          <Button variant="outline" size="sm" className="h-9 w-9 p-0 rounded-xl text-text-muted hover:text-primary">
+            <History className="w-4 h-4" />
+          </Button>
+          <Button variant="outline" size="sm" className="h-9 w-9 p-0 rounded-xl text-text-muted hover:text-primary">
+            <MessageSquare className="w-4 h-4" />
+          </Button>
+          <Button size="sm" className="h-9 px-4 gap-2 rounded-xl text-xs font-bold shadow-soft">
+            <FileText className="w-3 h-3" /> Records
+          </Button>
+        </div>
+      ),
+    },
+  ];
+
+  return (
+    <div className="max-w-7xl mx-auto space-y-8 pb-12">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+          <Typography variant="h1">Patient Directory</Typography>
+          <Typography variant="body" className="text-text-muted mt-1">Accessing 1,248 total patient records.</Typography>
+        </div>
+        <Button className="rounded-xl h-12 px-6 shadow-lg shadow-primary/20 gap-2">
+          <UserPlus className="w-4 h-4" /> Register New Patient
+        </Button>
+      </div>
+
+      <Card className="p-8">
+        <DataTable columns={columns} data={patients} searchKey="name" />
+      </Card>
+    </div>
   );
 }
