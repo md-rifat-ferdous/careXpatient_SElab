@@ -29,10 +29,18 @@ router.post('/', async (req, res) => {
       return res.status(400).json({ error: 'Missing required fields: doctorId, patientId, date, timeSlot.' });
     }
 
+    // Frontend sends User.id as patientId, but Appointment expects Patient.id
+    const patient = await prisma.patient.findUnique({
+      where: { userId: BigInt(patientId) },
+    });
+    if (!patient) {
+      return res.status(400).json({ error: 'Patient profile not found.' });
+    }
+
     const appointment = await prisma.appointment.create({
       data: {
         doctorId:  BigInt(doctorId),
-        patientId: BigInt(patientId),
+        patientId: patient.id,
         type:      type === 'Online' ? 'Online' : 'In_person',
         status:    'Pending',
         date:      new Date(date),
