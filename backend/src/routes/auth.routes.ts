@@ -7,6 +7,8 @@ const router = Router();
 
 router.post('/signup', AuthController.signup);
 router.post('/login', AuthController.login);
+router.post('/send-otp', AuthController.sendOtp);
+router.post('/verify-otp', AuthController.verifyOtp);
 
 router.get('/me', authenticate, async (req: AuthRequest, res: Response) => {
   try {

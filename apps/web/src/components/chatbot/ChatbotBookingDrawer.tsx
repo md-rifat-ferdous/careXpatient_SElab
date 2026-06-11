@@ -3,6 +3,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Doctor } from '../../types/doctor';
 import { bookAppointment } from '../../services/doctor.service';
+import { authApi } from '../../lib/api';
 import { useAuthStore } from '../../store/auth.store';
 import { slots } from '../../data/doctors';
 
@@ -14,8 +15,6 @@ interface ChatbotBookingDrawerProps {
 
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-const STATIC_OTP = '1234';
-
 function formatDate(dateStr: string) {
   const d = new Date(dateStr + 'T00:00:00');
   return `${DAYS[d.getDay()]}, ${MONTHS[d.getMonth()]} ${d.getDate()}`;
@@ -36,6 +35,7 @@ export default function ChatbotBookingDrawer({ isOpen, onClose, doctor }: Chatbo
   const [step, setStep] = useState<DrawerStep>('form');
   const [otp, setOtp] = useState(['', '', '', '']);
   const [otpError, setOtpError] = useState('');
+  const [isSendingOtp, setIsSendingOtp] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
   const otpRefs = [
     useRef<HTMLInputElement>(null),
@@ -71,12 +71,20 @@ export default function ChatbotBookingDrawer({ isOpen, onClose, doctor }: Chatbo
     return Object.keys(e).length === 0;
   };
 
-  const handleConfirmForm = () => {
+  const handleConfirmForm = async () => {
     if (!validate()) return;
-    setOtp(['', '', '', '']);
-    setOtpError('');
-    setStep('otp');
-    setTimeout(() => otpRefs[0].current?.focus(), 100);
+    setIsSendingOtp(true);
+    try {
+      await authApi.sendOtp(phone);
+      setOtp(['', '', '', '']);
+      setOtpError('');
+      setStep('otp');
+      setTimeout(() => otpRefs[0].current?.focus(), 100);
+    } catch (err: any) {
+      setErrors({ phone: err.message || 'Failed to send OTP. Please try again.' });
+    } finally {
+      setIsSendingOtp(false);
+    }
   };
 
   const handleOtpChange = (index: number, value: string) => {
@@ -94,35 +102,29 @@ export default function ChatbotBookingDrawer({ isOpen, onClose, doctor }: Chatbo
     }
   };
 
-  const handleVerifyOtp = () => {
+  const handleVerifyOtp = async () => {
     if (!doctor || !user) return;
     const entered = otp.join('');
     if (entered.length < 4) { setOtpError('Please enter the 4-digit OTP.'); return; }
     setIsVerifying(true);
-    
-    setTimeout(async () => {
-      if (entered === STATIC_OTP) {
-        try {
-          await bookAppointment({
-            doctorId: doctor.id,
-            patientId: user.id.toString(), // user.id is the User id which gets resolved in backend or maps correctly
-            type: consultationType === 'Online' ? 'Online' : 'In_person',
-            date: selectedDate,
-            timeSlot: selectedSlot,
-          });
-          setStep('success');
-        } catch (err: any) {
-          setOtpError(err.message || 'Failed to book appointment. Please try again.');
-        } finally {
-          setIsVerifying(false);
-        }
-      } else {
-        setIsVerifying(false);
-        setOtpError('Invalid OTP. Please try again. (Hint: 1234)');
-        setOtp(['', '', '', '']);
-        otpRefs[0].current?.focus();
-      }
-    }, 900);
+
+    try {
+      await authApi.verifyOtp(phone, entered);
+      await bookAppointment({
+        doctorId: doctor.id,
+        patientId: user.id.toString(),
+        type: consultationType === 'Online' ? 'Online' : 'In_person',
+        date: selectedDate,
+        timeSlot: selectedSlot,
+      });
+      setStep('success');
+    } catch (err: any) {
+      setOtpError(err.message || 'Invalid OTP. Please try again.');
+      setOtp(['', '', '', '']);
+      otpRefs[0].current?.focus();
+    } finally {
+      setIsVerifying(false);
+    }
   };
 
   const handleClose = () => {
@@ -301,8 +303,9 @@ export default function ChatbotBookingDrawer({ isOpen, onClose, doctor }: Chatbo
             </div>
 
             <div className="px-6 py-4 border-t border-slate-100 bg-white">
-              <button onClick={handleConfirmForm} className="w-full py-3.5 bg-teal-500 text-white rounded-xl font-bold text-sm shadow-lg shadow-teal-500/20 hover:bg-teal-600 active:scale-[0.98] transition-all">
-                Confirm Appointment
+              <button onClick={handleConfirmForm} disabled={isSendingOtp}
+                className="w-full py-3.5 bg-teal-500 text-white rounded-xl font-bold text-sm shadow-lg shadow-teal-500/20 hover:bg-teal-600 active:scale-[0.98] transition-all disabled:opacity-60">
+                {isSendingOtp ? 'Sending OTP...' : 'Confirm Appointment'}
               </button>
             </div>
           </div>

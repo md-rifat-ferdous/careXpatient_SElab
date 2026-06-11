@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { AuthService } from '../services/auth.service';
+import { OtpService } from '../services/otp.service';
 import { z } from 'zod';
 
 const signupSchema = z.object({
@@ -67,6 +68,42 @@ export class AuthController {
         return res.status(400).json({ success: false, errors: error.errors });
       }
       res.status(401).json({ success: false, message: error.message });
+    }
+  }
+
+  static async sendOtp(req: Request, res: Response) {
+    try {
+      const { phone } = req.body;
+      if (!phone) {
+        return res.status(400).json({ success: false, message: 'Phone number is required.' });
+      }
+
+      const otp = OtpService.generateOtp(phone);
+      console.log(`[OTP] Generated OTP for ${phone}: ${otp}`);
+
+      res.json({ success: true, message: 'OTP sent successfully.' });
+    } catch (error: any) {
+      console.error('[OTP] Error sending OTP:', error);
+      res.status(500).json({ success: false, message: 'Failed to send OTP.' });
+    }
+  }
+
+  static async verifyOtp(req: Request, res: Response) {
+    try {
+      const { phone, otp } = req.body;
+      if (!phone || !otp) {
+        return res.status(400).json({ success: false, message: 'Phone and OTP are required.' });
+      }
+
+      const result = OtpService.verifyOtp(phone, otp);
+      if (!result.valid) {
+        return res.status(400).json({ success: false, message: result.reason });
+      }
+
+      res.json({ success: true, message: 'OTP verified successfully.' });
+    } catch (error: any) {
+      console.error('[OTP] Error verifying OTP:', error);
+      res.status(500).json({ success: false, message: 'Failed to verify OTP.' });
     }
   }
 }
