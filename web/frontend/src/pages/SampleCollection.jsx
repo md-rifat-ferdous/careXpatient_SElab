@@ -1,8 +1,11 @@
 import { useState, useEffect, useCallback } from 'react';
 import DetailsModal from '../components/DetailsModal';
 import SampleCollectionRow from '../components/SampleCollectionRow';
-
-const API = 'http://localhost:5000';
+import {
+  fetchOrders as demoFetchOrders,
+  advanceOrderStep as demoAdvanceOrderStep,
+  assignStaff as demoAssignStaff,
+} from '../store/demoData';
 
 // SampleCollection owns steps 3 (Assigned), 4 (Arrived), 5 (Collected), 6 (Delivered)
 const COLLECTION_TABS = ['All', 'Home Collection', 'In-Lab', 'Pending', 'Collected', 'Urgent', 'Overdue'];
@@ -84,62 +87,45 @@ export default function SampleCollection() {
 
   const fetchOrders = useCallback(() => {
     setLoading(true);
-    const params = new URLSearchParams({ module: 'samplecollection' });
-    if (activeTab !== 'All') params.set('status', activeTab);
-    if (search) params.set('search', search);
-    fetch(`${API}/api/orders?${params}`)
-      .then(r => r.json())
+    demoFetchOrders('samplecollection', activeTab === 'All' ? null : activeTab, search)
       .then(res => { if (res.success) setOrders(res.data); })
-      .catch(() => {})
       .finally(() => setLoading(false));
   }, [activeTab, search]);
 
   useEffect(() => { fetchOrders(); }, [fetchOrders]);
 
   const refreshSelectedOrder = async (id) => {
-    const params = new URLSearchParams({ module: 'samplecollection', search: id });
-    const res = await fetch(`${API}/api/orders?${params}`).then(r => r.json()).catch(() => null);
+    const res = await demoFetchOrders('samplecollection', null, String(id));
     if (res?.success) {
       const found = res.data.find(o => o.id === id);
       if (found) setSelectedOrder(found);
     }
   };
 
-  // Advance from table row quick actions (steps 3→4, 4→5, 5→6)
   const advanceStep = async (id, currentStep) => {
     setUpdatingId(id);
-    await fetch(`${API}/api/orders/${id}/advance`, { method: 'PATCH' });
+    await demoAdvanceOrderStep(id);
     setUpdatingId(null);
     fetchOrders();
     const labels = { 3: 'Collector marked as arrived', 4: 'Sample collected', 5: 'Delivered to lab — moved to Upload Reports' };
     showToast(labels[currentStep] || 'Collection status updated');
   };
 
-  // Assign staff from inline AssignModal
   const handleAssignConfirm = async (id, staffName) => {
-    await fetch(`${API}/api/orders/${id}/assign`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ staff_name: staffName }),
-    });
+    await demoAssignStaff(id, staffName);
     fetchOrders();
     showToast(`${staffName} assigned as collector`);
   };
 
-  // Called from inside DetailsModal
   const handleModalAdvance = async (id) => {
-    await fetch(`${API}/api/orders/${id}/advance`, { method: 'PATCH' });
+    await demoAdvanceOrderStep(id);
     await refreshSelectedOrder(id);
     fetchOrders();
     showToast('Workflow advanced to next step');
   };
 
   const handleModalAssign = async (id, staffName) => {
-    await fetch(`${API}/api/orders/${id}/assign`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ staff_name: staffName }),
-    });
+    await demoAssignStaff(id, staffName);
     await refreshSelectedOrder(id);
     fetchOrders();
     showToast(`${staffName} has been assigned`);

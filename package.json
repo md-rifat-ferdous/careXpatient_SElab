@@ -1,25 +1,10 @@
 {
-  "name": "carexpatient",
-  "packageManager": "npm@10.2.4",
+  "name": "lab-portal",
   "private": true,
-  "workspaces": [
-    "apps/*",
-    "backend",
-    "packages/*"
-  ],
   "scripts": {
-    "dev": "turbo run dev",
-    "dev:web": "turbo run dev --filter=web",
-    "dev:backend": "turbo run dev --filter=@carexpatient/backend",
-    "build": "turbo run build",
-    "lint": "turbo run lint",
-    "type-check": "turbo run type-check",
-    "prisma:generate": "turbo run generate --filter=@carexpatient/prisma",
-    "prisma:push": "turbo run push --filter=@carexpatient/prisma",
-    "prisma:push:force": "turbo run push:force --filter=@carexpatient/prisma",
-    "prisma:studio": "turbo run studio --filter=@carexpatient/prisma"
-  },
-  "devDependencies": {
-    "turbo": "^2.0.0"
+    "dev:frontend": "cd web/frontend && npm run dev",
+    "dev:backend": "cd web/backend && npm run dev",
+    "build:frontend": "cd web/frontend && npm run build",
+    "install:all": "cd web/frontend && npm install && cd ../../web/backend && npm install && cd ../../packages/ui && npm install"
   }
 }

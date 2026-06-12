@@ -1,8 +1,15 @@
 import { useState, useEffect, useCallback } from 'react';
 import DetailsModal from '../components/DetailsModal';
 import TestQueueRow from '../components/TestQueueRow';
-
-const API = 'http://localhost:5000';
+import {
+  fetchOrders as demoFetchOrders,
+  acceptOrder as demoAcceptOrder,
+  rejectOrder as demoRejectOrder,
+  restoreOrder as demoRestoreOrder,
+  createManualEntry as demoCreateManualEntry,
+  getAllTests as demoGetAllTests,
+  assignStaff as demoAssignStaff,
+} from '../store/demoData';
 
 // TestQueue only shows: 0=Rejected, 1=New Request, 2=Accepted
 const TABS = ['All', 'New Requests', 'Accepted', 'Rejected'];
@@ -134,11 +141,7 @@ function ManualEntryModal({ tests, onClose, onSuccess }) {
       return;
     }
     setSaving(true); setErr('');
-    const res = await fetch(`${API}/api/orders/manual-entry`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(form)
-    }).then(r => r.json()).catch(() => null);
+    const res = await demoCreateManualEntry(form);
     setSaving(false);
     if (res?.success) { onSuccess(); onClose(); }
     else setErr(res?.error || 'Failed to create entry.');
@@ -217,53 +220,39 @@ export default function TestQueue() {
 
   const fetchOrders = useCallback(() => {
     setLoading(true);
-    const params = new URLSearchParams({ module: 'testqueue' });
-    if (activeTab !== 'All') params.set('status', activeTab);
-    if (search) params.set('search', search);
-    fetch(`${API}/api/orders?${params}`)
-      .then(r => r.json())
+    const status = activeTab === 'All' ? null : activeTab;
+    demoFetchOrders('testqueue', status, search)
       .then(res => { if (res.success) setOrders(res.data); })
-      .catch(() => {})
       .finally(() => setLoading(false));
   }, [activeTab, search]);
 
   useEffect(() => { fetchOrders(); }, [fetchOrders]);
   useEffect(() => {
-    fetch(`${API}/api/tests`).then(r => r.json()).then(res => { if (res.success) setTests(res.data); }).catch(() => {});
+    demoGetAllTests(null, '').then(res => { if (res.success) setTests(res.data); });
   }, []);
 
-  // Refresh a single order inside the detail modal
   const refreshSelectedOrder = async (id) => {
-    const params = new URLSearchParams({ module: 'testqueue', search: id });
-    const res = await fetch(`${API}/api/orders?${params}`).then(r => r.json()).catch(() => null);
+    const res = await demoFetchOrders('testqueue', null, String(id));
     if (res?.success) {
       const found = res.data.find(o => o.id === id);
       if (found) setSelectedOrder(found);
     }
   };
 
-  // Accept: advance step 1 → 2
   const handleAccept = async (id) => {
     setUpdatingId(id);
-    await fetch(`${API}/api/orders/${id}/advance`, { method: 'PATCH' });
+    await demoAcceptOrder(id);
     setUpdatingId(null);
     fetchOrders();
     showToast('Request accepted — moved to Sample Collection queue');
   };
 
-  // Open rejection modal
   const handleRejectClick = (order) => {
     setRejectTarget(order);
   };
 
-  // Submit rejection
   const handleRejectConfirm = async (id, reason, note) => {
-    const res = await fetch(`${API}/api/orders/${id}/reject`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ reason, note }),
-    }).then(r => r.json()).catch(() => null);
-
+    const res = await demoRejectOrder(id, reason, note);
     if (res?.success) {
       fetchOrders();
       showToast('Request rejected and reason saved', 'error');
@@ -272,33 +261,22 @@ export default function TestQueue() {
     }
   };
 
-  // Modal advance (from DetailsModal)
   const handleModalAdvance = async (id) => {
-    await fetch(`${API}/api/orders/${id}/advance`, { method: 'PATCH' });
+    await demoAcceptOrder(id);
     await refreshSelectedOrder(id);
     fetchOrders();
     showToast('Workflow advanced to next step');
   };
 
-  // Modal assign (from DetailsModal)
   const handleModalAssign = async (id, staffName) => {
-    await fetch(`${API}/api/orders/${id}/assign`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ staff_name: staffName }),
-    });
+    await demoAssignStaff(id, staffName);
     await refreshSelectedOrder(id);
     fetchOrders();
     showToast(`${staffName} has been assigned`);
   };
 
-  // Modal reject (from DetailsModal)
   const handleModalReject = async (id, reason, note) => {
-    const res = await fetch(`${API}/api/orders/${id}/reject`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ reason, note }),
-    }).then(r => r.json()).catch(() => null);
+    const res = await demoRejectOrder(id, reason, note);
     if (res?.success) {
       await refreshSelectedOrder(id);
       fetchOrders();
@@ -306,14 +284,12 @@ export default function TestQueue() {
     }
   };
 
-  // Restore: PATCH /api/orders/:id/restore
   const handleRestore = async (id) => {
     setUpdatingId(id);
-    const res = await fetch(`${API}/api/orders/${id}/restore`, { method: 'PATCH' }).then(r => r.json()).catch(() => null);
+    const res = await demoRestoreOrder(id);
     setUpdatingId(null);
     if (res?.success) {
       if (selectedOrder && selectedOrder.id === id) {
-        // Refresh the detail modal content if it is open
         await refreshSelectedOrder(id);
       }
       fetchOrders();

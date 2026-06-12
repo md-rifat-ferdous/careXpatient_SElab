@@ -1,8 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
+import { fetchUploadOrders, advanceOrderStep, completeReport } from '../store/demoData';
 
-const API = 'http://localhost:5000';
-
-// UploadReports owns steps 7 (Processing), 8 (Ready for Report), 9 (Completed)
 const REPORT_TABS = ['All', 'Processing', 'Ready for Report', 'Completed'];
 
 const STEP_LABELS = {
@@ -24,18 +22,12 @@ export default function UploadReports() {
   const [uploadedUrl, setUploadedUrl] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
   const [error, setError] = useState('');
-  const [dispatching, setDispatching] = useState(false);
-  const [dispatchLogs, setDispatchLogs] = useState([]);
   const [dragOver, setDragOver] = useState(false);
   const [advancing, setAdvancing] = useState(false);
   const fileRef = useRef();
 
   const fetchOrders = () => {
-    const params = new URLSearchParams({ module: 'uploadreports' });
-    if (activeTab !== 'All') params.set('status', activeTab);
-    if (search) params.set('search', search);
-    fetch(`${API}/api/orders?${params}`)
-      .then(r => r.json())
+    fetchUploadOrders(activeTab, search)
       .then(res => { if (res.success) setOrders(res.data); })
       .catch(() => {});
   };
@@ -45,16 +37,12 @@ export default function UploadReports() {
   useEffect(() => {
     if (selectedOrder) {
       setFile(null); setPreview(null); setUploadedUrl(''); setSuccessMsg(''); setError(''); setSummary('');
-      fetch(`${API}/api/reports/dispatch-logs/${selectedOrder.id}`)
-        .then(r => r.json())
-        .then(res => { if (res.success) setDispatchLogs(res.data); })
-        .catch(() => setDispatchLogs([]));
     }
   }, [selectedOrder]);
 
   const handleFile = (f) => {
     if (!f) return;
-    setFile(f); setUploadedUrl(''); setSuccessMsg('');
+    setFile(f); setUploadedUrl(''); setSuccessMsg(''); setError('');
     if (f.type.startsWith('image/')) {
       const reader = new FileReader();
       reader.onload = e => setPreview(e.target.result);
@@ -72,64 +60,37 @@ export default function UploadReports() {
   const uploadFile = async () => {
     if (!file) return;
     setUploading(true); setError('');
-    const fd = new FormData();
-    fd.append('reportFile', file);
-    const res = await fetch(`${API}/api/reports/upload`, { method: 'POST', body: fd })
-      .then(r => r.json()).catch(() => null);
+    await new Promise(r => setTimeout(r, 500));
     setUploading(false);
-    if (res?.success) {
-      setUploadedUrl(res.data.fileUrl);
-      setSuccessMsg('File uploaded. Please verify and sign the report.');
-    } else {
-      setError(res?.error || 'Upload failed.');
-    }
+    setUploadedUrl(`/reports/report_${selectedOrder.id}.pdf`);
+    setSuccessMsg('File uploaded. Please verify and sign the report.');
   };
 
   const verifyReport = async () => {
     if (!selectedOrder || !uploadedUrl) return;
     setVerifying(true); setError('');
-    const res = await fetch(`${API}/api/reports/verify`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ lab_order_id: selectedOrder.id, result_summary: summary, file_url: uploadedUrl })
-    }).then(r => r.json()).catch(() => null);
+    const res = await completeReport(selectedOrder.id, summary);
     setVerifying(false);
     if (res?.success) {
       setSuccessMsg('✓ Report verified and signed. Order marked as Completed.');
-      setOrders(prev => prev.map(o => o.id === selectedOrder.id ? { ...o, demo_step: 9, status: 'Reported' } : o));
-      setSelectedOrder(prev => ({ ...prev, demo_step: 9, status: 'Reported' }));
+      const updatedOrder = { ...selectedOrder, demo_step: 9, status: 'Completed' };
+      setSelectedOrder(updatedOrder);
+      setOrders(prev => prev.map(o => o.id === selectedOrder.id ? updatedOrder : o));
     } else {
       setError(res?.error || 'Verification failed.');
     }
   };
 
-  // Advance from step 7 → 8 (mark Ready for Report)
   const handleAdvanceStep = async () => {
     if (!selectedOrder || selectedOrder.demo_step !== 7) return;
     setAdvancing(true);
-    const res = await fetch(`${API}/api/orders/${selectedOrder.id}/advance`, { method: 'PATCH' })
-      .then(r => r.json()).catch(() => null);
+    const res = await advanceOrderStep(selectedOrder.id);
     setAdvancing(false);
     if (res?.success) {
-      setOrders(prev => prev.map(o => o.id === selectedOrder.id ? { ...o, demo_step: 8 } : o));
-      setSelectedOrder(prev => ({ ...prev, demo_step: 8 }));
+      const updatedOrder = { ...selectedOrder, demo_step: 8, status: 'Ready for Report' };
+      setSelectedOrder(updatedOrder);
+      setOrders(prev => prev.map(o => o.id === selectedOrder.id ? updatedOrder : o));
       setSuccessMsg('Order marked as Ready for Report.');
-    }
-  };
-
-  const sendReport = async (channel) => {
-    if (!selectedOrder) return;
-    const recipient = channel === 'SMS' ? selectedOrder.patient_phone : (selectedOrder.patient_email || selectedOrder.patient_phone);
-    setDispatching(true);
-    const res = await fetch(`${API}/api/reports/send`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ lab_order_id: selectedOrder.id, channel, recipient })
-    }).then(r => r.json()).catch(() => null);
-    setDispatching(false);
-    if (res?.success) {
-      setDispatchLogs(prev => [res.data, ...prev]);
-      setSuccessMsg(`Report dispatched to patient via ${channel}.`);
     }
   };
 
@@ -147,13 +108,11 @@ export default function UploadReports() {
   return (
     <div className="p-8 max-w-7xl mx-auto">
 
-      {/* Header */}
       <div className="mb-8">
         <h2 className="text-3xl font-extrabold text-on-surface tracking-tight">Upload Reports</h2>
         <p className="text-on-surface-variant font-medium mt-1">Upload, verify, and dispatch diagnostic reports to patients (Steps 7–9)</p>
       </div>
 
-      {/* Stats */}
       <div className="grid grid-cols-3 gap-5 mb-6">
         {[
           { icon: 'hourglass_top', bg: 'bg-blue-50',    color: 'text-blue-600',    label: 'Processing',       val: stats.processing },
@@ -172,7 +131,6 @@ export default function UploadReports() {
         ))}
       </div>
 
-      {/* Tabs & Search */}
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-6">
         <div className="flex gap-2 bg-background-off-white p-1 rounded-xl overflow-x-auto">
           {REPORT_TABS.map(tab => (
@@ -197,7 +155,6 @@ export default function UploadReports() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
-        {/* Left: Order list */}
         <div className="space-y-4">
           <div className="bg-surface-white rounded-2xl border border-outline-variant shadow-sm overflow-hidden">
             <div className="px-6 py-4 border-b border-outline-variant flex items-center gap-2">
@@ -240,41 +197,8 @@ export default function UploadReports() {
               })}
             </div>
           </div>
-
-          {/* Dispatch Log */}
-          {selectedOrder && (
-            <div className="bg-surface-white rounded-2xl border border-outline-variant shadow-sm overflow-hidden">
-              <div className="px-6 py-4 border-b border-outline-variant flex items-center gap-2">
-                <span className="material-symbols-outlined text-primary-container">send</span>
-                <h3 className="font-bold text-on-surface">Dispatch Log</h3>
-              </div>
-              <div className="divide-y divide-outline-variant max-h-36 overflow-y-auto">
-                {dispatchLogs.length === 0 && <p className="px-6 py-4 text-sm text-on-surface-variant">No dispatches yet.</p>}
-                {dispatchLogs.map(log => (
-                  <div key={log.id} className="px-6 py-3 flex items-center justify-between">
-                    <div>
-                      <p className="text-xs font-semibold text-on-surface">Via {log.channel} → {log.sent_to}</p>
-                      <p className="text-[10px] text-on-surface-variant">{new Date(log.sent_at).toLocaleString()}</p>
-                    </div>
-                    <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">{log.status}</span>
-                  </div>
-                ))}
-              </div>
-              <div className="px-6 py-4 flex gap-3 border-t border-outline-variant">
-                <button onClick={() => sendReport('SMS')} disabled={dispatching}
-                  className="flex-1 flex items-center justify-center gap-2 py-2.5 border border-primary-container text-primary-container font-bold text-sm rounded-xl hover:bg-primary-container hover:text-white transition-all disabled:opacity-60">
-                  <span className="material-symbols-outlined text-[18px]">sms</span> Send SMS
-                </button>
-                <button onClick={() => sendReport('Email')} disabled={dispatching}
-                  className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-primary-container text-white font-bold text-sm rounded-xl hover:bg-primary transition-all disabled:opacity-60">
-                  <span className="material-symbols-outlined text-[18px]">email</span> Send Email
-                </button>
-              </div>
-            </div>
-          )}
         </div>
 
-        {/* Right: Upload Panel */}
         <div className="space-y-4">
           {!selectedOrder ? (
             <div className="bg-surface-white rounded-2xl border-2 border-dashed border-outline-variant flex flex-col items-center justify-center h-72 text-on-surface-variant">
@@ -283,7 +207,6 @@ export default function UploadReports() {
             </div>
           ) : (
             <>
-              {/* Step indicator */}
               <div className={`flex items-center gap-3 px-4 py-3 rounded-xl border ${
                 selectedOrder.demo_step === 7 ? 'bg-blue-50 border-blue-200' :
                 selectedOrder.demo_step === 8 ? 'bg-violet-50 border-violet-200' :
@@ -305,7 +228,6 @@ export default function UploadReports() {
                   <p className="text-[11px] text-on-surface-variant">Order #{String(selectedOrder.id).padStart(4,'0')} · {selectedOrder.patient_name}</p>
                 </div>
 
-                {/* Mark Ready for Report button (step 7 only) */}
                 {selectedOrder.demo_step === 7 && (
                   <button onClick={handleAdvanceStep} disabled={advancing}
                     className="text-xs font-bold bg-violet-600 text-white px-3 py-1.5 rounded-lg hover:bg-violet-700 transition-colors disabled:opacity-60">
@@ -314,73 +236,89 @@ export default function UploadReports() {
                 )}
               </div>
 
-              {/* Drop Zone */}
-              <div
-                onDragOver={e => { e.preventDefault(); setDragOver(true); }}
-                onDragLeave={() => setDragOver(false)}
-                onDrop={handleDrop}
-                onClick={() => fileRef.current.click()}
-                className={`bg-surface-white rounded-2xl border-2 border-dashed transition-all cursor-pointer flex flex-col items-center justify-center py-12 px-6 text-center ${dragOver ? 'border-primary-container bg-primary-container/5' : 'border-outline-variant hover:border-primary-container hover:bg-background-off-white'}`}
-              >
-                <input type="file" ref={fileRef} className="hidden" accept=".pdf,.png,.jpg,.jpeg" onChange={e => handleFile(e.target.files[0])} />
-                {file ? (
-                  <>
-                    <span className="material-symbols-outlined text-5xl text-primary-container mb-3">description</span>
-                    <p className="font-bold text-on-surface">{file.name}</p>
-                    <p className="text-xs text-on-surface-variant mt-1">{(file.size / 1024).toFixed(1)} KB — Click to replace</p>
-                  </>
-                ) : (
-                  <>
-                    <span className="material-symbols-outlined text-5xl text-primary-container/40 mb-3">upload_file</span>
-                    <p className="font-bold text-on-surface">Drop PDF or Image here</p>
-                    <p className="text-xs text-on-surface-variant mt-1">or click to browse · Max 10MB</p>
-                  </>
-                )}
-              </div>
+              {(selectedOrder.demo_step === 8 || selectedOrder.demo_step === 7) && (
+                <>
+                  <div
+                    onDragOver={e => { e.preventDefault(); setDragOver(true); }}
+                    onDragLeave={() => setDragOver(false)}
+                    onDrop={handleDrop}
+                    onClick={() => fileRef.current.click()}
+                    className={`bg-surface-white rounded-2xl border-2 border-dashed transition-all cursor-pointer flex flex-col items-center justify-center py-12 px-6 text-center ${dragOver ? 'border-primary-container bg-primary-container/5' : 'border-outline-variant hover:border-primary-container hover:bg-background-off-white'}`}
+                  >
+                    <input type="file" ref={fileRef} className="hidden" accept=".pdf,.png,.jpg,.jpeg" onChange={e => handleFile(e.target.files[0])} />
+                    {file ? (
+                      <>
+                        <span className="material-symbols-outlined text-5xl text-primary-container mb-3">description</span>
+                        <p className="font-bold text-on-surface">{file.name}</p>
+                        <p className="text-xs text-on-surface-variant mt-1">{(file.size / 1024).toFixed(1)} KB — Click to replace</p>
+                      </>
+                    ) : uploadedUrl ? (
+                      <>
+                        <span className="material-symbols-outlined text-5xl text-emerald-500 mb-3">check_circle</span>
+                        <p className="font-bold text-on-surface">Report uploaded successfully</p>
+                        <p className="text-xs text-on-surface-variant mt-1">Proceed to Verify & Sign</p>
+                      </>
+                    ) : (
+                      <>
+                        <span className="material-symbols-outlined text-5xl text-primary-container/40 mb-3">upload_file</span>
+                        <p className="font-bold text-on-surface">Drop PDF or Image here</p>
+                        <p className="text-xs text-on-surface-variant mt-1">or click to browse · Max 10MB</p>
+                      </>
+                    )}
+                  </div>
 
-              {/* Preview */}
-              {preview && (
-                <div className="bg-surface-white rounded-2xl border border-outline-variant shadow-sm overflow-hidden">
-                  <div className="px-6 py-3 border-b border-outline-variant flex items-center gap-2">
-                    <span className="material-symbols-outlined text-primary-container text-[18px]">preview</span>
-                    <h3 className="font-bold text-sm text-on-surface">Report Preview</h3>
+                  {preview && (
+                    <div className="bg-surface-white rounded-2xl border border-outline-variant shadow-sm overflow-hidden">
+                      <div className="px-6 py-3 border-b border-outline-variant flex items-center gap-2">
+                        <span className="material-symbols-outlined text-primary-container text-[18px]">preview</span>
+                        <h3 className="font-bold text-sm text-on-surface">Report Preview</h3>
+                      </div>
+                      <div className="p-4">
+                        <img src={preview} alt="Report Preview" className="w-full rounded-xl max-h-60 object-contain bg-background-off-white" />
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="bg-surface-white rounded-2xl border border-outline-variant shadow-sm p-6">
+                    <label className="block text-sm font-bold text-on-surface mb-2">
+                      Result Summary <span className="text-subtle-gray font-normal">(optional)</span>
+                    </label>
+                    <textarea
+                      value={summary}
+                      onChange={e => setSummary(e.target.value)}
+                      placeholder="e.g., CBC — All values within normal range. HbA1c: 5.4% (Normal)"
+                      className="w-full border border-outline-variant rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary-container/30 focus:border-primary-container outline-none resize-none h-28"
+                    />
                   </div>
-                  <div className="p-4">
-                    <img src={preview} alt="Report Preview" className="w-full rounded-xl max-h-60 object-contain bg-background-off-white" />
-                  </div>
-                </div>
+
+                  {error && <p className="text-xs text-error bg-error-container/30 px-4 py-3 rounded-xl">{error}</p>}
+                  {successMsg && <p className="text-xs text-emerald-700 bg-emerald-50 px-4 py-3 rounded-xl font-semibold">{successMsg}</p>}
+
+                  {selectedOrder.demo_step !== 9 && (
+                    <div className="flex gap-3">
+                      <button onClick={uploadFile} disabled={!file || uploading || !!uploadedUrl}
+                        className="flex-1 flex items-center justify-center gap-2 py-3 bg-surface-white border border-primary-container text-primary-container font-bold text-sm rounded-xl hover:bg-primary-container/10 transition-all disabled:opacity-50">
+                        <span className="material-symbols-outlined text-[18px]">upload</span>
+                        {uploading ? 'Uploading...' : uploadedUrl ? 'Uploaded ✓' : 'Upload File'}
+                      </button>
+                      <button onClick={verifyReport} disabled={!uploadedUrl || verifying}
+                        className="flex-1 flex items-center justify-center gap-2 py-3 bg-primary-container text-white font-bold text-sm rounded-xl hover:bg-primary transition-all disabled:opacity-50 shadow-md hover:shadow-lg">
+                        <span className="material-symbols-outlined text-[18px]">verified</span>
+                        {verifying ? 'Signing...' : 'Verify & Sign'}
+                      </button>
+                    </div>
+                  )}
+                </>
               )}
 
-              {/* Summary */}
-              <div className="bg-surface-white rounded-2xl border border-outline-variant shadow-sm p-6">
-                <label className="block text-sm font-bold text-on-surface mb-2">
-                  Result Summary <span className="text-subtle-gray font-normal">(optional)</span>
-                </label>
-                <textarea
-                  value={summary}
-                  onChange={e => setSummary(e.target.value)}
-                  placeholder="e.g., CBC — All values within normal range. HbA1c: 5.4% (Normal)"
-                  className="w-full border border-outline-variant rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary-container/30 focus:border-primary-container outline-none resize-none h-28"
-                />
-              </div>
-
-              {/* Messages */}
-              {error && <p className="text-xs text-error bg-error-container/30 px-4 py-3 rounded-xl">{error}</p>}
-              {successMsg && <p className="text-xs text-emerald-700 bg-emerald-50 px-4 py-3 rounded-xl font-semibold">{successMsg}</p>}
-
-              {/* Actions */}
-              <div className="flex gap-3">
-                <button onClick={uploadFile} disabled={!file || uploading || !!uploadedUrl}
-                  className="flex-1 flex items-center justify-center gap-2 py-3 bg-surface-white border border-primary-container text-primary-container font-bold text-sm rounded-xl hover:bg-primary-container/10 transition-all disabled:opacity-50">
-                  <span className="material-symbols-outlined text-[18px]">upload</span>
-                  {uploading ? 'Uploading...' : uploadedUrl ? 'Uploaded ✓' : 'Upload File'}
-                </button>
-                <button onClick={verifyReport} disabled={!uploadedUrl || verifying || selectedOrder?.demo_step === 9}
-                  className="flex-1 flex items-center justify-center gap-2 py-3 bg-primary-container text-white font-bold text-sm rounded-xl hover:bg-primary transition-all disabled:opacity-50 shadow-md hover:shadow-lg">
-                  <span className="material-symbols-outlined text-[18px]">verified</span>
-                  {verifying ? 'Signing...' : selectedOrder?.demo_step === 9 ? 'Signed ✓' : 'Verify & Sign'}
-                </button>
-              </div>
+              {selectedOrder.demo_step === 9 && (
+                <div className="bg-surface-white rounded-2xl border border-emerald-200 bg-emerald-50/30 flex flex-col items-center justify-center py-16 text-center">
+                  <span className="material-symbols-outlined text-6xl text-emerald-500 mb-4">task_alt</span>
+                  <h3 className="text-xl font-bold text-emerald-800 mb-1">Report Completed</h3>
+                  <p className="text-sm text-emerald-600">This report has been verified and dispatched.</p>
+                  <p className="text-xs text-on-surface-variant mt-3">Order #{String(selectedOrder.id).padStart(4, '0')} · {selectedOrder.patient_name}</p>
+                </div>
+              )}
             </>
           )}
         </div>

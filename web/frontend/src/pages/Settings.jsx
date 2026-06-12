@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 
-const API = 'http://localhost:5000';
+const API = 'http://localhost:5002';
 
 const TABS = ['Lab Profile', 'Operating Hours', 'Notifications', 'Account'];
 

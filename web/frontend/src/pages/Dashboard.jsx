@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
-
-const API = 'http://localhost:5000';
+import { fetchDashboard as demoFetchDashboard } from '../store/demoData';
 
 function StatCard({ icon, iconBg, iconColor, label, value, badge, badgeColor }) {
   return (
@@ -35,10 +34,8 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch(`${API}/api/dashboard`)
-      .then(r => r.json())
+    demoFetchDashboard()
       .then(res => { if (res.success) setData(res.data); })
-      .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
 

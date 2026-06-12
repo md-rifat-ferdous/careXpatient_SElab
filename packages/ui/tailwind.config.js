@@ -1,4 +1,4 @@
-const sharedConfig = require('@carexpatient/tailwind-config/tailwind.config.js');
+const sharedConfig = require('../config-tailwind/tailwind.config.js');
 
 /** @type {import('tailwindcss').Config} */
 module.exports = {

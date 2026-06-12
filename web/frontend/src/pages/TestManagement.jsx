@@ -1,6 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
-
-const API = 'http://localhost:5000';
+import {
+  getAllTests as demoGetAllTests,
+  saveTest as demoSaveTest,
+  deleteTest as demoDeleteTest,
+} from '../store/demoData';
 
 const CATEGORIES = ['All', 'Blood', 'Urine', 'Imaging', 'Microbiology', 'Pathology', 'General'];
 const SAMPLE_TYPES = ['Blood', 'Urine', 'Stool', 'Swab', 'Tissue', 'Serum', 'N/A'];
@@ -23,9 +26,7 @@ function TestModal({ test, onClose, onSaved }) {
   const save = async () => {
     if (!form.name || !form.price) { setErr('Name and price are required.'); return; }
     setSaving(true); setErr('');
-    const method = test ? 'PUT' : 'POST';
-    const url = test ? `${API}/api/tests/${test.id}` : `${API}/api/tests`;
-    const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(form) }).then(r => r.json()).catch(() => null);
+    const res = await demoSaveTest(form);
     setSaving(false);
     if (res?.success) { onSaved(); onClose(); }
     else setErr(res?.error || 'Failed to save test.');
@@ -195,13 +196,8 @@ export default function TestManagement() {
 
   const fetchTests = useCallback(() => {
     setLoading(true);
-    const params = new URLSearchParams();
-    if (activeCategory !== 'All') params.set('category', activeCategory);
-    if (search) params.set('search', search);
-    fetch(`${API}/api/tests?${params}`)
-      .then(r => r.json())
+    demoGetAllTests(activeCategory === 'All' ? null : activeCategory, search || '')
       .then(res => { if (res.success) setTests(res.data); })
-      .catch(() => {})
       .finally(() => setLoading(false));
   }, [activeCategory, search]);
 
@@ -210,7 +206,7 @@ export default function TestManagement() {
   const deleteTest = async (id) => {
     if (!window.confirm('Delete this test from your catalog?')) return;
     setDeletingId(id);
-    await fetch(`${API}/api/tests/${id}`, { method: 'DELETE' });
+    await demoDeleteTest(id);
     setDeletingId(null);
     fetchTests();
   };

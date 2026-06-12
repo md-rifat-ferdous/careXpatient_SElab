@@ -1,17 +1,13 @@
 {
-  "name": "@carexpatient/ui",
+  "name": "@lab-portal/ui",
   "version": "1.0.0",
-  "description": "Shared UI components for careXpatient",
+  "private": true,
   "main": "src/index.ts",
   "scripts": {
-    "dev": "npm run storybook",
-    "build": "tsc",
     "storybook": "storybook dev -p 6007",
     "build-storybook": "storybook build"
   },
   "devDependencies": {
-    "@carexpatient/tailwind-config": "1.0.0",
-    "@carexpatient/typescript-config": "1.0.0",
     "@chromatic-com/storybook": "^5.1.2",
     "@storybook/addon-a11y": "^10.3.6",
     "@storybook/addon-docs": "^10.3.6",

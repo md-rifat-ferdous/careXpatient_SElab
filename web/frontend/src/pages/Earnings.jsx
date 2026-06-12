@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
-
-const API = 'http://localhost:5000';
+import { fetchEarnings as demoFetchEarnings } from '../store/demoData';
 
 const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 const GATEWAY_ICONS = { bKash: '📱', Nagad: '💚', SSLCommerz: '💳' };
@@ -20,10 +19,8 @@ export default function Earnings() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch(`${API}/api/earnings`)
-      .then(r => r.json())
+    demoFetchEarnings()
       .then(res => { if (res.success) setData(res.data); })
-      .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
 
