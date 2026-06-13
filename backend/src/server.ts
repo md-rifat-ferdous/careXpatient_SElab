@@ -12,9 +12,16 @@ import labOrderRoutes from './routes/labOrder.routes';
 import reportsRoutes from './routes/reports.routes';
 import prescriptionRoutes from './routes/prescription.routes';
 import consultationRoutes from './routes/consultation.routes';
+import labDashboardRoutes from './routes/lab/dashboard.routes';
+import labPatientsRoutes from './routes/lab/patients.routes';
+import labOrdersRoutes from './routes/lab/orders.routes';
+import labEarningsRoutes from './routes/lab/earnings.routes';
+import labSettingsRoutes from './routes/lab/settings.routes';
+import labReportsRoutes from './routes/lab/reports.routes';
 import { initSocketServer } from './services/socket.service';
-// Load environment variables from .env file
+// Load environment variables — try backend/.env first, then parent .env
 dotenv.config();
+dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -36,6 +43,14 @@ app.use('/api/orders', labOrderRoutes);
 app.use('/api/reports', reportsRoutes);
 app.use('/api/prescriptions', prescriptionRoutes);
 app.use('/api/consultations', consultationRoutes);
+
+// Lab portal routes
+app.use('/api/lab/dashboard', labDashboardRoutes);
+app.use('/api/lab/patients', labPatientsRoutes);
+app.use('/api/lab/orders', labOrdersRoutes);
+app.use('/api/lab/earnings', labEarningsRoutes);
+app.use('/api/lab/settings', labSettingsRoutes);
+app.use('/api/lab/reports', labReportsRoutes);
 
 // Basic health check route
 app.get('/', (req, res) => {

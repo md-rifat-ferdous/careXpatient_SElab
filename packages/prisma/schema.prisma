@@ -313,6 +313,8 @@ model LabOrder {
   patientId         BigInt         @map("patient_id")
   labId             BigInt         @map("lab_id")
   status            LabOrderStatus @default(Requested)
+  demoStep          Int?           @default(0) @map("demo_step")
+  assignedStaff     String?        @map("assigned_staff") @db.VarChar(100)
   subtotal          Decimal?       @db.Decimal(10, 2)
   vat               Decimal?       @db.Decimal(10, 2)
   homeCollectionFee Decimal?       @map("home_collection_fee") @db.Decimal(10, 2)
@@ -328,6 +330,8 @@ model LabOrder {
   tests      LabOrderTest[]
   labResults  LabResult[]
   parameters  ReportParameter[]
+  rejection   OrderRejection?
+  dispatchLogs ReportDispatchLog[]
 
   @@index([patientId])
   @@map("LabOrder")
@@ -367,7 +371,33 @@ model LabResult {
 
   labOrder LabOrder @relation(fields: [labOrderId], references: [id], onDelete: Cascade)
 
+  @@unique([labOrderId])
   @@map("LabResult")
+}
+
+model OrderRejection {
+  labOrderId BigInt   @id @map("lab_order_id")
+  reason     String   @db.VarChar(255)
+  note       String?  @db.Text
+  rejectedAt DateTime @default(now()) @map("rejected_at") @db.Timestamptz
+
+  labOrder LabOrder @relation(fields: [labOrderId], references: [id], onDelete: Cascade)
+
+  @@map("OrderRejection")
+}
+
+model ReportDispatchLog {
+  id         BigInt   @id @default(autoincrement())
+  labOrderId BigInt   @map("lab_order_id")
+  sentTo     String   @map("sent_to") @db.VarChar(255)
+  channel    String   @db.VarChar(50)
+  sentAt     DateTime @default(now()) @map("sent_at") @db.Timestamptz
+  status     String   @default("Sent") @db.VarChar(50)
+
+  labOrder LabOrder @relation(fields: [labOrderId], references: [id], onDelete: Cascade)
+
+  @@index([labOrderId])
+  @@map("ReportDispatchLog")
 }
 
 model Payment {
