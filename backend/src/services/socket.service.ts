@@ -40,6 +40,17 @@ export function initSocketServer(httpServer: HttpServer): Server {
       socket.leave(room);
     });
 
+    socket.on('order:join', (data: { orderId: string }) => {
+      const room = `order:${data.orderId}`;
+      socket.join(room);
+      console.log(`User ${user.userId} joined room ${room}`);
+    });
+
+    socket.on('order:leave', (data: { orderId: string }) => {
+      const room = `order:${data.orderId}`;
+      socket.leave(room);
+    });
+
     socket.on('waiting:join', (data: { appointmentId: string; patientName: string }) => {
       const room = `appointment:${data.appointmentId}`;
       socket.join(room);
@@ -100,5 +111,14 @@ export function emitConsultationEnded(appointmentId: string, duration: number) {
   io.to(`appointment:${appointmentId}`).emit('consultation:ended', {
     appointmentId,
     duration,
+  });
+}
+
+export function emitLabOrderStatusChange(orderId: string, status: string, data?: Record<string, any>) {
+  if (!io) return;
+  io.to(`order:${orderId}`).emit('laborder:status', {
+    orderId,
+    status,
+    ...data,
   });
 }

@@ -100,6 +100,7 @@ export class LabOrderController {
             patientId: patient.id,
             labId: resolvedLabId,
             status: 'Requested',
+            demoStep: 1,
             subtotal,
             vat,
             homeCollectionFee: orderHomeCollectionFee,
@@ -151,6 +152,11 @@ export class LabOrderController {
       const orders = await prisma.labOrder.findMany({
         where: whereClause,
         include: {
+          patient: {
+            include: {
+              user: { select: { fullName: true } },
+            },
+          },
           tests: {
             include: {
               labTest: {
@@ -159,7 +165,8 @@ export class LabOrderController {
                 }
               }
             }
-          }
+          },
+          rejection: true,
         },
         orderBy: {
           createdAt: 'desc'
@@ -170,6 +177,7 @@ export class LabOrderController {
       const formattedOrders = orders.map((order: any) => ({
         id: order.id.toString(),
         userId: order.patient.userId.toString(),
+        patientName: order.patient.user.fullName ?? 'Unknown',
         status: order.status,
         subtotal: order.subtotal ? Number(order.subtotal) : 0,
         vat: order.vat ? Number(order.vat) : 0,
@@ -178,6 +186,7 @@ export class LabOrderController {
         homeCollection: order.homeCollection,
         collectionAddress: order.collectionAddress,
         createdAt: order.createdAt,
+        rejection: order.rejection ? { reason: order.rejection.reason, note: order.rejection.note } : null,
         items: order.tests.map((ot: any) => ({
            id: `${ot.labOrderId}-${ot.labTestId}`,
            orderId: ot.labOrderId.toString(),

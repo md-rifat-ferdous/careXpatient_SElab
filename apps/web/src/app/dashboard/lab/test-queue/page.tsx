@@ -96,7 +96,7 @@ export default function TestQueuePage() {
     All: orders.length,
     'New Requests': orders.filter((o: any) => o.demoStep === 1).length,
     Accepted: orders.filter((o: any) => o.demoStep === 2).length,
-    Rejected: orders.filter((o: any) => o.demoStep === 0).length,
+    Rejected: orders.filter((o: any) => o.status === 'Cancelled').length,
   };
 
   return (

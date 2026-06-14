@@ -40,3 +40,13 @@ export function leaveWaitingRoom(appointmentId: string, token: string): void {
   const s = getSocket(token);
   s.emit('waiting:leave', { appointmentId });
 }
+
+export function joinOrderRoom(orderId: string, token: string): void {
+  const s = getSocket(token);
+  s.emit('order:join', { orderId });
+}
+
+export function leaveOrderRoom(orderId: string, token: string): void {
+  const s = getSocket(token);
+  s.emit('order:leave', { orderId });
+}

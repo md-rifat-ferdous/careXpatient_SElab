@@ -7,6 +7,8 @@ import { LabTestCard } from '@/components/lab-tests/LabTestCard';
 import { LabTestModal } from '@/components/lab-tests/LabTestModal';
 import { useCartStore } from '@/store/cartStore';
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+
 const TABS = ['All', 'Blood', 'Imaging', 'Cardiac', 'Full Body Checkup'];
 
 function SkeletonCard() {
@@ -54,7 +56,7 @@ export default function LabTestsPage() {
   const fetchTests = async (category: string, q: string) => {
     setLoading(true);
     try {
-      let url = `http://localhost:5000/api/lab-tests?category=${encodeURIComponent(category)}`;
+      let url = `${API_URL}/api/lab-tests?category=${encodeURIComponent(category)}`;
       if (q.trim()) url += `&search=${encodeURIComponent(q.trim())}`;
       const res = await fetch(url);
       if (!res.ok) throw new Error('Failed');
@@ -77,6 +79,7 @@ export default function LabTestsPage() {
     addItem({
       id: test.id,
       testId: test.id,
+      labId: test.labId,
       name: test.name,
       labName: labName ?? test.labName,
       price: price ?? test.price,

@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import prisma from '../../config/prisma';
 import { resolveLabId } from './labHelper';
+import { emitLabOrderStatusChange } from '../../services/socket.service';
 
 const router = Router();
 
@@ -104,6 +105,8 @@ router.patch('/:id/advance', async (req: Request, res: Response) => {
       data: { demoStep: nextStep, status: nextStatus as any },
     });
 
+    emitLabOrderStatusChange(req.params.id, updated.status);
+
     res.json({ success: true, demoStep: updated.demoStep, status: updated.status });
   } catch (error: any) {
     console.error('PATCH /api/lab/orders/:id/advance error:', error);
@@ -128,6 +131,8 @@ router.patch('/:id/assign', async (req: Request, res: Response) => {
       data: { assignedStaff: staffName, demoStep: newStep, status: STATUS_FROM_STEP[newStep] as any },
     });
 
+    emitLabOrderStatusChange(req.params.id, updated.status);
+
     res.json({ success: true, demoStep: updated.demoStep, status: updated.status, assignedStaff: updated.assignedStaff });
   } catch (error: any) {
     console.error('PATCH /api/lab/orders/:id/assign error:', error);
@@ -150,6 +155,8 @@ router.patch('/:id/reject', async (req: Request, res: Response) => {
       }),
     ]);
 
+    emitLabOrderStatusChange(req.params.id, 'Cancelled', { reason, note });
+
     res.json({ success: true });
   } catch (error: any) {
     console.error('PATCH /api/lab/orders/:id/reject error:', error);
@@ -164,6 +171,8 @@ router.patch('/:id/restore', async (req: Request, res: Response) => {
       prisma.orderRejection.delete({ where: { labOrderId: id } }),
       prisma.labOrder.update({ where: { id }, data: { status: 'Requested', demoStep: 1 } }),
     ]);
+
+    emitLabOrderStatusChange(req.params.id, 'Requested');
     res.json({ success: true });
   } catch (error: any) {
     console.error('PATCH /api/lab/orders/:id/restore error:', error);

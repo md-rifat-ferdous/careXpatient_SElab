@@ -4,6 +4,8 @@ import { useState, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useCartStore, CartItem } from '@/store/cartStore';
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+
 type PaymentMethod = 'cash' | 'bkash' | 'card';
 type BkashStep = 'input' | 'otp' | 'verified';
 
@@ -225,7 +227,7 @@ export function CheckoutModal({ isOpen, onClose }: CheckoutModalProps) {
     setLoading(true);
 
     try {
-      const res = await fetch('http://localhost:5000/api/orders', {
+      const res = await fetch(`${API_URL}/api/orders`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -233,7 +235,7 @@ export function CheckoutModal({ isOpen, onClose }: CheckoutModalProps) {
           phone: phone.trim(),
           email: email.trim() || undefined,
           address: address.trim() || undefined,
-          items: items.map(i => ({ testId: i.testId, price: i.price, name: i.name, labName: i.labName })),
+          items: items.map(i => ({ testId: i.testId, price: i.price, name: i.name, labName: i.labName, labId: i.labId })),
           subtotal,
           vat,
           discount,
