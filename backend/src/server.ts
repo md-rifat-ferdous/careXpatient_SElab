@@ -18,6 +18,7 @@ import labOrdersRoutes from './routes/lab/orders.routes';
 import labEarningsRoutes from './routes/lab/earnings.routes';
 import labSettingsRoutes from './routes/lab/settings.routes';
 import labReportsRoutes from './routes/lab/reports.routes';
+import patientRoutes from './routes/patient.routes';
 import { initSocketServer } from './services/socket.service';
 // Load environment variables — try backend/.env first, then parent .env
 dotenv.config();
@@ -51,6 +52,9 @@ app.use('/api/lab/orders', labOrdersRoutes);
 app.use('/api/lab/earnings', labEarningsRoutes);
 app.use('/api/lab/settings', labSettingsRoutes);
 app.use('/api/lab/reports', labReportsRoutes);
+
+// Patient portal routes
+app.use('/api/patients', patientRoutes);
 
 // Basic health check route
 app.get('/', (req, res) => {
