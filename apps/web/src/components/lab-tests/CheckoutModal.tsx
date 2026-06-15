@@ -265,7 +265,7 @@ export function CheckoutModal({ isOpen, onClose }: CheckoutModalProps) {
     setCardNumber(''); setExpiry(''); setCvv('');
     setPayment('cash'); setError('');
     onClose();
-    router.push('/dashboard/reports');
+    router.push('/dashboard/patient/reports');
   };
 
   return (

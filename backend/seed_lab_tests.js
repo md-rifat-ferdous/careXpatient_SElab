@@ -28,6 +28,13 @@ async function main() {
       labName: 'Labaid Diagnostics',
       address: 'Mirpur Road, Dhaka',
     },
+    {
+      phone: '01700000003',
+      fullName: 'CareX Lab',
+      password: 'lab123',
+      labName: 'CareX Lab',
+      address: 'House 10, Road 5, Gulshan, Dhaka',
+    },
   ];
 
   const createdLabs = [];
@@ -56,7 +63,7 @@ async function main() {
     console.log(`  ✓ Lab created: ${lab.name} (id: ${lab.id})`);
   }
 
-  const [popularLab, ibnSinaLab, labaidLab] = createdLabs;
+  const [popularLab, ibnSinaLab, labaidLab, carexLab] = createdLabs;
 
   // ── 2. Create Lab Tests ───────────────────────────────────────────────────
   const labTests = [
@@ -247,6 +254,44 @@ async function main() {
       category: 'Full Body Checkup',
       labId: labaidLab.id,
     },
+
+    // ── CareX Lab Tests ──
+    {
+      name: 'Complete Blood Count (CBC)',
+      tag: 'Basic',
+      tagColor: '#14B8A6',
+      description: 'A comprehensive blood test that evaluates overall health and detects a wide range of disorders.',
+      prerequisites: 'Fasting for 8 hours preferred.',
+      deliveryTime: '6–8 hours',
+      sampleType: 'Blood',
+      price: 300,
+      category: 'Blood',
+      labId: carexLab.id,
+    },
+    {
+      name: 'Urine Routine Examination',
+      tag: 'Most Popular',
+      tagColor: '#8B5CF6',
+      description: 'Analyzes the physical, chemical, and microscopic properties of urine to detect urinary tract infections, kidney disorders, and diabetes.',
+      prerequisites: 'First morning urine sample preferred. Clean mid-stream collection.',
+      deliveryTime: '4–6 hours',
+      sampleType: 'Urine',
+      price: 250,
+      category: 'Urine',
+      labId: carexLab.id,
+    },
+    {
+      name: 'Blood Glucose (Random)',
+      tag: 'Quick Result',
+      tagColor: '#F59E0B',
+      description: 'Measures blood glucose level at any time of day without fasting. Useful for monitoring diabetes and detecting hyperglycemia.',
+      prerequisites: 'No fasting required.',
+      deliveryTime: '2–4 hours',
+      sampleType: 'Blood',
+      price: 150,
+      category: 'Blood',
+      labId: carexLab.id,
+    },
   ];
 
   console.log('\n📋 Creating Lab Tests...\n');
@@ -278,11 +323,12 @@ async function main() {
     }
   }
 
-  console.log(`\n✅ Done! ${created} lab tests seeded across 3 labs.`);
+  console.log(`\n✅ Done! ${created} lab tests seeded across 4 labs.`);
   console.log('\n📊 Summary:');
   console.log(`  • Popular Diagnostic Centre: Blood, Imaging, Cardiac, Full Body tests`);
   console.log(`  • Ibn Sina Diagnostic: Blood, Imaging, Cardiac, Full Body tests`);
   console.log(`  • Labaid Diagnostics: Blood, Imaging, Cardiac, Full Body tests`);
+  console.log(`  • CareX Lab: Blood, Urine tests`);
   console.log('\n🎉 Navigate to http://localhost:3000/dashboard/patient/lab-tests to see them!\n');
 }
 

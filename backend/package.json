@@ -11,7 +11,7 @@
     "prisma:studio": "prisma studio",
     "lint": "eslint src --ext .ts",
     "type-check": "tsc --noEmit",
-    "seed:all": "node seed_doctors.js && node seed_lab_tests.js && node seed_reports.js && node seed_prescriptions.js && node seed_demo_orders.js"
+    "seed:all": "node seed_doctors.js && node seed_lab_tests.js && node seed_reports.js && node seed_prescriptions.js && node seed_demo_orders.js && node create_test_accounts.js"
   },
   "dependencies": {
     "@prisma/client": "^6.2.0",

@@ -37,7 +37,7 @@ async function main() {
       password: 'lab123',
       role: 'Lab',
       details: {
-        name: 'Modern Lab Center',
+        name: 'CareX Lab',
         address: 'Uttara, Dhaka',
         phone: '01700000003'
       }

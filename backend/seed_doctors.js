@@ -8,8 +8,6 @@ async function main() {
   await prisma.$executeRawUnsafe(`DELETE FROM "Appointment" WHERE doctor_id IN (SELECT id FROM "Doctor")`).catch(() => {});
   await prisma.$executeRawUnsafe(`DELETE FROM "Doctor"`);
   await prisma.$executeRawUnsafe(`DELETE FROM "Specialty"`);
-  await prisma.$executeRawUnsafe(`DELETE FROM "User" WHERE role = 'Doctor'`);
-
   console.log('Seeding specialties...');
   const specialtyNames = [
     'Cardiologist', 'Pediatrician', 'Dermatologist', 
