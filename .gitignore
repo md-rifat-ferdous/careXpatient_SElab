@@ -31,3 +31,12 @@ task.md
 packages/ui/src/**/*.js
 packages/ui/src/**/*.d.ts
 packages/ui/src/**/*.d.ts.map
+
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+
+# Development uploads
+backend/uploads/
